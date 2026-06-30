@@ -1,0 +1,113 @@
+# Déploiement de l'Orchestrateur — guide pas-à-pas
+
+> **But** : publier l'app à l'adresse **`https://ecofisc.corda.consulting`** (ton domaine Corda, hébergé chez Namecheap / cPanel) et lui brancher une **base de données partagée au Canada**, avec une authentification validée sur le serveur.
+
+## L'idée en une phrase (l'architecture retenue)
+**cPanel sert la page ; Supabase garde les données.** Deux morceaux qui vivent à deux endroits :
+- **Le frontend** (`orchestrateur.html`) = un simple fichier → hébergé sur **cPanel** à `ecofisc.corda.consulting`.
+- **Les données + l'auth** (codes, identités, réponses, commentaires) = **Supabase**, **région Canada**.
+
+```
+  Navigateur  ─(charge la page)─►  cPanel / Namecheap  (sert UN fichier HTML, AUCUNE donnée perso)
+       │
+       └─(codes, réponses, commentaires)─►  Supabase (Canada)  ── base verrouillée (RLS) + Edge Functions
+```
+
+### ⚠️ Pourquoi PAS tout mettre sur cPanel ?
+Tu as **déjà verrouillé** « région Canada exigée par la Loi 25 » (on stocke des **noms de représentants** + leurs commentaires = renseignements personnels). Or les serveurs d'hébergement partagé Namecheap/cPanel sont aux **États-Unis (Phoenix) ou au R.-U.**, **pas au Canada** — y déposer ces données serait un **transfert transfrontalier** à éviter. La solution propre : la page (qui ne contient **aucune** donnée perso) est servie par cPanel ; les données entrées par les villes vont **directement** du navigateur vers **Supabase Canada**, sans jamais transiter ni dormir sur le serveur Namecheap. Sa localisation devient donc sans conséquence.
+*(Mettre la base sur cPanel/MySQL serait aussi **plus** de code à écrire et à maintenir que Supabase — l'inverse de « pas de dev pour l'instant ».)*
+
+## Décisions verrouillées (mise à jour 2026-06-30)
+- **Adresse publique : `ecofisc.corda.consulting`** (sous-domaine de `corda.consulting`, domaine Namecheap, hébergement **cPanel**). On part **de zéro** sur ce domaine.
+- **Frontend : hébergé sur cPanel** (un fichier `index.html`). **Backend : Supabase**, **région Canada (Central)**.
+- **Multi-projets** : l'app pilote plusieurs projets, chacun **« ville unique »** ou **« multi-villes »** (ex. une MRC). Le schéma inclut donc une table `projects` + un `project_id` sur les codes ; le projet « MRC Thérèse-De Blainville » est **amorcé d'office**. La suppression d'un projet est **douce** (champ `deleted_at` = archive, on ne détruit jamais).
+- **Connexion des villes : par code**, validé **côté serveur** (Edge Functions). **Admin = vrai compte** (courriel + mot de passe Supabase).
+- **Pas de dev pour l'instant** → ce guide flagge chaque point de sécurité à valider avant une vraie utilisation.
+
+---
+
+## PARTIE A — Mettre l'app EN LIGNE sur `ecofisc.corda.consulting` (cPanel)
+> ≈ 20 min, aucune ligne de code. **Bon à savoir :** dès cette étape, l'app est **visible et fonctionnelle** à ton adresse — mais en **mode local** (chaque navigateur garde ses propres réponses, rien n'est encore centralisé). La centralisation arrive en Partie B+C. Ça te permet de **voir le résultat tout de suite** et de le montrer à Fanny.
+
+### A1. Pointer le domaine vers l'hébergement
+1. **Namecheap → Domain List → `corda.consulting` → Manage.**
+2. Section **Nameservers** : choisis les **serveurs de noms de ton hébergement** (ils sont dans le courriel de bienvenue cPanel, du genre `dns1.namecheaphosting.com` / `dns2.…`). *(Si domaine et hébergement sont déjà liés dans ton tableau de bord Namecheap, c'est peut-être déjà fait.)*
+3. La propagation DNS peut prendre de **quelques minutes à ~24 h** (souvent < 1 h).
+
+### A2. Créer le sous-domaine `ecofisc`
+1. **cPanel → section Domains → Domains (ou « Subdomains »).** Clique **Create / Create a New Domain**.
+2. Saisis **`ecofisc.corda.consulting`**. cPanel propose automatiquement un **dossier racine** (Document Root), par ex. `/home/<ton-user>/ecofisc.corda.consulting`. Note ce chemin.
+3. Crée. Le sous-domaine existe maintenant.
+
+### A3. Téléverser l'app
+1. **cPanel → File Manager** → entre dans le **dossier racine** du sous-domaine (celui noté en A2).
+2. **Upload** le fichier `orchestrateur.html`, puis **renomme-le `index.html`** (pour qu'il s'ouvre à la racine de l'adresse, sans avoir à taper le nom du fichier).
+   - *Alternative :* via **FTP** (identifiants dans cPanel → FTP Accounts) si tu préfères glisser-déposer depuis l'explorateur.
+
+### A4. Activer le HTTPS (cadenas)
+1. **cPanel → SSL/TLS Status** (ou « SSL/TLS » → AutoSSL). Coche `ecofisc.corda.consulting` → **Run AutoSSL**. cPanel installe un certificat **Let's Encrypt** gratuit.
+2. **Indispensable** : sans HTTPS, le navigateur bloquera plus tard les appels à Supabase et certaines fonctions (presse-papier, etc.).
+
+### ✅ Vérif Partie A
+Ouvre **`https://ecofisc.corda.consulting`** → l'écran de connexion de l'Orchestrateur s'affiche, cadenas vert. (En mode local pour l'instant : tu peux déjà te connecter en admin et tester l'interface.)
+
+---
+
+## PARTIE B — Créer le BACKEND Supabase (région Canada)
+> ≈ 20 min, aucune ligne de code. C'est ce qui rend les réponses **partagées et centralisées** (au lieu de rester dans chaque navigateur).
+
+### B1. Créer le projet Supabase
+1. **supabase.com → Start your project** → connecte-toi.
+2. **New project. Region : `Canada (Central)`** ← important (Loi 25). Mot de passe de base **fort**, noté dans ton gestionnaire.
+3. Attends ~2 min le provisionnement.
+
+### B2. Créer les tables
+1. **SQL Editor → New query.**
+2. Ouvre **`schema.sql`** (ce dossier), copie tout, colle, **Run**. Tu dois voir « Success » (Table Editor → `projects`, `access_codes` et `responses`).
+
+### B3. Verrouiller les inscriptions + créer les comptes admin
+1. **Authentication → Sign In / Providers** → **désactive les inscriptions publiques** (« Allow new users to sign up » → OFF).
+2. **Authentication → Users → Add user** : crée **à la main** le(s) compte(s) admin (toi, Fanny), mot de passe **fort** (active la 2FA si dispo). *(Tu peux utiliser une adresse `@corda.consulting` une fois ta messagerie cPanel configurée — optionnel.)*
+
+### B4. Récupérer les clés (Settings → API)
+- **Project URL** — *sûre à partager* (ex. `https://abcdxyz.supabase.co`).
+- **anon public key** — *sûre à partager* (clé publique, conçue pour vivre dans la page).
+- **service_role key** — 🔴 **SECRÈTE. Passe-partout.** JAMAIS dans le frontend, ne me l'envoie PAS, pas par courriel. Elle servira uniquement de *secret* d'Edge Function (Partie C).
+
+### ✅ À m'envoyer pour la suite
+Juste **Project URL** + **anon public key** (les deux publiques). Avec ça je branche tout (Partie C).
+
+---
+
+## PARTIE C — Brancher les deux (le code — c'est MOI)
+> Je le construis et te donne, pour chaque morceau, les étapes exactes (boutons cPanel / Supabase, ou commandes à copier-coller).
+
+- **C1. Edge Functions « villes »** (`ville-claim`, `ville-get`, `ville-set`) : la porte serveur qui valide un code et lit/écrit seulement **ses** réponses (clé `service_role` côté serveur, jamais exposée).
+- **C2. Brancher `index.html`** sur ta base : mode « en ligne » (lit/écrit dans Supabase) avec **repli localStorage** si pas de config. L'admin parle à la base (auth Supabase) ; les villes passent par les Edge Functions.
+- **C3. Autoriser ton domaine (CORS)** : déclarer `https://ecofisc.corda.consulting` comme origine permise côté Supabase, pour que la page hébergée sur cPanel ait le droit d'appeler la base.
+- **C4. Re-téléverser** le `index.html` final sur cPanel (re-upload via File Manager) — **un seul fichier**, comme en Partie A.
+- **C5. Test de bout en bout** : admin génère un code → une « ville » se connecte depuis un **autre appareil** sur `ecofisc.corda.consulting` → code → ses réponses atterrissent dans Supabase → l'admin les voit dans le Portrait.
+
+---
+
+## 🔒 Checklist sécurité & Loi 25 (puisque pas de dev — à valider avant la VRAIE utilisation)
+- [ ] **Données (Supabase) en région Canada** confirmée — *c'est là que vivent les renseignements personnels*.
+- [ ] **cPanel/Namecheap ne stocke AUCUNE donnée perso** (sert seulement le fichier) → sa localisation US/UK n'est pas un enjeu de résidence des données.
+- [ ] **HTTPS actif** (AutoSSL) sur `ecofisc.corda.consulting`.
+- [ ] **service_role key** jamais dans le frontend / jamais partagée (uniquement secret d'Edge Function).
+- [ ] **Inscriptions publiques désactivées** ; comptes admin créés à la main ; **mots de passe forts + 2FA**.
+- [ ] **RLS active** sur les deux tables (le `schema.sql` le fait ; vérifier « enabled »).
+- [ ] **CORS** limité à `https://ecofisc.corda.consulting` (pas `*`).
+- [ ] **Finalité + consentement** : courte mention de confidentialité dans l'app (pourquoi on collecte prénom/nom/fonction, qui y accède, combien de temps).
+- [ ] **Durée de conservation** définie (purge après le mandat ?).
+- [ ] **Journal d'accès** (qui s'est connecté, quand) — attendu sous Loi 25.
+- [ ] **Sauvegardes** Supabase : confirmer la politique de rétention.
+
+## 💵 Coûts
+- **Domaine `corda.consulting`** (Namecheap) : déjà payé (~15-20 $/an).
+- **Hébergement cPanel** (Namecheap) : déjà payé — sert le fichier + le HTTPS gratuitement (AutoSSL/Let's Encrypt).
+- **Supabase** : palier **gratuit** (large pour 7 villes / quelques dizaines de répondants). Payant (~25 $US/mois) seulement à plus grande échelle.
+- **Total nouveau pour ce projet : 0 $** (tu réutilises domaine + hébergement déjà en main).
+
+---
+*Prochaine étape côté toi : **Partie A** (mettre l'app en ligne — visible tout de suite) puis **Partie B** (Supabase Canada) → m'envoyer Project URL + anon key. Prochaine étape côté moi : **Partie C** dès que j'ai ces deux clés.*

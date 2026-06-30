@@ -1,0 +1,27 @@
+# ===== Secrets — JAMAIS dans Git =====
+.env
+.env.*
+*.key
+*.pem
+secrets*
+service_role*
+
+# ===== Artefacts temporaires / tests =====
+.playwright-mcp/
+*.tmp
+*.log
+
+# ===== OS / éditeurs =====
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+
+# ===== Dépendances éventuelles =====
+node_modules/
+
+# ===== Versionnage manuel, remplacé par l'historique Git =====
+old/
+
+# ===== Autre produit Corda (hors périmètre de ce dépôt) =====
+corda-levered-all-weather-factsheet.html

@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Studio — Identité MRC Thérèse-De Blainville</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Newsreader:opsz,ital,wght@6..72,0,400;6..72,0,500;6..72,0,600;6..72,1,400&family=Spectral:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ============ STUDIO CHROME (table à dessin — identité propre, fixe) ============ */
+  :root{
+    --c-bg:#0F151A; --c-panel:#161E25; --c-panel-2:#11181E; --c-line:#27323B;
+    --c-text:#DBE3E8; --c-muted:#8593A0; --c-faint:#5C6B76;
+    --c-accent:#46C2AE; --c-accent-soft:rgba(70,194,174,.14);
+    --c-mono:"IBM Plex Mono", ui-monospace, monospace;
+    --c-sans:"Inter", system-ui, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--c-bg); color:var(--c-text); font-family:var(--c-sans);
+    font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column; height:100vh; height:100dvh; overflow:hidden;
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .stage-sheet, .chip, .seg button{transition:background .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease}
+  }
+
+  /* Header */
+  header.studio{
+    display:flex; align-items:center; gap:18px; padding:12px 20px;
+    border-bottom:1px solid var(--c-line); background:linear-gradient(var(--c-panel),var(--c-panel-2));
+    flex:0 0 auto; flex-wrap:wrap;
+  }
+  .wm{display:flex; flex-direction:column; gap:2px; line-height:1.1}
+  .wm b{font-weight:600; letter-spacing:.02em; font-size:15px}
+  .wm small{color:var(--c-muted); font-family:var(--c-mono); font-size:10.5px; letter-spacing:.04em; text-transform:uppercase}
+  .reg{width:16px; height:16px; position:relative; opacity:.8}
+  .reg::before,.reg::after{content:""; position:absolute; background:var(--c-accent)}
+  .reg::before{left:7px; top:0; width:2px; height:16px}
+  .reg::after{top:7px; left:0; height:2px; width:16px}
+  header .spacer{flex:1}
+  .badge-wrap{display:flex; gap:10px; align-items:center; font-family:var(--c-mono); font-size:11px}
+  .cbadge{display:flex; flex-direction:column; gap:2px; padding:6px 10px; border:1px solid var(--c-line); border-radius:7px; background:var(--c-panel-2)}
+  .cbadge .lab{color:var(--c-faint); font-size:9.5px; letter-spacing:.06em; text-transform:uppercase}
+  .cbadge .val{display:flex; gap:6px; align-items:center}
+  .pill{padding:1px 6px; border-radius:20px; font-size:10px; font-weight:600}
+  .pill.ok{background:rgba(70,194,174,.16); color:#7FE0CE}
+  .pill.warn{background:rgba(224,160,48,.16); color:#F0C674}
+  .pill.bad{background:rgba(200,70,60,.18); color:#F09A92}
+  button.act{
+    font-family:var(--c-sans); font-weight:600; font-size:13px; cursor:pointer;
+    border:1px solid var(--c-accent); color:#04211D; background:var(--c-accent);
+    padding:9px 16px; border-radius:8px;
+  }
+  button.act:hover{filter:brightness(1.06)}
+  button.ghost{
+    font-family:var(--c-sans); font-size:12.5px; cursor:pointer; color:var(--c-muted);
+    border:1px solid var(--c-line); background:transparent; padding:9px 13px; border-radius:8px;
+  }
+  button.ghost:hover{color:var(--c-text); border-color:var(--c-faint)}
+  :focus-visible{outline:2px solid var(--c-accent); outline-offset:2px; border-radius:4px}
+
+  /* Body layout */
+  main{display:grid; grid-template-columns:340px 1fr; flex:1 1 auto; min-height:0}
+
+  /* Controls panel */
+  aside{
+    border-right:1px solid var(--c-line); background:var(--c-panel-2);
+    overflow-y:auto; padding:6px 0 40px;
+    background-image:linear-gradient(var(--c-line) 1px,transparent 1px),linear-gradient(90deg,var(--c-line) 1px,transparent 1px);
+    background-size:26px 26px; background-position:-1px -1px;
+  }
+  aside::-webkit-scrollbar{width:10px} aside::-webkit-scrollbar-thumb{background:#222c34; border-radius:6px}
+  .presets{padding:14px 16px 6px}
+  .grp{padding:12px 16px 4px; border-top:1px solid var(--c-line); margin-top:8px}
+  .grp:first-of-type{border-top:none; margin-top:0}
+  .grp > h3{
+    margin:0 0 10px; font-family:var(--c-mono); font-size:10.5px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--c-faint); display:flex; align-items:center; gap:8px;
+  }
+  .grp > h3 .nn{color:var(--c-accent)}
+  .axis{margin-bottom:13px}
+  .axis > label{display:block; font-size:11.5px; color:var(--c-muted); margin-bottom:6px; font-weight:500}
+  .chips{display:flex; flex-wrap:wrap; gap:6px}
+  .chip{
+    cursor:pointer; border:1px solid var(--c-line); background:var(--c-panel); color:var(--c-text);
+    padding:7px 10px; border-radius:7px; font-size:12px; line-height:1.15; display:flex; flex-direction:column; gap:2px;
+  }
+  .chip small{color:var(--c-faint); font-size:9.5px; font-family:var(--c-mono); letter-spacing:.03em}
+  .chip:hover{border-color:var(--c-faint)}
+  .chip[aria-pressed="true"]{border-color:var(--c-accent); background:var(--c-accent-soft); box-shadow:inset 0 0 0 1px var(--c-accent)}
+  .chip.font-chip{font-size:15px; padding:8px 11px}
+  .seg{display:flex; flex-wrap:wrap; gap:0; border:1px solid var(--c-line); border-radius:8px; overflow:hidden; width:fit-content; max-width:100%}
+  .seg button{
+    cursor:pointer; border:none; background:var(--c-panel); color:var(--c-muted);
+    padding:7px 12px; font-size:12px; font-family:inherit; border-right:1px solid var(--c-line);
+  }
+  .seg button:last-child{border-right:none}
+  .seg button[aria-pressed="true"]{background:var(--c-accent-soft); color:var(--c-text); box-shadow:inset 0 -2px 0 var(--c-accent)}
+  .swatch{width:15px; height:15px; border-radius:4px; border:1px solid rgba(255,255,255,.18); display:inline-block; vertical-align:-2px; margin-right:6px}
+  .pal-row{display:flex; gap:3px; margin-top:5px}
+  .pal-row i{width:13px; height:13px; border-radius:3px; display:block; border:1px solid rgba(255,255,255,.14)}
+  input[type=color]{width:32px; height:28px; padding:0; border:1px solid var(--c-line); border-radius:6px; background:var(--c-panel); cursor:pointer; vertical-align:middle}
+
+  /* Stage */
+  .stage-wrap{
+    overflow:auto; padding:26px; min-height:0; position:relative;
+    background:
+      radial-gradient(circle at 18px 18px, var(--c-line) 1px, transparent 1.4px);
+    background-size:36px 36px; background-color:#0C1217;
+  }
+  .tabs{display:flex; gap:6px; margin-bottom:18px; position:sticky; top:0; z-index:3}
+  .tabs button{
+    cursor:pointer; font-family:var(--c-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--c-muted); background:var(--c-panel); border:1px solid var(--c-line); border-radius:7px 7px 0 0;
+    padding:8px 14px; border-bottom:none;
+  }
+  .tabs button[aria-pressed="true"]{color:var(--c-text); background:var(--c-panel); box-shadow:inset 0 2px 0 var(--c-accent)}
+  .sheet-holder{position:relative; max-width:920px}
+  .corner{position:absolute; width:14px; height:14px; pointer-events:none; opacity:.5}
+  .corner::before,.corner::after{content:""; position:absolute; background:var(--c-accent)}
+  .corner::before{width:14px; height:1.5px; top:6px} .corner::after{height:14px; width:1.5px; left:6px}
+  .corner.tl{left:-22px; top:-22px} .corner.tr{right:-22px; top:-22px} .corner.bl{left:-22px; bottom:-22px} .corner.br{right:-22px; bottom:-22px}
+
+  /* ============ STAGE TOKENS (l'identité choisie vit ici) ============ */
+  #stage{
+    --font-display:"Fraunces",Georgia,serif; --font-body:"Inter",system-ui,sans-serif; --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+    --fs-display:3.4rem; --fs-h1:2.3rem; --fs-h2:1.45rem; --fs-body:1.02rem; --fs-small:.8rem;
+    --track-display:-.01em; --track-eyebrow:.16em; --lh-body:1.62;
+    --color-bg:#FCFCFA; --color-surface:#F2F4F0; --color-ink:#15191B; --color-muted:#5B6560; --color-line:#DEE3DF;
+    --color-accent:#1E6E64; --color-accent-ink:#FFFFFF; --color-accent-2:#B5862B;
+    --radius:8px; --bw:1px; --pad:16px; --gap:16px; --row-h:42px;
+    --shadow:none; --card-bw:1px; --card-bc:var(--color-line);
+    --cat-1:#E3B341; --cat-2:#D1605E; --cat-3:#9BA8B6; --cat-4:#8E7CC3; --cat-5:#3E78B2; --cat-6:#B0668F;
+    --fav-1:#2E7D45; --fav-3:#9AA0A6; --fav-5:#C0392B;
+    --bg-texture:none;
+    background:var(--color-bg); color:var(--color-ink); font-family:var(--font-body); line-height:var(--lh-body);
+    border-radius:calc(var(--radius) + 2px); position:relative; isolation:isolate;
+    box-shadow:0 18px 50px -20px rgba(0,0,0,.6);
+    container-type:inline-size; container-name:stage;
+  }
+  #stage::before{content:""; position:absolute; inset:0; background:var(--bg-texture); border-radius:inherit; pointer-events:none; z-index:0; mix-blend-mode:multiply}
+  #stage > *{position:relative; z-index:1}
+  .surface{display:none; padding:30px}
+  .surface.on{display:block}
+  #stage .eyebrow{font-family:var(--font-mono); font-size:var(--fs-small); letter-spacing:var(--track-eyebrow); text-transform:uppercase; color:var(--color-accent); font-weight:600}
+  #stage h1,#stage h2,#stage .display{font-family:var(--font-display); color:var(--color-ink); margin:0}
+  #stage .display{font-size:var(--fs-display); line-height:1.04; letter-spacing:var(--track-display); font-weight:600}
+  #stage h1{font-size:var(--fs-h1); line-height:1.1; letter-spacing:var(--track-display); font-weight:600}
+  #stage h2{font-size:var(--fs-h2); line-height:1.18; font-weight:500}
+  #stage p{font-size:var(--fs-body); margin:.7em 0; color:color-mix(in srgb, var(--color-ink) 88%, var(--color-bg))}
+  #stage .num{font-family:var(--font-mono); font-variant-numeric:tabular-nums}
+  #stage .muted{color:var(--color-muted)}
+
+  /* App surface */
+  .app-top{display:flex; align-items:center; gap:12px; padding-bottom:18px; border-bottom:var(--bw) solid var(--color-line); margin-bottom:20px}
+  .app-mark{font-family:var(--font-display); font-weight:600; font-size:1.15rem}
+  .app-tag{font-family:var(--font-mono); font-size:.7rem; color:var(--color-muted); border:1px solid var(--color-line); padding:3px 7px; border-radius:20px; letter-spacing:.03em; white-space:nowrap}
+  .app-grid{display:grid; grid-template-columns:1.1fr .9fr; gap:var(--gap)}
+  /* aperçu responsive : voir requêtes @container en bas de la feuille */
+  .card{background:var(--color-surface); border:var(--card-bw) solid var(--card-bc); border-radius:var(--radius); padding:var(--pad); box-shadow:var(--shadow)}
+  .card h3{margin:0 0 12px; font-family:var(--font-display); font-weight:600; font-size:1.05rem}
+  .field{margin-bottom:13px}
+  .field label{display:block; font-size:.72rem; text-transform:uppercase; letter-spacing:.07em; color:var(--color-muted); margin-bottom:5px; font-family:var(--font-mono)}
+  .selectish{display:flex; justify-content:space-between; align-items:center; background:var(--color-bg); border:var(--bw) solid var(--color-line); border-radius:calc(var(--radius) - 2px); padding:9px 11px; font-size:.92rem}
+  .track{height:6px; background:var(--color-line); border-radius:20px; position:relative; margin:14px 2px 4px}
+  .track i{position:absolute; left:0; top:0; bottom:0; width:54%; background:var(--color-accent); border-radius:20px}
+  .track b{position:absolute; left:54%; top:50%; transform:translate(-50%,-50%); width:15px; height:15px; border-radius:50%; background:var(--color-bg); border:2px solid var(--color-accent)}
+  .bignum{margin-top:6px; padding-top:12px; border-top:var(--bw) solid var(--color-line)}
+  .bignum .v{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:1.7rem; font-weight:600; color:var(--color-ink); letter-spacing:-.02em; white-space:nowrap}
+  .bignum .k{font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; color:var(--color-muted); font-family:var(--font-mono)}
+
+  table.roll{width:100%; border-collapse:collapse; font-size:.86rem}
+  table.roll th{font-family:var(--font-mono); font-size:.64rem; text-transform:uppercase; letter-spacing:.06em; color:var(--color-muted); text-align:left; padding:0 8px 8px; font-weight:500}
+  table.roll td{padding:0 8px; height:var(--row-h); border-top:1px solid var(--color-line); vertical-align:middle}
+  table.roll td.num{text-align:right; font-family:var(--font-mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+  .utag{display:inline-flex; align-items:center; gap:6px; font-size:.78rem; padding:3px 8px; border-radius:20px; background:color-mix(in srgb, var(--utag-c,var(--cat-1)) 18%, var(--color-bg)); color:var(--color-ink); white-space:nowrap}
+  .utag i{width:8px; height:8px; border-radius:50%; background:var(--utag-c,var(--cat-1)); flex:0 0 auto}
+
+  .gridchips{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px}
+  .gchip{display:flex; align-items:center; gap:8px; font-size:.8rem; padding:7px 11px; border-radius:var(--radius); border:var(--bw) solid var(--color-line); background:color-mix(in srgb, var(--gc,var(--fav-3)) 12%, var(--color-bg))}
+  .gchip i{width:9px; height:9px; border-radius:50%; background:var(--gc,var(--fav-3))}
+  .btnrow{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap}
+  .b-primary{background:var(--color-accent); color:var(--color-accent-ink); border:none; border-radius:var(--radius); padding:10px 16px; font-family:var(--font-body); font-weight:600; font-size:.9rem; cursor:pointer}
+  .b-secondary{background:transparent; color:var(--color-ink); border:var(--bw) solid var(--color-line); border-radius:var(--radius); padding:10px 16px; font-family:var(--font-body); font-size:.9rem; cursor:pointer}
+
+  /* chart */
+  .chart-card .cap{font-family:var(--font-mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--color-muted); margin-bottom:10px}
+  svg.viz{width:100%; height:130px; display:block; overflow:visible}
+  .viz .bar{fill:var(--color-accent)}
+  .viz .area-fill{fill:color-mix(in srgb,var(--color-accent) 18%, transparent); display:none}
+  .viz .area-line{fill:none; stroke:var(--color-accent); stroke-width:2; display:none}
+  .viz .axis{stroke:var(--color-line); stroke-width:1}
+  .viz .blab{font-family:var(--font-mono); font-size:8px; fill:var(--color-muted)}
+  #stage.viz-aires .viz .bar{display:none}
+  #stage.viz-aires .viz .area-fill,#stage.viz-aires .viz .area-line{display:block}
+  #stage.viz-minimal .viz .blab,#stage.viz-minimal .viz .axis{display:none}
+  #stage.viz-minimal svg.viz{height:96px}
+  #stage.viz-editorial .viz .bar{fill:color-mix(in srgb,var(--color-accent) 84%, var(--color-ink))}
+  .annot{display:none; font-family:var(--font-mono); font-size:.66rem; color:var(--color-muted); margin-top:6px}
+  #stage.viz-editorial .annot{display:block}
+
+  /* Document surface */
+  .doc{max-width:660px; margin:0 auto}
+  .doc .byline{font-family:var(--font-mono); font-size:.74rem; color:var(--color-muted); margin:10px 0 22px; letter-spacing:.02em}
+  .doc h1{margin-bottom:6px}
+  .doc .lede{font-size:calc(var(--fs-body) * 1.12)}
+  /* lettrine retirée — Vincent 2026-06-28 : ornement « marqué » conservé (filets), sans la grosse lettre initiale */
+  .pullquote{font-family:var(--font-display); font-size:1.5rem; line-height:1.3; color:var(--color-ink); border-left:3px solid var(--color-accent); padding:6px 0 6px 18px; margin:24px 0; font-weight:500}
+  .rule{height:1px; background:var(--color-line); border:none; margin:22px 0; display:none}
+  #stage.orn-subtil .rule,#stage.orn-marque .rule{display:block}
+  #stage.orn-marque .rule{height:2px; background:var(--color-ink)}
+  table.mini{width:100%; border-collapse:collapse; font-size:.85rem; margin-top:8px}
+  table.mini th,table.mini td{text-align:left; padding:8px 6px; border-bottom:1px solid var(--color-line)}
+  table.mini th{font-family:var(--font-mono); font-size:.66rem; text-transform:uppercase; letter-spacing:.05em; color:var(--color-muted); font-weight:500}
+  table.mini td.num{text-align:right; font-family:var(--font-mono); font-variant-numeric:tabular-nums}
+
+  /* Slide surface */
+  .slide{aspect-ratio:16/9; background:var(--color-bg); border:var(--bw) solid var(--color-line); border-radius:var(--radius); padding:38px 42px; display:flex; flex-direction:column; box-shadow:var(--shadow)}
+  .slide .display{font-size:calc(var(--fs-display) * .92); margin-top:6px}
+  .slide .sub{font-size:1.05rem; color:var(--color-muted); margin-top:10px; max-width:70%}
+  .slide .sfill{flex:1; display:flex; align-items:flex-end; gap:14px; padding-top:18px}
+  .slide .sbar{flex:1; background:color-mix(in srgb,var(--color-accent) 80%, var(--color-bg)); border-radius:4px 4px 0 0}
+  .slide .sfoot{display:flex; justify-content:space-between; gap:12px; font-family:var(--font-mono); font-size:.7rem; color:var(--color-muted); margin-top:16px; letter-spacing:.04em; border-top:var(--bw) solid var(--color-line); padding-top:10px; white-space:nowrap}
+
+  /* Notes + gen */
+  .notes-bar{max-width:920px; margin:22px 0 10px; display:flex; gap:12px; align-items:flex-end}
+  .notes-bar .f{flex:1}
+  .notes-bar label{display:block; font-family:var(--c-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--c-faint); margin-bottom:6px}
+  textarea#notes{width:100%; min-height:54px; resize:vertical; background:var(--c-panel); color:var(--c-text); border:1px solid var(--c-line); border-radius:8px; padding:10px 12px; font-family:var(--c-sans); font-size:13px}
+  .foot-hint{font-family:var(--c-mono); font-size:10.5px; color:var(--c-faint); max-width:920px; margin-top:4px}
+
+  /* ============ RESPONSIVE — ajout 2026-06-28 ============ */
+  /* En-tête de scène : onglets de surface + simulateur de largeur côte à côte */
+  .stage-head{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px 16px; margin-bottom:18px}
+  .stage-head .tabs{margin-bottom:0; position:static; z-index:auto}
+  .vp{display:flex; align-items:center; border:1px solid var(--c-line); border-radius:8px; overflow:hidden; background:var(--c-panel)}
+  .vp .vp-lab{font-family:var(--c-mono); font-size:9.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--c-faint); padding:0 11px}
+  .vp button{cursor:pointer; border:none; background:transparent; color:var(--c-muted); padding:7px 12px; font-family:var(--c-mono); font-size:11px; letter-spacing:.04em; border-left:1px solid var(--c-line)}
+  .vp button:hover{color:var(--c-text)}
+  .vp button[aria-pressed="true"]{background:var(--c-accent-soft); color:var(--c-text); box-shadow:inset 0 -2px 0 var(--c-accent)}
+
+  /* (1) OUTIL STUDIO adaptatif — requêtes MÉDIA (taille de la fenêtre) */
+  .menu-toggle{display:none; align-items:center; gap:8px; cursor:pointer;
+    font-family:var(--c-mono); font-size:11px; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--c-text); background:var(--c-panel); border:1px solid var(--c-line); border-radius:8px; padding:8px 12px}
+  .menu-toggle .bars{display:inline-flex; flex-direction:column; gap:3px}
+  .menu-toggle .bars i{width:15px; height:1.5px; background:var(--c-accent); display:block}
+  .scrim{position:fixed; inset:0; background:rgba(6,10,13,.55); z-index:70; opacity:0; pointer-events:none; transition:opacity .22s ease}
+  .drawer-head{display:none; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px;
+    border-bottom:1px solid var(--c-line); position:sticky; top:0; background:var(--c-panel-2); z-index:2}
+  .drawer-head span{font-family:var(--c-mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--c-faint)}
+  .drawer-head button{cursor:pointer; background:transparent; border:1px solid var(--c-line); color:var(--c-text); border-radius:7px; width:30px; height:30px; font-size:17px; line-height:1}
+
+  @media (max-width:900px){
+    main{grid-template-columns:1fr}
+    .menu-toggle{display:inline-flex}
+    aside{position:fixed; top:0; left:0; bottom:0; height:100dvh; width:min(87vw,360px);
+      transform:translateX(-100%); transition:transform .24s ease; z-index:80; box-shadow:18px 0 60px -24px rgba(0,0,0,.75)}
+    body.nav-open aside{transform:none}
+    body.nav-open .scrim{opacity:1; pointer-events:auto}
+    .drawer-head{display:flex}
+    header.studio{padding:10px 14px; gap:10px 12px}
+    .stage-wrap{padding:18px 16px}
+    .stage-head{margin-bottom:14px}
+    .corner{display:none}
+  }
+  @media (max-width:640px){
+    header .spacer{display:none}
+    .wm small{display:none}
+    .badge-wrap{gap:7px}
+    .cbadge{padding:5px 8px}
+    .stage-wrap{padding:14px 12px}
+    button.act{padding:8px 12px; font-size:12px}
+    button.ghost{padding:8px 11px}
+  }
+
+  /* (2) IDENTITÉ PRÉVISUALISÉE adaptative — requêtes @container (largeur du conteneur, pas de la fenêtre) */
+  .sheet-holder{transition:max-width .25s ease}
+  .sheet-holder[data-vp="tablette"]{max-width:768px}
+  .sheet-holder[data-vp="mobile"]{max-width:390px}
+  .vp-cap{font-family:var(--c-mono); font-size:10.5px; color:var(--c-faint); margin-top:12px; max-width:920px; letter-spacing:.03em; min-height:1em}
+
+  /* données jamais sur 2 lignes → la colonne peut rétrécir et le tableau scrolle dans sa carte */
+  .table-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch}
+  .app-grid > div, .app-grid .card{min-width:0}
+
+  @container stage (max-width:600px){
+    .surface{padding:20px}
+    .app-grid{grid-template-columns:1fr}
+    .app-top{flex-wrap:wrap; row-gap:8px}
+    .slide{padding:26px 26px}
+    .slide .sub{max-width:100%}
+    .doc .pullquote{font-size:1.32rem}
+  }
+  @container stage (max-width:430px){
+    .surface{padding:14px}
+    .slide{padding:18px}
+    .slide .display{font-size:calc(var(--fs-display) * .8)}
+    .bignum .v{font-size:1.4rem}
+    table.roll{font-size:.8rem}
+    table.roll td, table.roll th{padding:0 5px}
+    .doc .pullquote{font-size:1.18rem}
+  }
+</style>
+</head>
+<body>
+<header class="studio">
+  <button class="menu-toggle" id="menu-toggle" aria-controls="controls" aria-expanded="false" aria-label="Afficher ou cacher les réglages"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Réglages</button>
+  <span class="reg" aria-hidden="true"></span>
+  <span class="wm"><b>Design Studio</b><small>Identité visuelle — MRC Thérèse-De Blainville</small></span>
+  <span class="spacer"></span>
+  <div class="badge-wrap">
+    <div class="cbadge"><span class="lab">Texte / fond</span><span class="val"><span id="cr-text" class="num">—</span><span id="cp-text" class="pill">—</span></span></div>
+    <div class="cbadge"><span class="lab">Accent / fond</span><span class="val"><span id="cr-acc" class="num">—</span><span id="cp-acc" class="pill">—</span></span></div>
+  </div>
+  <button class="ghost" id="reset">Réinitialiser</button>
+  <button class="act" id="gen">Générer le brief (.md)</button>
+</header>
+
+<div class="scrim" id="scrim"></div>
+
+<main>
+  <aside id="controls" aria-label="Axes de design">
+    <div class="drawer-head"><span>Réglages — design</span><button id="drawer-close" aria-label="Fermer les réglages">×</button></div>
+    <div class="presets">
+      <div class="grp" style="border:none;padding:0;margin:0">
+        <h3><span class="nn">00</span> Presets — direction complète</h3>
+        <div class="chips" id="preset-chips"></div>
+      </div>
+    </div>
+    <div id="axis-host"></div>
+  </aside>
+
+  <section class="stage-wrap">
+    <div class="stage-head">
+      <div class="tabs" role="tablist">
+        <button role="tab" data-surface="app" aria-pressed="true">App</button>
+        <button role="tab" data-surface="doc" aria-pressed="false">Document</button>
+        <button role="tab" data-surface="slide" aria-pressed="false">Diapo</button>
+      </div>
+      <div class="vp" role="group" aria-label="Largeur d'aperçu simulée">
+        <span class="vp-lab">Aperçu</span>
+        <button type="button" data-vp="bureau" aria-pressed="true">Bureau</button>
+        <button type="button" data-vp="tablette" aria-pressed="false">Tablette</button>
+        <button type="button" data-vp="mobile" aria-pressed="false">Mobile</button>
+      </div>
+    </div>
+
+    <div class="sheet-holder" data-vp="bureau">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div id="stage" class="viz-editorial orn-subtil">
+
+        <!-- APP -->
+        <div class="surface on" data-surface="app">
+          <div class="app-top">
+            <span class="app-mark">Écofiscalité</span>
+            <span class="muted" style="font-size:.85rem">· MRC Thérèse-De Blainville</span>
+            <span style="flex:1"></span>
+            <span class="app-tag">v0.1 — données publiques</span>
+          </div>
+          <div class="app-grid">
+            <div>
+              <div class="card">
+                <h3>Designer d'instrument</h3>
+                <div class="field">
+                  <label>Instrument</label>
+                  <div class="selectish"><span>Redevance — terrains vagues desservis</span><span class="muted num">CUBF 9100</span></div>
+                </div>
+                <div class="field">
+                  <label>Taux ($/m²)</label>
+                  <div class="track"><i></i><b></b></div>
+                  <div class="muted num" style="font-size:.8rem">0,85 $/m² · assiette = superficie</div>
+                </div>
+                <div class="bignum">
+                  <div class="v">412 600 $</div>
+                  <div class="k">Recette projetée / an · 7 villes</div>
+                </div>
+              </div>
+              <div class="gridchips" aria-label="Grille écofiscale">
+                <span class="gchip" style="--gc:var(--fav-1)"><i></i>Potentiel fiscal +</span>
+                <span class="gchip" style="--gc:var(--fav-3)"><i></i>Saine gestion 0</span>
+                <span class="gchip" style="--gc:var(--fav-1)"><i></i>Acceptabilité &amp; équité +</span>
+                <span class="gchip" style="--gc:var(--fav-1)"><i></i>Efficacité environn. +</span>
+              </div>
+              <div class="btnrow">
+                <button class="b-primary">Projeter l'incidence</button>
+                <button class="b-secondary">Exporter</button>
+              </div>
+            </div>
+            <div>
+              <div class="card chart-card">
+                <div class="cap">Charge médiane par décile de valeur foncière</div>
+                <svg class="viz" viewBox="0 0 300 130" preserveAspectRatio="none" aria-hidden="true">
+                  <line class="axis" x1="0" y1="118" x2="300" y2="118"></line>
+                  <g id="bars"></g>
+                  <path class="area-fill" id="areafill"></path>
+                  <path class="area-line" id="arealine"></path>
+                </svg>
+                <div class="annot">↑ La charge croît avec la valeur — instrument légèrement progressif sur l'assiette foncière.</div>
+              </div>
+              <div class="card" style="margin-top:var(--gap)">
+                <div class="table-scroll">
+                <table class="roll">
+                  <thead><tr><th>Matricule</th><th>Usage</th><th style="text-align:right">Valeur</th><th style="text-align:right">Charge</th></tr></thead>
+                  <tbody>
+                    <tr><td class="num">9012-45-8870</td><td><span class="utag" style="--utag-c:var(--cat-1)"><i></i>Logement</span></td><td class="num">348 000 $</td><td class="num">0 $</td></tr>
+                    <tr><td class="num">9013-02-1190</td><td><span class="utag" style="--utag-c:var(--cat-3)"><i></i>Terrain vague</span></td><td class="num">96 500 $</td><td class="num">1 240 $</td></tr>
+                    <tr><td class="num">9013-77-6021</td><td><span class="utag" style="--utag-c:var(--cat-2)"><i></i>Commerce</span></td><td class="num">512 000 $</td><td class="num">0 $</td></tr>
+                    <tr><td class="num">9014-10-3345</td><td><span class="utag" style="--utag-c:var(--cat-5)"><i></i>Stationnement</span></td><td class="num">205 000 $</td><td class="num">980 $</td></tr>
+                  </tbody>
+                </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DOC -->
+        <div class="surface" data-surface="doc">
+          <div class="doc">
+            <div class="eyebrow">Note d'analyse — 03</div>
+            <h1>Redevances de développement : qui porte la charge?</h1>
+            <div class="byline">CERGO · Stratégie écofiscale · Sainte-Thérèse — juin 2026</div>
+            <p class="lede">Une redevance bien calibrée déplace une partie du coût de la croissance vers ceux qui en profitent. Encore faut-il lire son incidence sur les bonnes parcelles, et non sur une moyenne de quartier.</p>
+            <hr class="rule">
+            <p>À partir du rôle d'évaluation — une donnée publique, géoréférencée — on attache à chaque unité d'évaluation son usage, sa superficie et sa valeur. La charge se calcule alors parcelle par parcelle, puis se confronte à la distribution réelle de valeur foncière des sept municipalités.</p>
+            <div class="pullquote">La recette d'un instrument incitatif érode sa propre assiette : on la lit comme une bande, pas comme un point.</div>
+            <p>Le revenu, lui, ne vient jamais du rôle. On le tient en contexte de quartier — flaggé comme tel — en attendant les données fines pour la version finale.</p>
+            <table class="mini">
+              <thead><tr><th>Dimension</th><th>Lecture</th><th style="text-align:right">Cote</th></tr></thead>
+              <tbody>
+                <tr><td>Potentiel fiscal</td><td>Assiette large, stable</td><td class="num">+1</td></tr>
+                <tr><td>Acceptabilité &amp; équité</td><td>Charge concentrée hors résidentiel</td><td class="num">+1</td></tr>
+                <tr><td>Efficacité environn.</td><td>Décourage la rétention de terrains</td><td class="num">+1</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SLIDE -->
+        <div class="surface" data-surface="slide">
+          <div class="slide">
+            <div class="eyebrow">Comité de pilotage · Rencontre 2</div>
+            <div class="display">Cinq instruments,<br>une seule grille</div>
+            <div class="sub">Potentiel fiscal · saine gestion · acceptabilité et équité · efficacité environnementale</div>
+            <div class="sfill">
+              <div class="sbar" style="height:46%"></div><div class="sbar" style="height:63%"></div>
+              <div class="sbar" style="height:71%"></div><div class="sbar" style="height:58%"></div>
+              <div class="sbar" style="height:88%"></div>
+            </div>
+            <div class="sfoot"><span>MRC Thérèse-De Blainville</span><span class="num">04 / 12</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="vp-cap" id="vp-cap"></div>
+
+    <div class="notes-bar">
+      <div class="f">
+        <label for="notes">Notes pour le brief (optionnel — versées dans le .md)</label>
+        <textarea id="notes" placeholder="Ce que tu aimes, ce qui cloche, les contraintes à retenir…"></textarea>
+      </div>
+    </div>
+    <div class="foot-hint">Astuce — choisis un preset, puis surcharge n'importe quel axe. « Générer le brief » télécharge <b>design-brief.md</b> avec tous les choix + les tokens résolus.</div>
+  </section>
+</main>
+
+<script>
+"use strict";
+/* ---------- Token sources ---------- */
+const FONTS = {
+  display:{
+    fraunces:{label:'Fraunces', stack:'"Fraunces",Georgia,serif'},
+    newsreader:{label:'Newsreader', stack:'"Newsreader",Georgia,serif'},
+    spectral:{label:'Spectral', stack:'"Spectral",Georgia,serif'},
+    instrument:{label:'Instrument Serif', stack:'"Instrument Serif",Georgia,serif'},
+  },
+  body:{
+    inter:{label:'Inter', stack:'"Inter",system-ui,sans-serif'},
+    'source-serif':{label:'Source Serif 4', stack:'"Source Serif 4",Georgia,serif'},
+    newsreader:{label:'Newsreader', stack:'"Newsreader",Georgia,serif'},
+    'plex-sans':{label:'IBM Plex Sans', stack:'"IBM Plex Sans",system-ui,sans-serif'},
+  },
+  mono:{
+    'plex-mono':{label:'IBM Plex Mono', stack:'"IBM Plex Mono",ui-monospace,monospace'},
+    jetbrains:{label:'JetBrains Mono', stack:'"JetBrains Mono",ui-monospace,monospace'},
+    'inter-tab':{label:'Inter (tabulaire)', stack:'"Inter",system-ui,sans-serif'},
+    'space-mono':{label:'Space Mono', stack:'"Space Mono",ui-monospace,monospace'},
+  }
+};
+const AMPLEUR = {
+  sobre:{label:'Sobre', t:{'--fs-display':'2.6rem','--fs-h1':'1.9rem','--fs-h2':'1.3rem','--fs-body':'1rem','--fs-small':'.8rem','--track-display':'0','--track-eyebrow':'.14em'}},
+  equilibree:{label:'Équilibrée', t:{'--fs-display':'3.4rem','--fs-h1':'2.3rem','--fs-h2':'1.45rem','--fs-body':'1.02rem','--fs-small':'.8rem','--track-display':'-.01em','--track-eyebrow':'.16em'}},
+  dramatique:{label:'Dramatique', t:{'--fs-display':'4.6rem','--fs-h1':'3rem','--fs-h2':'1.65rem','--fs-body':'1.06rem','--fs-small':'.78rem','--track-display':'-.022em','--track-eyebrow':'.2em'}},
+};
+const PALETTES = {
+  cadastre:{label:'Vert cadastre', accent:'#1E6E64', accent2:'#B5862B', light:{bg:'#FCFCFA',surface:'#F2F4F0',ink:'#15191B',muted:'#5B6560',line:'#DEE3DF'}},
+  civique:{label:'Bleu civique', accent:'#2D5BA8', accent2:'#5B6B7A', light:{bg:'#FBFCFD',surface:'#F1F4F8',ink:'#161B22',muted:'#5A6573',line:'#DCE3EC'}},
+  cuivre:{label:'Encre & cuivre', accent:'#B45309', accent2:'#1E6E4F', light:{bg:'#FBF7F0',surface:'#F4ECDF',ink:'#211C15',muted:'#6B6256',line:'#E6DAC6'}},
+  terrain:{label:'Terrain', accent:'#4F7A3A', accent2:'#9A5B33', light:{bg:'#FAFBF7',surface:'#EFF2E8',ink:'#1B2016',muted:'#5E6552',line:'#DDE3D2'}},
+  corail:{label:'Ardoise & corail', accent:'#E2574C', accent2:'#38505E', light:{bg:'#FBFAFA',surface:'#EFF1F3',ink:'#1A1D21',muted:'#5C636B',line:'#E0E4E8'}},
+  indigo:{label:'Indigo & sable', accent:'#3D3A8C', accent2:'#C9A24B', light:{bg:'#FBFAF8',surface:'#F0EEF6',ink:'#181726',muted:'#5D5A6B',line:'#E2DEEC'}},
+};
+const ACCENTS = {auto:{label:'Selon palette', hex:null}, cuivre:{label:'Cuivre', hex:'#B45309'}, terracotta:{label:'Terracotta', hex:'#C2613B'}, foret:{label:'Forêt', hex:'#1E6E4F'}, indigo:{label:'Indigo', hex:'#3D3A8C'}, perso:{label:'Perso', hex:'#1E6E64'}};
+const CREAM = {bg:'#FBF7F0',surface:'#F4ECDF',ink:'#211C15',muted:'#6B6256',line:'#E6DAC6'};
+const DARK  = {bg:'#15171A',surface:'#1E2125',ink:'#ECEAE4',muted:'#9AA0A6',line:'#2D3137'};
+const DENSITE = {
+  compact:{label:'Compact', t:{'--pad':'11px','--gap':'11px','--row-h':'32px','--lh-body':'1.5'}},
+  confortable:{label:'Confortable', t:{'--pad':'16px','--gap':'16px','--row-h':'42px','--lh-body':'1.62'}},
+  aere:{label:'Aéré', t:{'--pad':'24px','--gap':'22px','--row-h':'52px','--lh-body':'1.78'}},
+};
+const FORME = {
+  anguleux:{label:'Anguleux', t:{'--radius':'0px','--bw':'1px'}},
+  doux:{label:'Doux', t:{'--radius':'8px','--bw':'1px'}},
+  arrondi:{label:'Arrondi', t:{'--radius':'18px','--bw':'1px'}},
+};
+const COMPOSANTS = {
+  plat:{label:'Plat & lignes fines', t:{'--shadow':'none','--card-bw':'1px','--card-bc':'var(--color-line)'}},
+  souleve:{label:'Surélevé', t:{'--shadow':'0 1px 2px rgba(0,0,0,.05), 0 10px 28px -12px rgba(0,0,0,.22)','--card-bw':'0px','--card-bc':'transparent'}},
+  encadre:{label:'Encadré', t:{'--shadow':'none','--card-bw':'1.5px','--card-bc':'color-mix(in srgb, var(--color-ink) 55%, var(--color-bg))'}},
+};
+const CATS = {
+  excel:{label:'Grille Excel', c:['#FFE699','#EB7583','#D5DCE4','#CC99FE','#4473C5','#FF00FF']},
+  harmonise:{label:'Harmonisé', c:['#E3B341','#D1605E','#9BA8B6','#8E7CC3','#3E78B2','#B0668F']},
+  neuf:{label:'Neuf', c:['#2A9D8F','#E9C46A','#E76F51','#264653','#8AB17D','#9D4EDD']},
+};
+const FAVS = {
+  classique:{label:'Vert→rouge', c:['#2E7D45','#88B04B','#9AA0A6','#E0A030','#C0392B']},
+  daltonien:{label:'Daltonien-safe', c:['#1A6FB0','#7FB7D8','#AEB4B9','#EF8A62','#B2182B']},
+};
+const VIZ = {editorial:'Éditorial', barres:'Barres', aires:'Aires', minimal:'Minimal'};
+const ORNEMENT = {none:'Aucun', subtil:'Subtil', marque:'Marqué'};
+const TEXTURE = {plat:'Plat', grain:'Grain papier', degrade:'Dégradé'};
+
+/* ---------- Presets ---------- */
+const PRESETS = {
+  cadastre:{label:'Cadastre', sub:'★ ma vision', map:{display:'fraunces',body:'inter',mono:'plex-mono',ampleur:'equilibree',palette:'cadastre',accent:'auto',mode:'clair',densite:'confortable',forme:'doux',composants:'plat',viz:'editorial',cat:'harmonise',fav:'classique',ornement:'subtil',texture:'grain'}},
+  govtech:{label:'Govtech sobre', sub:'institutionnel', map:{display:'fraunces',body:'inter',mono:'plex-mono',ampleur:'sobre',palette:'civique',accent:'auto',mode:'clair',densite:'compact',forme:'anguleux',composants:'plat',viz:'barres',cat:'harmonise',fav:'daltonien',ornement:'none',texture:'plat'}},
+  editorial:{label:'Éditorial chaleureux', sub:'crème + serif', map:{display:'fraunces',body:'source-serif',mono:'space-mono',ampleur:'dramatique',palette:'cuivre',accent:'auto',mode:'creme',densite:'aere',forme:'doux',composants:'plat',viz:'editorial',cat:'excel',fav:'classique',ornement:'marque',texture:'grain'}},
+  terrain:{label:'Terrain', sub:'topographique', map:{display:'newsreader',body:'inter',mono:'jetbrains',ampleur:'equilibree',palette:'terrain',accent:'auto',mode:'clair',densite:'confortable',forme:'arrondi',composants:'souleve',viz:'aires',cat:'neuf',fav:'classique',ornement:'subtil',texture:'degrade'}},
+  data:{label:'Technique-data', sub:'sombre', map:{display:'spectral',body:'plex-sans',mono:'jetbrains',ampleur:'equilibree',palette:'cadastre',accent:'foret',mode:'sombre',densite:'compact',forme:'doux',composants:'encadre',viz:'minimal',cat:'harmonise',fav:'daltonien',ornement:'none',texture:'plat'}},
+  enap:{label:'ENAP-compatible', sub:'corail institutionnel', map:{display:'spectral',body:'plex-sans',mono:'plex-mono',ampleur:'sobre',palette:'corail',accent:'auto',mode:'clair',densite:'confortable',forme:'anguleux',composants:'plat',viz:'barres',cat:'excel',fav:'classique',ornement:'subtil',texture:'plat'}},
+};
+
+/* ---------- Axis schema (rendering) ---------- */
+const AXES = [
+  {grp:'Typographie', n:'01', items:[
+    {id:'display', label:'Police de titres', kind:'font', role:'display'},
+    {id:'body', label:'Police de corps', kind:'font', role:'body'},
+    {id:'mono', label:'Police chiffres / données', kind:'font', role:'mono'},
+    {id:'ampleur', label:'Ampleur typographique', kind:'seg', map:AMPLEUR},
+  ]},
+  {grp:'Couleur', n:'02', items:[
+    {id:'palette', label:'Palette de marque', kind:'palette'},
+    {id:'accent', label:'Accent / signature', kind:'accent'},
+    {id:'mode', label:'Mode', kind:'seg', map:{clair:{label:'Clair'},creme:{label:'Crème'},sombre:{label:'Sombre'}}},
+  ]},
+  {grp:'Forme & espace', n:'03', items:[
+    {id:'densite', label:'Densité & espacement', kind:'seg', map:DENSITE},
+    {id:'forme', label:'Forme (coins)', kind:'seg', map:FORME},
+    {id:'composants', label:'Style des composants', kind:'seg', map:COMPOSANTS},
+  ]},
+  {grp:'Data-viz', n:'04', items:[
+    {id:'viz', label:'Style de graphe', kind:'seg', map:VIZ},
+    {id:'cat', label:'Couleurs de catégories', kind:'cat'},
+    {id:'fav', label:'Échelle de favorabilité', kind:'fav'},
+  ]},
+  {grp:'Ambiance', n:'05', items:[
+    {id:'ornement', label:'Ornement éditorial', kind:'seg', map:ORNEMENT},
+    {id:'texture', label:'Texture de fond', kind:'seg', map:TEXTURE},
+  ]},
+];
+
+/* ---------- State ---------- */
+const LS_KEY='mrc-design-studio-v1';
+let state = Object.assign({}, PRESETS.cadastre.map, {personalAccent:'#1E6E64', preset:'cadastre'});
+(function load(){ try{ const s=JSON.parse(localStorage.getItem(LS_KEY)); if(s&&s.display) state=s; }catch(e){} })();
+
+/* ---------- Color math ---------- */
+function hexToRgb(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+function lum(hex){const [r,g,b]=hexToRgb(hex).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);});return .2126*r+.7152*g+.0722*b;}
+function contrast(a,b){const L1=lum(a),L2=lum(b);return ((Math.max(L1,L2)+.05)/(Math.min(L1,L2)+.05));}
+function inkOn(hex){return contrast('#FFFFFF',hex) >= contrast('#111111',hex) ? '#FFFFFF' : '#15171A';}
+const GRAIN="url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E\")";
+
+/* ---------- Recompute & apply ---------- */
+const stage=document.getElementById('stage');
+function resolveTokens(){
+  const t={};
+  t['--font-display']=FONTS.display[state.display].stack;
+  t['--font-body']=FONTS.body[state.body].stack;
+  t['--font-mono']=FONTS.mono[state.mono].stack;
+  Object.assign(t, AMPLEUR[state.ampleur].t);
+  Object.assign(t, DENSITE[state.densite].t);
+  Object.assign(t, FORME[state.forme].t);
+  Object.assign(t, COMPOSANTS[state.composants].t);
+
+  const pal=PALETTES[state.palette];
+  let accent = ACCENTS[state.accent] && ACCENTS[state.accent].hex ? ACCENTS[state.accent].hex : pal.accent;
+  if(state.accent==='perso') accent = state.personalAccent || pal.accent;
+  let neutrals = state.mode==='creme'?CREAM : state.mode==='sombre'?DARK : pal.light;
+  t['--color-bg']=neutrals.bg; t['--color-surface']=neutrals.surface; t['--color-ink']=neutrals.ink;
+  t['--color-muted']=neutrals.muted; t['--color-line']=neutrals.line;
+  t['--color-accent']=accent; t['--color-accent-ink']=inkOn(accent); t['--color-accent-2']=pal.accent2;
+
+  const cat=CATS[state.cat].c; cat.forEach((c,i)=>t['--cat-'+(i+1)]=c);
+  const fav=FAVS[state.fav].c; t['--fav-1']=fav[0]; t['--fav-3']=fav[2]; t['--fav-5']=fav[4];
+  t['--bg-texture']= state.texture==='grain'?GRAIN : state.texture==='degrade'?'radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 55%)':'none';
+  return {t, accent, neutrals};
+}
+function apply(){
+  const {t, accent, neutrals}=resolveTokens();
+  for(const k in t) stage.style.setProperty(k,t[k]);
+  stage.className = 'viz-'+state.viz+' orn-'+state.ornement;
+  // contrast badges
+  setBadge('text', contrast(neutrals.ink, neutrals.bg));
+  setBadge('acc', contrast(accent, neutrals.bg));
+  drawChart();
+  localStorage.setItem(LS_KEY, JSON.stringify(state));
+  syncControls();
+}
+function setBadge(which, ratio){
+  const r=Math.round(ratio*10)/10;
+  document.getElementById('cr-'+which).textContent=r.toFixed(1)+':1';
+  const pill=document.getElementById('cp-'+which);
+  let cls='bad',txt='✕';
+  if(ratio>=7){cls='ok';txt='AAA';} else if(ratio>=4.5){cls='ok';txt='AA';} else if(ratio>=3){cls='warn';txt='AA·lg';}
+  pill.className='pill '+cls; pill.textContent=txt;
+}
+function drawChart(){
+  const vals=[14,22,19,31,27,44,38,52];
+  const W=300,H=118,n=vals.length,bw=300/n*0.6,gap=300/n*0.4,max=56;
+  const bars=document.getElementById('bars'); bars.innerHTML='';
+  let pts=[];
+  vals.forEach((v,i)=>{
+    const x=i*(bw+gap)+gap/2, h=(v/max)*100, y=118-h;
+    const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('class','bar'); rect.setAttribute('x',x.toFixed(1)); rect.setAttribute('y',y.toFixed(1));
+    rect.setAttribute('width',bw.toFixed(1)); rect.setAttribute('height',h.toFixed(1)); rect.setAttribute('rx','1.5');
+    bars.appendChild(rect);
+    pts.push([(x+bw/2).toFixed(1), y.toFixed(1)]);
+    const lab=document.createElementNS('http://www.w3.org/2000/svg','text');
+    lab.setAttribute('class','blab'); lab.setAttribute('x',(x+bw/2).toFixed(1)); lab.setAttribute('y','128'); lab.setAttribute('text-anchor','middle');
+    lab.textContent='D'+(i+1); bars.appendChild(lab);
+  });
+  const line='M '+pts.map(p=>p.join(' ')).join(' L ');
+  document.getElementById('arealine').setAttribute('d',line);
+  document.getElementById('areafill').setAttribute('d',line+' L 300 118 L 0 118 Z');
+}
+
+/* ---------- Render controls ---------- */
+function chip(label, pressed, sub, styleFont){
+  const b=document.createElement('button');
+  b.className='chip'+(styleFont?' font-chip':''); b.type='button'; b.setAttribute('aria-pressed',pressed?'true':'false');
+  if(styleFont) b.style.fontFamily=styleFont;
+  b.innerHTML = label + (sub?('<small>'+sub+'</small>'):'');
+  return b;
+}
+function seg(map, current, onPick){
+  const wrap=document.createElement('div'); wrap.className='seg';
+  for(const k in map){
+    const b=document.createElement('button'); b.type='button'; b.textContent=map[k].label||map[k];
+    b.setAttribute('aria-pressed', current===k?'true':'false');
+    b.onclick=()=>onPick(k); wrap.appendChild(b);
+  }
+  return wrap;
+}
+function renderPresets(){
+  const host=document.getElementById('preset-chips');
+  for(const k in PRESETS){
+    const p=PRESETS[k];
+    const b=chip(p.label, state.preset===k, p.sub);
+    b.onclick=()=>{ state=Object.assign({}, p.map, {preset:k, personalAccent:state.personalAccent}); apply(); };
+    host.appendChild(b);
+  }
+}
+function renderAxes(){
+  const host=document.getElementById('axis-host');
+  AXES.forEach(group=>{
+    const g=document.createElement('div'); g.className='grp';
+    g.innerHTML='<h3><span class="nn">'+group.n+'</span> '+group.grp+'</h3>';
+    group.items.forEach(item=>{
+      const wrap=document.createElement('div'); wrap.className='axis';
+      const lab=document.createElement('label'); lab.textContent=item.label; wrap.appendChild(lab);
+      if(item.kind==='font'){
+        const chips=document.createElement('div'); chips.className='chips';
+        const m=FONTS[item.role];
+        for(const k in m){
+          const b=chip(m[k].label, state[item.id]===k, null, m[k].stack);
+          b.onclick=()=>{ state[item.id]=k; state.preset=null; apply(); };
+          chips.appendChild(b);
+        }
+        wrap.appendChild(chips);
+      } else if(item.kind==='palette'){
+        const chips=document.createElement('div'); chips.className='chips';
+        for(const k in PALETTES){
+          const p=PALETTES[k];
+          const b=chip('<span class="swatch" style="background:'+p.accent+'"></span>'+p.label, state.palette===k);
+          const row=document.createElement('div'); row.className='pal-row';
+          p.light && [p.light.bg,p.light.surface,p.accent,p.accent2,p.light.ink].forEach(c=>{const i=document.createElement('i');i.style.background=c;row.appendChild(i);});
+          b.appendChild(row);
+          b.onclick=()=>{ state.palette=k; state.preset=null; apply(); };
+          chips.appendChild(b);
+        }
+        wrap.appendChild(chips);
+      } else if(item.kind==='accent'){
+        const chips=document.createElement('div'); chips.className='chips';
+        for(const k in ACCENTS){
+          const a=ACCENTS[k];
+          const sw = a.hex?('<span class="swatch" style="background:'+a.hex+'"></span>'):'';
+          const b=chip(sw+a.label, state.accent===k);
+          b.onclick=()=>{ state.accent=k; state.preset=null; apply(); };
+          chips.appendChild(b);
+        }
+        const picker=document.createElement('input'); picker.type='color'; picker.value=state.personalAccent; picker.title='Accent perso';
+        picker.oninput=()=>{ state.personalAccent=picker.value; state.accent='perso'; state.preset=null; apply(); };
+        chips.appendChild(picker);
+        wrap.appendChild(chips);
+      } else if(item.kind==='cat' || item.kind==='fav'){
+        const src = item.kind==='cat'?CATS:FAVS;
+        const chips=document.createElement('div'); chips.className='chips';
+        for(const k in src){
+          const b=chip(src[k].label, state[item.id]===k);
+          const row=document.createElement('div'); row.className='pal-row';
+          src[k].c.forEach(c=>{const i=document.createElement('i');i.style.background=c;row.appendChild(i);});
+          b.appendChild(row);
+          b.onclick=()=>{ state[item.id]=k; state.preset=null; apply(); };
+          chips.appendChild(b);
+        }
+        wrap.appendChild(chips);
+      } else { // seg
+        wrap.appendChild(seg(item.map, state[item.id], (k)=>{ state[item.id]=k; state.preset=null; apply(); }));
+      }
+      g.appendChild(wrap);
+    });
+    host.appendChild(g);
+  });
+}
+function syncControls(){
+  // re-render is simplest for state sync after preset change
+  document.getElementById('axis-host').innerHTML='';
+  document.getElementById('preset-chips').innerHTML='';
+  renderPresets(); renderAxes();
+}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tabs button').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-pressed','false'));
+    btn.setAttribute('aria-pressed','true');
+    const s=btn.dataset.surface;
+    document.querySelectorAll('.surface').forEach(el=>el.classList.toggle('on', el.dataset.surface===s));
+  };
+});
+
+/* ---------- Responsive : tiroir de réglages sur petits écrans ---------- */
+const _body=document.body;
+const _toggle=document.getElementById('menu-toggle');
+function closeNav(){ _body.classList.remove('nav-open'); _toggle.setAttribute('aria-expanded','false'); }
+_toggle.onclick=()=>{ const open=_body.classList.toggle('nav-open'); _toggle.setAttribute('aria-expanded', open?'true':'false'); };
+document.getElementById('drawer-close').onclick=closeNav;
+document.getElementById('scrim').onclick=closeNav;
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeNav(); });
+
+/* ---------- Aperçu : largeur simulée (déclenche les requêtes @container du #stage) ---------- */
+const _holder=document.querySelector('.sheet-holder');
+const _vpcap=document.getElementById('vp-cap');
+const VP_CAP={bureau:'', tablette:'Aperçu à 768 px (tablette) — l’app se réorganise via @container.', mobile:'Aperçu à 390 px (mobile) — colonne unique, marges resserrées, gros chiffres réduits.'};
+document.querySelectorAll('.vp button').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.vp button').forEach(b=>b.setAttribute('aria-pressed','false'));
+    btn.setAttribute('aria-pressed','true');
+    const v=btn.dataset.vp; _holder.dataset.vp=v; _vpcap.textContent=VP_CAP[v]||'';
+  };
+});
+
+/* ---------- Markdown brief ---------- */
+function lbl(map,k){ return (map[k] && (map[k].label||map[k])) || k; }
+function buildMD(){
+  const {t, accent, neutrals}=resolveTokens();
+  const pal=PALETTES[state.palette];
+  const L=[];
+  L.push('# Brief de design — Identité visuelle');
+  L.push('**Projet :** Stratégie écofiscale — MRC Thérèse-De Blainville · **Cible :** identité large (app + livrables + decks)');
+  L.push('**Généré par :** Design Studio (configurateur) · **Preset de base :** '+(state.preset?PRESETS[state.preset].label:'— (réglages manuels)'));
+  L.push('');
+  L.push('## Choix par axe');
+  L.push('| Axe | Choix |');
+  L.push('|---|---|');
+  L.push('| Police de titres | '+FONTS.display[state.display].label+' |');
+  L.push('| Police de corps | '+FONTS.body[state.body].label+' |');
+  L.push('| Police chiffres/données | '+FONTS.mono[state.mono].label+' |');
+  L.push('| Ampleur typographique | '+lbl(AMPLEUR,state.ampleur)+' |');
+  L.push('| Palette de marque | '+pal.label+' |');
+  L.push('| Accent / signature | '+lbl(ACCENTS,state.accent)+(state.accent==='perso'?(' ('+state.personalAccent+')'):'')+' |');
+  L.push('| Mode | '+lbl({clair:'Clair',creme:'Crème',sombre:'Sombre'},state.mode)+' |');
+  L.push('| Densité | '+lbl(DENSITE,state.densite)+' |');
+  L.push('| Forme (coins) | '+lbl(FORME,state.forme)+' |');
+  L.push('| Composants | '+lbl(COMPOSANTS,state.composants)+' |');
+  L.push('| Style de graphe | '+lbl(VIZ,state.viz)+' |');
+  L.push('| Couleurs de catégories | '+lbl(CATS,state.cat)+' |');
+  L.push('| Échelle de favorabilité | '+lbl(FAVS,state.fav)+' |');
+  L.push('| Ornement | '+lbl(ORNEMENT,state.ornement)+' |');
+  L.push('| Texture | '+lbl(TEXTURE,state.texture)+' |');
+  L.push('');
+  L.push('## Tokens résolus (variables CSS prêtes à copier)');
+  L.push('```css');
+  L.push(':root{');
+  L.push('  --font-display: '+t['--font-display']+';');
+  L.push('  --font-body: '+t['--font-body']+';');
+  L.push('  --font-mono: '+t['--font-mono']+';');
+  L.push('  --color-bg: '+neutrals.bg+'; --color-surface: '+neutrals.surface+'; --color-ink: '+neutrals.ink+';');
+  L.push('  --color-muted: '+neutrals.muted+'; --color-line: '+neutrals.line+';');
+  L.push('  --color-accent: '+accent+'; --color-accent-ink: '+inkOn(accent)+'; --color-accent-2: '+pal.accent2+';');
+  L.push('  --radius: '+t['--radius']+'; --border-width: '+t['--bw']+';');
+  L.push('  --fs-display: '+t['--fs-display']+'; --fs-h1: '+t['--fs-h1']+'; --fs-h2: '+t['--fs-h2']+'; --fs-body: '+t['--fs-body']+';');
+  L.push('  --space-pad: '+t['--pad']+'; --space-gap: '+t['--gap']+'; --row-h: '+t['--row-h']+'; --lh-body: '+t['--lh-body']+';');
+  L.push('}');
+  L.push('```');
+  L.push('');
+  L.push('## Palettes de données');
+  L.push('- **Catégories d\'instruments ('+CATS[state.cat].label+') :** '+CATS[state.cat].c.join(' · '));
+  L.push('- **Favorabilité ('+FAVS[state.fav].label+') :** '+FAVS[state.fav].c.join(' · '));
+  L.push('');
+  L.push('## Contraste (WCAG)');
+  L.push('- Texte/fond : '+contrast(neutrals.ink,neutrals.bg).toFixed(2)+':1');
+  L.push('- Accent/fond : '+contrast(accent,neutrals.bg).toFixed(2)+':1');
+  L.push('');
+  L.push('## Responsive — comportement adaptatif (app + livrables)');
+  L.push('Stratégie retenue : **requêtes de conteneur** (`@container`) pour les composants applicatifs — un bloc se réorganise selon *sa propre* largeur plutôt que celle de la fenêtre (plus robuste pour une UI par composants ; c\'est aussi ce qui alimente l\'aperçu « Bureau / Tablette / Mobile » du Studio). Mêmes paliers pour les livrables (rapports, decks).');
+  L.push('');
+  L.push('| Palier | Largeur du conteneur | Comportement |');
+  L.push('|---|---|---|');
+  L.push('| Bureau | ≥ 600 px | Grille 2 colonnes (designer + données) ; graphe à côté du tableau |');
+  L.push('| Tablette / mobile | < 600 px | 1 colonne, cartes empilées, tableau pleine largeur ; en-tête qui peut passer à la ligne |');
+  L.push('| Mobile étroit | < 430 px | Marges resserrées ; gros chiffres et titres réduits ; diapo compacte ; tableau en plus petit |');
+  L.push('');
+  L.push('```css');
+  L.push('/* le conteneur applicatif se déclare « interrogeable » */');
+  L.push('.app-shell{ container-type: inline-size; container-name: app; }');
+  L.push('@container app (max-width: 600px){');
+  L.push('  .app-grid{ grid-template-columns: 1fr; }   /* 2 colonnes → 1 */');
+  L.push('  .surface{ padding: 20px; }');
+  L.push('}');
+  L.push('@container app (max-width: 430px){');
+  L.push('  .surface{ padding: 14px; }');
+  L.push('  .bignum .v{ font-size: 1.4rem; }   /* règle UX : on RÉDUIT les données, on ne les wrappe jamais sur 2 lignes */');
+  L.push('}');
+  L.push('```');
+  L.push('');
+  L.push('> L\'outil **Studio** lui-même est aussi rendu utilisable sur tablette/téléphone (panneau de réglages escamotable, en-tête qui ne déborde plus) — via des requêtes **média** classiques (taille de la fenêtre), distinctes des `@container` ci-dessus.');
+  L.push('');
+  const notes=document.getElementById('notes').value.trim();
+  L.push('## Notes de Vincent');
+  L.push(notes?notes:'_(aucune)_');
+  L.push('');
+  L.push('---');
+  L.push('_Police principale imposée : **Fraunces** (titres). Fontes via Google Fonts. Ce brief alimente l\'étape 2 : le plan d\'implémentation de l\'app._');
+  return L.join('\n');
+}
+document.getElementById('gen').onclick=()=>{
+  const md=buildMD();
+  const blob=new Blob([md],{type:'text/markdown;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='design-brief.md';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+  const btn=document.getElementById('gen'); const old=btn.textContent; btn.textContent='✓ design-brief.md téléchargé';
+  setTimeout(()=>btn.textContent=old,2200);
+};
+document.getElementById('reset').onclick=()=>{ state=Object.assign({}, PRESETS.cadastre.map, {preset:'cadastre', personalAccent:'#1E6E64'}); apply(); };
+
+/* ---------- Boot ---------- */
+renderPresets(); renderAxes(); apply();
+</script>
+</body>
+</html>

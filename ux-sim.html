@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Écofiscalité (Corda) — Simulateur UX v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ÉCOFISCALITÉ — un produit Corda · simulateur UX v1
+   Identité : pont entre le design-brief_v1 (crème + Fraunces/Inter/Space Mono,
+   palettes data) et la marque Corda (vert #1A6E47 + laiton #A9802F, logo arche).
+   ============================================================ */
+:root{
+  --font-display:"Fraunces",Georgia,serif;
+  --font-body:"Inter",system-ui,sans-serif;
+  --font-mono:"Space Mono",ui-monospace,monospace;
+
+  /* neutres — crème du brief */
+  --bg:#FBF7F0; --surface:#FFFFFF; --surface-2:#F4ECDF; --ink:#211C15;
+  --muted:#6B6256; --faint:#94897A; --line:#E6DAC6; --line-2:#EFE7D8;
+
+  /* marque — vert + laiton Corda (cohésion avec le logo) */
+  --accent:#1A6E47; --accent-deep:#0E4A2F; --accent-ink:#FFFFFF; --brass:#A9802F;
+
+  /* data-viz — catégories « Neuf » du brief */
+  --cat-1:#2A9D8F; --cat-2:#E9C46A; --cat-3:#E76F51; --cat-4:#264653; --cat-5:#8AB17D; --cat-6:#9D4EDD;
+  /* favorabilité vert→rouge */
+  --fav-pos:#2E7D45; --fav-mid:#9AA0A6; --fav-neg:#C0392B; --fav-warn:#E0A030;
+
+  --radius:9px; --pad:16px; --shadow:0 1px 2px rgba(20,16,8,.05), 0 14px 34px -16px rgba(20,16,8,.22);
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}   /* l'attribut hidden l'emporte sur les display:flex de classe */
+html,body{margin:0; height:100%}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--font-body);
+  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  display:flex; flex-direction:column; min-height:100vh; min-height:100dvh;
+}
+h1,h2,h3,.display{font-family:var(--font-display); margin:0; color:var(--ink)}
+.num{font-family:var(--font-mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+.mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums}   /* mono mais peut passer à la ligne (prose) */
+.eyebrow{font-family:var(--font-mono); font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); font-weight:600}
+.muted{color:var(--muted)} .faint{color:var(--faint)}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+
+/* ---------------- App bar ---------------- */
+.appbar{
+  display:flex; align-items:center; gap:16px; padding:11px 22px;
+  background:var(--surface); border-bottom:1.5px solid var(--ink); flex:0 0 auto; flex-wrap:wrap; row-gap:8px;
+}
+.brand{display:flex; align-items:center; gap:11px}
+.brand .lock{display:flex; flex-direction:column; line-height:1}
+.brand .wm{font-family:var(--font-display); font-weight:600; font-size:23px; letter-spacing:.02em; margin-bottom:2px}
+.brand .sub{font-family:var(--font-mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--brass)}
+.appbar .spacer{flex:1}
+.proj-pill{font-family:var(--font-mono); font-size:11px; color:var(--muted); border:1px solid var(--line); border-radius:20px; padding:5px 11px; white-space:nowrap}
+.role-badge{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; padding:5px 10px; border-radius:6px; background:color-mix(in srgb,var(--accent) 12%, var(--bg)); color:var(--accent-deep); border:1px solid color-mix(in srgb,var(--accent) 30%,var(--bg)); white-space:nowrap}
+.demo-switch{display:flex; border:1px solid var(--line); border-radius:7px; overflow:hidden}
+.demo-switch button{cursor:pointer; border:none; background:transparent; color:var(--muted); font-size:11px; padding:6px 9px; border-left:1px solid var(--line)}
+.demo-switch button:first-child{border-left:none}
+.demo-switch button[aria-pressed="true"]{background:var(--accent); color:#fff}
+.btn-anno{
+  cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600;
+  border:1px solid var(--brass); color:var(--brass); background:transparent; padding:7px 12px; border-radius:8px;
+}
+.btn-anno[aria-pressed="true"]{background:var(--brass); color:#fff}
+.btn-anno .dot{width:8px; height:8px; border-radius:50%; background:currentColor}
+
+/* ---------------- Shell ---------------- */
+.shell{display:grid; grid-template-columns:236px 1fr; flex:1 1 auto; min-height:0}
+.shell.solo{grid-template-columns:1fr}                 /* login : pas de sidebar */
+
+.side{
+  border-right:1px solid var(--line); background:var(--surface-2); padding:16px 12px 30px;
+  display:flex; flex-direction:column; gap:3px;
+}
+.side .lab{font-family:var(--font-mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); padding:14px 10px 6px}
+.side .lab:first-child{padding-top:2px}
+.navitem{
+  display:flex; align-items:center; gap:10px; cursor:pointer; text-align:left;
+  border:none; background:transparent; color:var(--ink); font-size:14px; font-weight:500;
+  padding:9px 11px; border-radius:8px; width:100%; position:relative;
+}
+.navitem:hover{background:color-mix(in srgb,var(--accent) 8%, transparent)}
+.navitem .ico,.navitem .ic{flex:0 0 auto}
+.navitem .ic{font-size:15px}
+.navitem .ic{width:18px}
+.navitem.active,.navitem[aria-current="true"]{background:var(--accent); color:#fff}
+.navitem.active .pill-soon,.navitem[aria-current="true"] .pill-soon{color:#dfeee6}
+.navitem:disabled{cursor:not-allowed; color:var(--faint)}
+.navitem:disabled:hover{background:transparent}
+.pill-soon{margin-left:auto; font-family:var(--font-mono); font-size:8.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--brass); border:1px solid color-mix(in srgb,var(--brass) 40%,var(--bg)); border-radius:20px; padding:1px 6px; white-space:nowrap}
+.side .grow{flex:1}
+.side .signout{font-family:var(--font-mono); font-size:11px; color:var(--muted); cursor:pointer; background:transparent; border:1px solid var(--line); border-radius:7px; padding:8px; margin-top:8px}
+
+/* ---------------- Main / screens ---------------- */
+.main{overflow:auto; min-height:0; padding:26px 30px 60px}
+.shell.solo .main{display:grid; place-items:center; align-content:center; padding:24px}  /* login : centre la carte verticalement */
+.screen{display:none; max-width:1280px; margin-inline:auto}
+.screen.on{display:block; animation:fade .18s ease}
+@keyframes fade{from{opacity:0; transform:translateY(4px)}to{opacity:1; transform:none}}
+.page-head{margin-bottom:20px}
+.page-head h1{font-size:1.9rem; font-weight:600; line-height:1.1; margin-top:5px}
+.page-head p{color:var(--muted); margin:7px 0 0; max-width:64ch}
+
+/* cards */
+.card{background:var(--surface); border-radius:var(--radius); padding:var(--pad); box-shadow:var(--shadow)}
+.card + .card{margin-top:16px}
+.card h3{font-size:1.05rem; font-weight:600; margin-bottom:12px}
+.grid-2{display:grid; grid-template-columns:1.05fr .95fr; gap:16px}
+.stack{display:flex; flex-direction:column; gap:16px}
+
+/* fields */
+.field{margin-bottom:14px}
+.field > label{display:block; font-family:var(--font-mono); font-size:.66rem; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin-bottom:6px}
+select,.fakeselect,input[type=text],input[type=password]{
+  width:100%; font-family:inherit; font-size:.95rem; color:var(--ink);
+  background:var(--bg); border:1px solid var(--line); border-radius:7px; padding:10px 12px;
+}
+.row-between{display:flex; justify-content:space-between; align-items:center; gap:10px}
+input[type=range]{width:100%; accent-color:var(--accent)}
+.rate-read{font-family:var(--font-mono); font-size:.82rem; color:var(--muted); margin-top:6px}
+.rate-read b{color:var(--ink)}
+
+/* buttons */
+.btn{cursor:pointer; border-radius:8px; padding:10px 15px; font-size:.92rem; font-weight:600; border:1px solid transparent}
+.btn.primary{background:var(--accent); color:#fff}
+.btn.primary:hover{background:var(--accent-deep)}
+.btn.ghost{background:transparent; color:var(--ink); border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--muted)}
+.btn.brass{background:var(--brass); color:#fff}
+.btnrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px}
+
+/* big number */
+.bignum{padding-top:14px; margin-top:8px; border-top:1px solid var(--line-2)}
+.bignum .v{font-family:var(--font-mono); font-size:2rem; font-weight:700; letter-spacing:-.02em; white-space:nowrap}
+.bignum .k{font-family:var(--font-mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
+#anaTotal{font-size:3rem}
+#s-analyse .grid-2 > .card:first-child{display:flex; flex-direction:column; justify-content:center}
+
+/* chart */
+.cap{font-family:var(--font-mono); font-size:.66rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:10px}
+svg.viz{width:100%; height:140px; display:block; overflow:visible}
+.viz .bar{fill:color-mix(in srgb,var(--accent) 86%, var(--ink))}
+.viz .blab{font-family:var(--font-mono); font-size:8px; fill:var(--muted)}
+.viz .axis{stroke:var(--line); stroke-width:1}
+.annot{font-family:var(--font-mono); font-size:.66rem; color:var(--muted); margin-top:8px}
+
+/* parcel table */
+.table-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch}
+table.roll{width:100%; border-collapse:collapse; font-size:.85rem}
+table.roll th{font-family:var(--font-mono); font-size:.62rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); text-align:left; padding:0 8px 8px; font-weight:500}
+table.roll td{padding:0 8px; height:40px; border-top:1px solid var(--line-2); white-space:nowrap}
+table.roll td.n{text-align:right; font-family:var(--font-mono); font-variant-numeric:tabular-nums}
+.utag{display:inline-flex; align-items:center; gap:6px; font-size:.78rem; padding:3px 8px; border-radius:20px; background:color-mix(in srgb,var(--utc,var(--cat-1)) 18%, var(--bg)); white-space:nowrap}
+.utag i{width:8px; height:8px; border-radius:50%; background:var(--utc,var(--cat-1))}
+
+/* grille cotation */
+.grille{display:flex; flex-wrap:wrap; gap:9px; margin-top:4px}
+.gchip{display:flex; align-items:center; gap:8px; font-size:.82rem; padding:8px 12px; border-radius:var(--radius); border:1px solid var(--line); background:color-mix(in srgb,var(--gc,var(--fav-mid)) 13%, var(--bg))}
+.gchip i{width:10px; height:10px; border-radius:50%; background:var(--gc,var(--fav-mid))}
+.gchip b{font-family:var(--font-mono)}
+
+/* portfolio */
+.pf-strip{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:4px}
+.pf-chip{display:inline-flex; align-items:center; gap:8px; background:var(--surface-2); border:1px solid var(--line); border-radius:20px; padding:6px 12px; font-size:.82rem}
+.pf-chip button{border:none; background:transparent; cursor:pointer; color:var(--muted); font-size:14px; line-height:1}
+
+/* matrix (analyse) */
+table.matrix{width:100%; border-collapse:collapse; font-size:.86rem}
+table.matrix th,table.matrix td{padding:10px 10px; border-bottom:1px solid var(--line-2); text-align:left}
+table.matrix th{font-family:var(--font-mono); font-size:.62rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:500}
+table.matrix td.cote{text-align:center; font-family:var(--font-mono); font-weight:700}
+.cote.pos{color:var(--fav-pos)} .cote.mid{color:var(--fav-mid)} .cote.neg{color:var(--fav-neg)}
+table.matrix td.n{text-align:right; font-family:var(--font-mono); white-space:nowrap}
+
+/* communications inbox */
+.inbox{display:flex; flex-direction:column; gap:0}
+.msg{display:flex; align-items:center; gap:14px; padding:14px 12px; border-bottom:1px solid var(--line-2); cursor:pointer; text-align:left; background:transparent; border-left:none;border-right:none;border-top:none; width:100%}
+.msg:hover{background:var(--surface-2)}
+.msg .st{width:9px; height:9px; border-radius:50%; flex:0 0 auto; background:var(--accent)}
+.msg.read .st{background:var(--line)}
+.msg .who{font-family:var(--font-mono); font-size:.7rem; color:var(--muted); white-space:nowrap}
+.msg .ttl{font-weight:600}
+.msg.read .ttl{font-weight:500; color:var(--muted)}
+.msg .date{margin-left:auto; font-family:var(--font-mono); font-size:.72rem; color:var(--faint); white-space:nowrap}
+.tag-new{font-family:var(--font-mono); font-size:8.5px; letter-spacing:.06em; text-transform:uppercase; color:#fff; background:var(--accent); border-radius:20px; padding:2px 7px}
+
+/* comment tool */
+.comments{margin-top:16px}
+.comment{background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:10px 12px; margin-bottom:8px}
+.comment .meta{font-family:var(--font-mono); font-size:.66rem; color:var(--muted); margin-bottom:4px}
+.cbox{display:flex; gap:8px; margin-top:10px}
+.cbox textarea{flex:1; min-height:42px; resize:vertical; font-family:inherit; font-size:.9rem; border:1px solid var(--line); border-radius:8px; padding:9px 11px; background:var(--bg)}
+
+/* stub / à suivre */
+.stub{display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:64px 20px; color:var(--muted)}
+.stub .glyph{font-size:38px; margin-bottom:14px; opacity:.5}
+.stub .soon{font-family:var(--font-mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--brass); border:1px solid color-mix(in srgb,var(--brass) 40%,var(--bg)); border-radius:20px; padding:5px 12px; margin-top:14px}
+
+/* ---------------- Login ---------------- */
+.login-wrap{display:flex; align-items:center; justify-content:center; width:100%; padding:0}
+.login-card{width:min(420px,100%); background:var(--surface); border-radius:14px; box-shadow:var(--shadow); padding:34px 30px; text-align:center}
+.login-card .arch{margin:0 auto 12px}
+.login-card h2{font-size:1.5rem; font-weight:600}
+.login-card .lede{color:var(--muted); font-size:.92rem; margin:8px 0 22px}
+.login-card .err{color:var(--fav-neg); font-size:.82rem; min-height:1.1em; margin-top:8px; font-family:var(--font-mono)}
+.login-hint{margin-top:20px; padding-top:16px; border-top:1px solid var(--line-2); font-family:var(--font-mono); font-size:11px; color:var(--faint); line-height:1.7}
+.login-hint b{color:var(--muted)}
+
+/* ---------------- Annotation layer ---------------- */
+body.anno-on{cursor:crosshair}
+body.anno-on .main *{cursor:crosshair}
+.anno-hint{
+  display:none; position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:60;
+  background:var(--ink); color:#fff; font-family:var(--font-mono); font-size:11.5px; letter-spacing:.02em;
+  padding:9px 16px; border-radius:30px; box-shadow:0 10px 30px -10px rgba(0,0,0,.5);
+}
+body.anno-on .anno-hint{display:block}
+.anno-hl{outline:2px dashed var(--brass) !important; outline-offset:2px; background:color-mix(in srgb,var(--brass) 9%, transparent)}
+.anno-pin{
+  position:absolute; top:-9px; left:-9px; z-index:30; width:20px; height:20px; border-radius:50%;
+  background:var(--brass); color:#fff; font-family:var(--font-mono); font-size:11px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.3); pointer-events:none;
+}
+.has-anno{position:relative}
+.anno-pop{
+  position:fixed; z-index:70; width:300px; background:var(--surface); border:1px solid var(--line);
+  border-radius:11px; box-shadow:0 18px 50px -16px rgba(20,16,8,.4); padding:13px;
+}
+.anno-pop .ctx{font-family:var(--font-mono); font-size:10px; letter-spacing:.04em; text-transform:uppercase; color:var(--brass); margin-bottom:7px}
+.anno-pop .tgt{font-size:.86rem; font-weight:600; margin-bottom:9px; line-height:1.3}
+.anno-pop textarea{width:100%; min-height:74px; resize:vertical; font-family:inherit; font-size:.9rem; border:1px solid var(--line); border-radius:8px; padding:9px; background:var(--bg)}
+.anno-pop .acts{display:flex; gap:8px; justify-content:flex-end; margin-top:10px}
+.anno-pop .acts .btn{padding:7px 12px; font-size:.82rem}
+
+.anno-panel{
+  position:fixed; top:0; right:0; bottom:0; width:min(380px,90vw); z-index:65; background:var(--surface);
+  border-left:1px solid var(--line); box-shadow:-18px 0 50px -22px rgba(20,16,8,.4);
+  transform:translateX(100%); transition:transform .22s ease; display:flex; flex-direction:column;
+}
+.anno-panel.open{transform:none}
+.anno-panel header{display:flex; align-items:center; gap:10px; padding:15px 16px; border-bottom:1px solid var(--line)}
+.anno-panel header h3{font-size:1rem; font-weight:600}
+.anno-panel header .x{margin-left:auto; cursor:pointer; border:1px solid var(--line); background:transparent; border-radius:7px; width:30px; height:30px; font-size:16px}
+.anno-list{flex:1; overflow:auto; padding:8px 14px}
+.anno-grp{font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--brass); margin:14px 0 6px}
+.anno-row{display:flex; gap:9px; padding:9px 0; border-bottom:1px solid var(--line-2)}
+.anno-row .nn{font-family:var(--font-mono); font-weight:700; color:var(--brass); flex:0 0 auto}
+.anno-row .bd{flex:1}
+.anno-row .bd .t{font-size:.82rem; font-weight:600; margin-bottom:2px}
+.anno-row .bd .c{font-size:.86rem; color:var(--muted)}
+.anno-row .del{cursor:pointer; border:none; background:transparent; color:var(--faint); font-size:14px}
+.anno-empty{color:var(--faint); font-size:.86rem; text-align:center; padding:40px 10px; font-family:var(--font-mono)}
+.anno-panel footer{padding:13px 16px; border-top:1px solid var(--line); display:flex; gap:9px}
+
+/* toast */
+.toast{
+  position:fixed; left:50%; bottom:64px; transform:translateX(-50%) translateY(10px); z-index:80;
+  background:var(--accent-deep); color:#fff; font-size:13px; padding:10px 18px; border-radius:30px;
+  box-shadow:0 12px 34px -12px rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+/* ---------------- Carte (placeholder MapLibre) ---------------- */
+.mapph{position:relative; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line); background:linear-gradient(160deg,#E7EFE6,#F4ECDF); height:250px}
+.mapph svg{width:100%; height:100%; display:block}
+.mapph .dot{fill:var(--accent); stroke:#fff; stroke-width:1.5}
+.mapph .dotlab{font-family:var(--font-mono); font-size:9px; fill:var(--ink)}
+.mapph .riv{fill:none; stroke:#AEC6D6; stroke-width:3; opacity:.7}
+.mapph .tag{position:absolute; left:12px; bottom:12px; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.03em; color:var(--muted); background:color-mix(in srgb,var(--surface) 88%, transparent); border:1px solid var(--line); border-radius:20px; padding:5px 11px}
+
+/* ---------------- Doc builder ---------------- */
+.db-grid{display:grid; grid-template-columns:1fr 300px; gap:16px}
+.db-canvas{background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow); min-height:520px; display:flex; flex-direction:column}
+.db-toolbar{display:flex; gap:5px; padding:10px 12px; border-bottom:1px solid var(--line-2); flex-wrap:wrap}
+.db-toolbar button{border:1px solid var(--line); background:var(--bg); border-radius:6px; min-width:32px; height:30px; cursor:pointer; font-family:var(--font-mono); font-size:12px; padding:0 9px}
+.db-toolbar button:hover{border-color:var(--muted)}
+.db-page{padding:26px 30px; flex:1; overflow:auto}
+.db-page h2{font-size:1.5rem; margin-bottom:8px}
+.db-page .ph-line{height:9px; border-radius:4px; background:var(--line-2); margin:9px 0}
+.db-page .ph-line.s{width:66%} .db-page .ph-line.m{width:88%}
+.db-block{border:1px dashed color-mix(in srgb,var(--brass) 55%,var(--line)); border-radius:9px; padding:14px; margin:16px 0; background:color-mix(in srgb,var(--brass) 6%, var(--bg))}
+.db-block .bt{font-family:var(--font-mono); font-size:.64rem; text-transform:uppercase; letter-spacing:.06em; color:var(--brass); margin-bottom:6px}
+.db-palette{background:var(--surface-2); border:1px solid var(--line); border-radius:var(--radius); padding:15px; align-self:start}
+.db-palette h3{font-size:.98rem; margin-bottom:3px}
+.db-palette p{font-size:.78rem; color:var(--muted); margin:0 0 12px}
+.viz-chip{display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:10px; margin-bottom:8px; cursor:pointer; font-size:.85rem; color:var(--ink)}
+.viz-chip:hover{border-color:var(--accent)}
+.viz-chip .ic{width:26px; height:26px; border-radius:6px; background:color-mix(in srgb,var(--accent) 14%, var(--bg)); display:flex; align-items:center; justify-content:center; color:var(--accent); flex:0 0 auto}
+
+/* ---------------- Données ---------------- */
+.src{display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--line-2)}
+.src:last-of-type{border-bottom:none}
+.src .ic{width:38px; height:38px; border-radius:9px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:17px; flex:0 0 auto}
+.src .bd{flex:1; min-width:0}
+.src .bd .t{font-weight:600}
+.src .bd .d{font-size:.82rem; color:var(--muted)}
+.src .st2{font-family:var(--font-mono); font-size:.7rem; padding:4px 10px; border-radius:20px; white-space:nowrap; flex:0 0 auto}
+.src .st2.ok{background:color-mix(in srgb,var(--fav-pos) 16%, var(--bg)); color:var(--fav-pos)}
+.src .st2.no{background:color-mix(in srgb,var(--brass) 18%, var(--bg)); color:var(--brass)}
+.dropzone{margin-top:18px; border:1.5px dashed var(--line); border-radius:var(--radius); padding:26px; text-align:center; color:var(--muted); font-size:.88rem}
+.dropzone b{color:var(--accent)}
+
+/* ---------------- Responsive ---------------- */
+@media (max-width:880px){
+  .shell{grid-template-columns:1fr}
+  .side{flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px; border-right:none; border-bottom:1px solid var(--line); padding:10px 12px}
+  .side .lab{display:none}
+  .side .grow{flex:0}
+  .side .signout{margin:0}
+  .navitem{width:auto; padding:8px 11px}
+  .grid-2{grid-template-columns:1fr}
+  .db-grid{grid-template-columns:1fr}
+  .main{padding:20px 16px 50px}
+}
+@media (max-width:560px){
+  .appbar{padding:10px 14px; gap:10px}
+  .proj-pill{display:none}
+  .main{padding:16px 12px 46px}
+  .page-head h1{font-size:1.55rem}
+  .cbox{flex-direction:column}
+  .cbox .btn{align-self:flex-end}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== APP BAR ===================== -->
+<header class="appbar" data-noanno>
+  <div class="brand">
+    <svg class="arch" width="38" height="38" viewBox="0 0 40 40" aria-hidden="true">
+      <path d="M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31" fill="none" stroke="#1A6E47" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="20" cy="9" r="2.7" fill="#A9802F"/>
+    </svg>
+    <div class="lock">
+      <span class="wm">Corda</span>
+      <span class="sub">Écofiscalité</span>
+    </div>
+  </div>
+  <span class="spacer"></span>
+  <span class="proj-pill" id="projPill" hidden>MRC Thérèse-De Blainville</span>
+  <span class="role-badge" id="roleBadge" hidden>—</span>
+  <div class="demo-switch" id="demoSwitch" hidden title="Bascule démo entre les deux espaces">
+    <button data-as="admin" aria-pressed="true">Admin</button>
+    <button data-as="user" aria-pressed="false">Ville</button>
+  </div>
+  <button class="btn-anno" id="annoToggle" aria-pressed="false" hidden><span class="dot"></span>Annoter</button>
+</header>
+
+<!-- ===================== SHELL ===================== -->
+<div class="shell solo" id="shell">
+
+  <!-- Sidebar (caché à l'écran login) -->
+  <nav class="side" id="side" hidden aria-label="Navigation"></nav>
+
+  <!-- Main -->
+  <main class="main" id="main">
+
+    <!-- ---------- LOGIN ---------- -->
+    <section class="screen on" id="s-login" data-screen="Connexion">
+      <div class="login-wrap">
+        <div class="login-card">
+          <svg class="arch" width="52" height="52" viewBox="0 0 40 40" aria-hidden="true">
+            <path d="M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31" fill="none" stroke="#1A6E47" stroke-width="2.4" stroke-linecap="round"/>
+            <circle cx="20" cy="9" r="2.7" fill="#A9802F"/>
+          </svg>
+          <h2>Écofiscalité</h2>
+          <div class="lede">Entrez votre code d'accès à usage unique.</div>
+          <input type="text" id="codeInput" placeholder="Code d'accès" autocomplete="off" spellcheck="false">
+          <div class="btnrow" style="margin-top:14px">
+            <button class="btn primary" id="loginBtn" style="flex:1">Entrer</button>
+          </div>
+          <div class="err" id="loginErr"></div>
+          <div class="login-hint">
+            <b>Démo</b> — code admin : <b>Corda$2026</b><br>
+            tout autre code = accès « ville » (utilisateur)
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- ADMIN · ACCUEIL ---------- -->
+    <section class="screen" id="s-admin-home" data-screen="Admin — Accueil">
+      <div class="page-head">
+        <span class="eyebrow">Espace admin</span>
+        <h1>Accueil</h1>
+        <p>Choisissez le projet sur lequel travailler. Chaque projet regroupe ses municipalités, ses mesures et ses analyses.</p>
+      </div>
+      <div class="card" data-anno="Accueil admin — sélecteur de projet" style="max-width:520px">
+        <div class="field">
+          <label>Projet actif</label>
+          <select id="projectSelect">
+            <option value="mrctb">MRC Thérèse-De Blainville (7 villes)</option>
+            <option value="x" disabled>+ Nouveau projet… (à venir)</option>
+          </select>
+        </div>
+        <div class="row-between">
+          <span class="faint mono" style="font-size:.78rem">7 municipalités · rôle d'évaluation public chargé</span>
+          <button class="btn primary" data-go="calculateur">Ouvrir le calculateur →</button>
+        </div>
+      </div>
+      <div class="card" data-anno="Accueil admin — raccourcis modules" style="max-width:520px">
+        <h3>Modules</h3>
+        <div class="btnrow">
+          <button class="btn ghost" data-go="orchestrateur">Orchestrateur de discussion</button>
+          <button class="btn ghost" data-go="calculateur">Calculateur</button>
+          <button class="btn ghost" data-go="analyse">Analyse</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- ORCHESTRATEUR (stub, admin & user) ---------- -->
+    <section class="screen" id="s-orchestrateur" data-screen="Orchestrateur de discussion">
+      <div class="page-head">
+        <span class="eyebrow">Module</span>
+        <h1>Orchestrateur de discussion</h1>
+      </div>
+      <div class="card" data-anno="Orchestrateur — placeholder à suivre">
+        <div class="stub">
+          <div class="glyph">❝ ❞</div>
+          <div>L'espace de délibération des municipalités vivra ici :<br>orchestration de la discussion entre les 7 villes, à partir des fiches et analyses.</div>
+          <div class="soon">★ À suivre — version ultérieure</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- CALCULATEUR ---------- -->
+    <section class="screen" id="s-calculateur" data-screen="Calculateur">
+      <div class="page-head">
+        <span class="eyebrow">Module · admin</span>
+        <h1>Calculateur</h1>
+        <p>Configurez une mesure : le moteur estime la recette annuelle et l'impact distributif sur les 7 villes, puis cote la mesure sur la grille à 4 dimensions.</p>
+      </div>
+
+      <div class="grid-2">
+        <!-- Designer -->
+        <div class="card" data-anno="Calculateur — designer de mesure">
+          <h3>Designer de mesure</h3>
+          <div class="field">
+            <label>Mesure</label>
+            <select id="measureSelect"></select>
+          </div>
+          <div class="field">
+            <label>Assiette / base de calcul</label>
+            <div class="fakeselect" id="measureBase" style="color:var(--muted)">—</div>
+          </div>
+          <div class="field" data-anno="Calculateur — réglage du taux">
+            <div class="row-between"><label style="margin:0">Taux</label><span class="rate-read"><b id="rateVal">—</b></span></div>
+            <input type="range" id="rateRange" min="0" max="100" value="40">
+            <div class="rate-read" id="rateBasis">assiette = —</div>
+          </div>
+          <div class="field" data-anno="Calculateur — périmètre (villes)">
+            <label>Périmètre</label>
+            <div class="fakeselect" style="color:var(--muted)">7 villes (toutes) · MRC Thérèse-De Blainville</div>
+          </div>
+          <div class="btnrow">
+            <button class="btn primary" id="projectBtn">Projeter l'incidence</button>
+            <button class="btn ghost" id="addPfBtn">Ajouter au portfolio +</button>
+            <button class="btn brass" id="exportFicheBtn">Exporter la fiche</button>
+          </div>
+        </div>
+
+        <!-- Résultats -->
+        <div class="stack">
+          <div class="card" data-anno="Calculateur — recette projetée">
+            <div class="cap">Résultat — recette projetée</div>
+            <div class="bignum" style="border-top:none; margin:0; padding:0">
+              <div class="v" id="revVal">412 600 $</div>
+              <div class="k">par an · 7 villes</div>
+            </div>
+          </div>
+          <div class="card" data-anno="Calculateur — impact distributif (graphe)">
+            <div class="cap">Charge médiane par décile de valeur foncière</div>
+            <svg class="viz" viewBox="0 0 300 130" preserveAspectRatio="none" aria-hidden="true">
+              <line class="axis" x1="0" y1="118" x2="300" y2="118"></line>
+              <g id="calcBars"></g>
+            </svg>
+            <div class="annot" id="calcAnnot">↑ La charge croît avec la valeur — mesure légèrement progressive sur l'assiette foncière.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-anno="Calculateur — table de parcelles (échantillon)">
+        <h3>Échantillon de parcelles</h3>
+        <div class="table-scroll">
+          <table class="roll">
+            <thead><tr><th>Matricule</th><th>Usage</th><th style="text-align:right">Valeur</th><th style="text-align:right">Charge / an</th></tr></thead>
+            <tbody>
+              <tr><td class="n">9012-45-8870</td><td><span class="utag" style="--utc:var(--cat-1)"><i></i>Logement</span></td><td class="n">348 000 $</td><td class="n">0 $</td></tr>
+              <tr><td class="n">9013-02-1190</td><td><span class="utag" style="--utc:var(--cat-3)"><i></i>Terrain vague</span></td><td class="n">96 500 $</td><td class="n">1 240 $</td></tr>
+              <tr><td class="n">9013-77-6021</td><td><span class="utag" style="--utc:var(--cat-2)"><i></i>Commerce</span></td><td class="n">512 000 $</td><td class="n">0 $</td></tr>
+              <tr><td class="n">9014-10-3345</td><td><span class="utag" style="--utc:var(--cat-5)"><i></i>Stationnement</span></td><td class="n">205 000 $</td><td class="n">980 $</td></tr>
+              <tr><td class="n">9014-66-2218</td><td><span class="utag" style="--utc:var(--cat-4)"><i></i>Industriel</span></td><td class="n">874 000 $</td><td class="n">0 $</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" data-anno="Calculateur — grille de cotation 4 dimensions">
+        <h3>Grille écofiscale — cotation</h3>
+        <div class="grille" id="calcGrille"></div>
+      </div>
+
+      <div class="card" data-anno="Calculateur — carte du territoire">
+        <h3>Carte — incidence sur le territoire</h3>
+        <div class="mapph">
+          <svg viewBox="0 0 600 250" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <path class="riv" d="M20 185 Q160 130 290 165 T580 120"></path>
+            <g>
+              <circle class="dot" cx="250" cy="55" r="6"></circle><text class="dotlab" x="250" y="42" text-anchor="middle">Ste-Anne-des-Plaines</text>
+              <circle class="dot" cx="120" cy="105" r="6"></circle><text class="dotlab" x="120" y="92" text-anchor="middle">Blainville</text>
+              <circle class="dot" cx="330" cy="110" r="6"></circle><text class="dotlab" x="330" y="97" text-anchor="middle">Ste-Thérèse</text>
+              <circle class="dot" cx="455" cy="100" r="6"></circle><text class="dotlab" x="455" y="87" text-anchor="middle">Lorraine</text>
+              <circle class="dot" cx="225" cy="160" r="6"></circle><text class="dotlab" x="225" y="147" text-anchor="middle">Boisbriand</text>
+              <circle class="dot" cx="405" cy="165" r="6"></circle><text class="dotlab" x="405" y="152" text-anchor="middle">Rosemère</text>
+              <circle class="dot" cx="520" cy="170" r="6"></circle><text class="dotlab" x="520" y="157" text-anchor="middle">Bois-des-Filion</text>
+            </g>
+          </svg>
+          <span class="tag">Carte interactive — MapLibre GL · à venir</span>
+        </div>
+      </div>
+
+      <div class="card" data-anno="Calculateur — portfolio de mesures">
+        <div class="row-between" style="margin-bottom:10px">
+          <h3 style="margin:0">Portfolio de mesures <span class="faint num" id="pfCount" style="font-size:.8rem">(0)</span></h3>
+          <button class="btn ghost" data-go="analyse">Analyse globale →</button>
+        </div>
+        <div class="pf-strip" id="pfStrip"><span class="faint mono" style="font-size:.82rem">Aucune mesure — configurez-en une et cliquez « Ajouter au portfolio +».</span></div>
+      </div>
+    </section>
+
+    <!-- ---------- ANALYSE ---------- -->
+    <section class="screen" id="s-analyse" data-screen="Analyse">
+      <div class="page-head">
+        <span class="eyebrow">Module · admin</span>
+        <h1>Analyse</h1>
+        <p>Combine les résultats du calculateur (et, plus tard, de l'orchestrateur) pour produire visuels, présentations et rapports à partager avec les villes.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" data-anno="Analyse — recette combinée du portfolio">
+          <div class="cap">Recette combinée du portfolio</div>
+          <div class="bignum" style="border-top:none; margin:0; padding:0">
+            <div class="v" id="anaTotal">0 $</div>
+            <div class="k">somme des mesures retenues · par an</div>
+          </div>
+        </div>
+        <div class="card" data-anno="Analyse — recette par mesure (graphe)">
+          <div class="cap">Recette par mesure</div>
+          <svg class="viz" viewBox="0 0 300 130" preserveAspectRatio="none" aria-hidden="true">
+            <line class="axis" x1="0" y1="118" x2="300" y2="118"></line>
+            <g id="anaBars"></g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="card" data-anno="Analyse — matrice mesures × 4 dimensions">
+        <h3>Matrice de cotation — mesures × dimensions</h3>
+        <div class="table-scroll">
+          <table class="matrix" id="anaMatrix">
+            <thead><tr><th>Mesure</th><th>Pot. fiscal</th><th>Saine gestion</th><th>Accept. &amp; équité</th><th>Eff. environn.</th><th style="text-align:right">Recette/an</th></tr></thead>
+            <tbody id="anaMatrixBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" data-anno="Analyse — génération de livrables">
+        <h3>Produire un livrable</h3>
+        <p class="muted" style="margin-top:0">À partir du portfolio courant, sous l'identité Écofiscalité (Corda).</p>
+        <div class="btnrow">
+          <button class="btn primary" data-export="Rapport">Générer un rapport</button>
+          <button class="btn ghost" data-export="Présentation">Générer une présentation</button>
+          <button class="btn brass" data-export="Fiches">Exporter les fiches</button>
+          <button class="btn ghost" id="shareBtn">Partager aux villes →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- USER · COMMUNICATIONS ---------- -->
+    <section class="screen" id="s-communications" data-screen="Communications (ville)">
+      <div class="page-head">
+        <span class="eyebrow">Espace ville · utilisateur</span>
+        <h1>Communications</h1>
+        <p>Fiches, projections et analyses partagées par l'équipe MRC/CERGO. L'ouverture d'un message est notée, et vous pouvez commenter.</p>
+      </div>
+
+      <div class="card" id="commListCard" data-anno="Communications — boîte de réception">
+        <div class="inbox" id="inbox"></div>
+      </div>
+
+      <div class="card" id="commDetail" data-anno="Communications — message ouvert" hidden>
+        <button class="btn ghost" id="commBack" style="margin-bottom:14px">← Retour</button>
+        <span class="eyebrow" id="commKind">Fiche</span>
+        <h3 id="commTitle" style="margin-top:6px; font-size:1.25rem">—</h3>
+        <div class="faint mono" id="commMeta" style="font-size:.74rem; margin-bottom:14px">—</div>
+        <div id="commBody" class="muted"></div>
+        <div class="comments" data-anno="Communications — outil de commentaire">
+          <h3 style="font-size:.95rem">Commentaires</h3>
+          <div id="commentList"></div>
+          <div class="cbox">
+            <textarea id="commentInput" placeholder="Votre commentaire à l'équipe…"></textarea>
+            <button class="btn primary" id="commentSend">Envoyer</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- ADMIN · DONNÉES ---------- -->
+    <section class="screen" id="s-donnees" data-screen="Admin — Données">
+      <div class="page-head">
+        <span class="eyebrow">Projet · admin</span>
+        <h1>Gestion des données</h1>
+        <p>Charger et tenir à jour les données primaires du projet : rôle d'évaluation, revenus par aire de diffusion, codes d'usage. Le calculateur s'appuie sur ces sources.</p>
+      </div>
+      <div class="card" data-anno="Données — sources primaires">
+        <h3>Sources de données</h3>
+        <div class="src">
+          <div class="ic">⛁</div>
+          <div class="bd"><div class="t">Rôle d'évaluation foncière</div><div class="d">Données Québec / MAMH · GeoPackage · 7 villes (filtre code_mun)</div></div>
+          <span class="st2 ok">Chargé ✓</span>
+        </div>
+        <div class="src">
+          <div class="ic">▦</div>
+          <div class="bd"><div class="t">Revenus par aire de diffusion</div><div class="d">StatCan · contexte de quartier — flaggé « inférence écologique »</div></div>
+          <span class="st2 ok">Chargé ✓</span>
+        </div>
+        <div class="src">
+          <div class="ic">⌗</div>
+          <div class="bd"><div class="t">CUBF — codes d'utilisation des biens-fonds</div><div class="d">Usages des unités d'évaluation</div></div>
+          <span class="st2 ok">Chargé ✓</span>
+        </div>
+        <div class="src">
+          <div class="ic">$</div>
+          <div class="bd"><div class="t">Revenu fin des ménages (T1FF / Community Data Program)</div><div class="d">Tabulations fines payantes — prévu pour la version finale</div></div>
+          <span class="st2 no">Non chargé</span>
+        </div>
+        <div class="dropzone" data-anno="Données — import de fichier">Glisser un fichier ici (GeoPackage, CSV, XLSX) — ou <b>parcourir</b></div>
+        <div class="btnrow"><button class="btn primary" id="reloadData">Recharger le rôle d'évaluation</button><button class="btn ghost">Journal des chargements</button></div>
+      </div>
+    </section>
+
+    <!-- ---------- ANALYSE · CONSTRUCTEUR DE DOCUMENT ---------- -->
+    <section class="screen" id="s-docbuilder" data-screen="Constructeur de document">
+      <div class="page-head">
+        <button class="btn ghost" data-go="analyse" style="margin-bottom:12px">← Retour à l'analyse</button>
+        <span class="eyebrow">Analyse · livrable</span>
+        <h1 id="dbTitle">Constructeur de rapport</h1>
+        <p>Rédige en texte formaté et insère les visualisations de ton choix depuis la bibliothèque à droite. Quand c'est prêt, partage aux villes.</p>
+      </div>
+      <div class="db-grid">
+        <div class="db-canvas" data-anno="Doc builder — canevas du document">
+          <div class="db-toolbar" data-noanno>
+            <button title="Titre">H1</button><button title="Sous-titre">H2</button><button title="Gras"><b>B</b></button><button title="Italique"><i>I</i></button><button title="Liste">≔</button><button title="Citation">❝</button>
+          </div>
+          <div class="db-page" id="dbPage">
+            <h2>Stratégie écofiscale — portfolio juin</h2>
+            <div class="ph-line m"></div><div class="ph-line"></div><div class="ph-line s"></div>
+            <div class="ph-line m" style="margin-top:18px"></div><div class="ph-line"></div>
+          </div>
+        </div>
+        <div class="db-palette" data-anno="Doc builder — bibliothèque de visualisations">
+          <h3>Visualisations</h3>
+          <p>Clique pour insérer dans le document.</p>
+          <button class="viz-chip" data-viz="Recette par mesure"><span class="ic">▮</span>Recette par mesure</button>
+          <button class="viz-chip" data-viz="Matrice de cotation"><span class="ic">▦</span>Matrice de cotation</button>
+          <button class="viz-chip" data-viz="Charge par décile"><span class="ic">◳</span>Charge par décile</button>
+          <button class="viz-chip" data-viz="Carte — incidence sur le territoire"><span class="ic">◉</span>Carte — incidence</button>
+          <button class="btn primary" id="dbShare" style="width:100%; margin-top:12px">Partager aux villes →</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===================== ANNOTATION UI ===================== -->
+<div class="anno-hint" data-noanno>Mode annotation — cliquez un élément pour le commenter</div>
+<div class="anno-pop" id="annoPop" data-noanno hidden></div>
+<aside class="anno-panel" id="annoPanel" data-noanno aria-label="Annotations">
+  <header>
+    <h3>Annotations <span class="num faint" id="annoNum" style="font-size:.85rem">(0)</span></h3>
+    <button class="x" id="annoPanelClose" aria-label="Fermer">×</button>
+  </header>
+  <div class="anno-list" id="annoList"></div>
+  <footer>
+    <button class="btn brass" id="annoDownload" style="flex:1">Télécharger</button>
+    <button class="btn ghost" id="annoCopy">Copier</button>
+    <button class="btn ghost" id="annoClear">Vider</button>
+  </footer>
+</aside>
+<div class="toast" id="toast" data-noanno></div>
+
+<script>
+"use strict";
+
+/* ===================== DONNÉES (mock) ===================== */
+const MEASURES = [
+  {id:'tvv',  name:'Redevance — terrains vagues desservis', base:'Superficie · CUBF 9100', basis:'$/m²', min:0, max:2.0, val:0.85, rev:412600, cotes:['+','0','+','+'], prog:0.7},
+  {id:'stat', name:'Taxe — stationnement de surface',        base:'Superficie imperméabilisée', basis:'$/m²', min:0, max:3.0, val:1.20, rev:286400, cotes:['+','0','0','+'], prog:0.4},
+  {id:'dev',  name:'Redevance de développement',            base:'Valeur · nouvelles constructions', basis:'%', min:0, max:4.0, val:1.5, rev:531000, cotes:['+','-','+','0'], prog:0.85},
+  {id:'demo', name:'Taxe sur la démolition (CRD)',          base:'Permis de démolition', basis:'$/permis', min:0, max:6000, val:2500, rev:73500, cotes:['0','0','+','+'], prog:0.2},
+];
+const DIM_LABELS = ['Potentiel fiscal','Saine gestion','Acceptabilité & équité','Efficacité environn.'];
+const COMMS = [
+  {id:'c1', kind:'Fiche', title:'Redevance — terrains vagues desservis', who:'Équipe MRC/CERGO', date:'24 juin', read:false,
+   body:"Projection : <b>412 600 $/an</b> sur les 7 villes. Charge concentrée hors résidentiel, légèrement progressive sur l'assiette foncière. Cotation : Pot. fiscal +, Saine gestion 0, Acceptabilité +, Efficacité +."},
+  {id:'c2', kind:'Analyse', title:'Portfolio écofiscal — version juin', who:'Équipe MRC/CERGO', date:'24 juin', read:false,
+   body:"Trois mesures combinées, recette agrégée d'environ <b>1,23 M$/an</b>. Voir la matrice de cotation et la répartition par ville. Commentaires bienvenus avant la Rencontre 2 du comité de pilotage."},
+  {id:'c3', kind:'Fiche', title:'Taxe sur le stationnement de surface', who:'Équipe MRC/CERGO', date:'21 juin', read:true,
+   body:"Projection : <b>286 400 $/an</b>. Effet incitatif sur l'imperméabilisation. Cotation : Pot. fiscal +, Saine gestion 0, Acceptabilité 0, Efficacité +."},
+];
+
+/* ===================== ÉTAT ===================== */
+const LS='ux-sim-v1';
+let state = { role:null, screen:'Connexion', measure:'tvv', rate:{}, portfolio:[], annos:[], comments:{}, comms:COMMS.map(c=>({...c})) };
+MEASURES.forEach(m=>state.rate[m.id]=m.val);
+(function load(){ try{ const s=JSON.parse(localStorage.getItem(LS)); if(s&&s.annos) state=Object.assign(state,s);}catch(e){} })();
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(state)); }catch(e){} }
+
+/* ===================== HELPERS ===================== */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const fmt=n=>Math.round(n).toLocaleString('fr-CA').replace(/ /g,' ');
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1900); }
+function curMeasure(){ return MEASURES.find(m=>m.id===state.measure); }
+
+/* ===================== NAVIGATION ===================== */
+const NAV = {
+  admin:[
+    {grp:'Projet'},
+    {id:'admin-home', label:'Accueil', ic:'◧'},
+    {id:'donnees', label:'Données', ic:'⛁'},
+    {grp:'Modules'},
+    {id:'orchestrateur', label:'Orchestrateur', ic:'❝', soon:true},
+    {id:'calculateur', label:'Calculateur', ic:'∑'},
+    {id:'analyse', label:'Analyse', ic:'◔'},
+  ],
+  user:[
+    {grp:'Espace ville'},
+    {id:'orchestrateur', label:'Orchestrateur', ic:'❝', soon:true},
+    {id:'communications', label:'Communications', ic:'✉'},
+  ]
+};
+function renderSide(){
+  const side=$('#side'); side.innerHTML='';
+  (NAV[state.role]||[]).forEach(item=>{
+    if(item.grp){ const l=document.createElement('div'); l.className='lab'; l.textContent=item.grp; side.appendChild(l); return; }
+    const b=document.createElement('button'); b.className='navitem'; b.dataset.target=item.id; b.dataset.anno='Menu — '+item.label;
+    b.innerHTML='<span class="ic">'+item.ic+'</span><span>'+item.label+'</span>'+(item.soon?'<span class="pill-soon">à suivre</span>':'');
+    if(item.soon){ /* cliquable mais montre le stub */ }
+    b.onclick=()=>go(item.id);
+    side.appendChild(b);
+  });
+  const grow=document.createElement('div'); grow.className='grow'; side.appendChild(grow);
+  const out=document.createElement('button'); out.className='signout'; out.textContent='Déconnexion'; out.onclick=logout; side.appendChild(out);
+}
+const SCREEN_OF = { 'admin-home':'s-admin-home','donnees':'s-donnees','orchestrateur':'s-orchestrateur','calculateur':'s-calculateur','analyse':'s-analyse','docbuilder':'s-docbuilder','communications':'s-communications' };
+function go(target){
+  const id=SCREEN_OF[target]; if(!id) return;
+  $$('.screen').forEach(s=>s.classList.remove('on'));
+  $('#'+id).classList.add('on');
+  state.screen = $('#'+id).dataset.screen;
+  $$('#side .navitem').forEach(n=>n.classList.toggle('active', n.dataset.target===target));
+  $('#main').scrollTop=0;
+  if(target==='calculateur') renderCalc();
+  if(target==='analyse') renderAnalyse();
+  if(target==='communications') renderInbox();
+  restorePins();
+  save();
+}
+
+/* ===================== LOGIN / ROLE ===================== */
+function enter(role){
+  state.role=role;
+  $('#shell').classList.remove('solo');
+  $('#side').hidden=false;
+  ['projPill','roleBadge','demoSwitch','annoToggle'].forEach(i=>$('#'+i).hidden=false);
+  $('#roleBadge').textContent = role==='admin' ? 'Admin' : 'Ville · Sainte-Thérèse';
+  $$('#demoSwitch button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.as===role));
+  renderSide();
+  go(role==='admin' ? 'admin-home' : 'communications');
+}
+function logout(){
+  state.role=null; state.screen='Connexion';
+  $('#shell').classList.add('solo'); $('#side').hidden=true;
+  ['projPill','roleBadge','demoSwitch','annoToggle'].forEach(i=>$('#'+i).hidden=true);
+  if(state.anno) toggleAnno(false);
+  $$('.screen').forEach(s=>s.classList.remove('on')); $('#s-login').classList.add('on');
+  $('#codeInput').value=''; $('#loginErr').textContent='';
+  save();
+}
+$('#loginBtn').onclick=()=>{
+  const v=$('#codeInput').value.trim();
+  if(!v){ $('#loginErr').textContent='Entrez un code.'; return; }
+  $('#loginErr').textContent='';
+  enter(v==='Corda$2026' ? 'admin' : 'user');
+};
+$('#codeInput').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
+$$('#demoSwitch button').forEach(b=>b.onclick=()=>{ if(state.anno) return; enter(b.dataset.as); });
+
+/* boutons "data-go" dans le contenu */
+$$('[data-go]').forEach(b=>b.addEventListener('click',()=>{ if(!state.anno) go(b.dataset.go); }));
+
+/* ===================== CHART ===================== */
+function drawBars(gId, vals, max, prefix){
+  prefix = prefix || 'D';
+  const g=document.getElementById(gId); g.innerHTML='';
+  const n=vals.length, bw=300/n*0.62, gap=300/n*0.38;
+  vals.forEach((v,i)=>{
+    const x=i*(bw+gap)+gap/2, h=Math.max(2,(v/max)*100), y=118-h;
+    const r=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    r.setAttribute('class','bar'); r.setAttribute('x',x.toFixed(1)); r.setAttribute('y',y.toFixed(1));
+    r.setAttribute('width',bw.toFixed(1)); r.setAttribute('height',h.toFixed(1)); r.setAttribute('rx','1.5');
+    g.appendChild(r);
+    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('class','blab'); t.setAttribute('x',(x+bw/2).toFixed(1)); t.setAttribute('y','128'); t.setAttribute('text-anchor','middle');
+    t.textContent=prefix+(i+1); g.appendChild(t);
+  });
+}
+
+/* ===================== CALCULATEUR ===================== */
+function coteColor(c){ return c==='+'?'var(--fav-pos)':c==='-'?'var(--fav-neg)':'var(--fav-mid)'; }
+function coteLabel(c){ return c==='+'?'+':c==='-'?'−':'0'; }
+function renderMeasureSelect(){
+  const sel=$('#measureSelect'); if(sel.children.length) return;
+  MEASURES.forEach(m=>{ const o=document.createElement('option'); o.value=m.id; o.textContent=m.name; sel.appendChild(o); });
+  sel.onchange=()=>{ if(state.anno){ sel.value=state.measure; return;} state.measure=sel.value; renderCalc(); save(); };
+}
+function renderCalc(){
+  renderMeasureSelect();
+  const m=curMeasure();
+  $('#measureSelect').value=m.id;
+  $('#measureBase').textContent=m.base;
+  // taux
+  const rate=state.rate[m.id];
+  const rg=$('#rateRange'); rg.value=Math.round((rate-m.min)/(m.max-m.min)*100);
+  rg.oninput=()=>{ if(state.anno){ renderCalc(); return; } state.rate[m.id]=m.min+(rg.value/100)*(m.max-m.min); renderCalc(); save(); };
+  const rv=state.rate[m.id];
+  $('#rateVal').textContent = (m.basis==='$/permis'?fmt(rv)+' $/permis' : m.basis==='%'? rv.toFixed(2)+' %' : rv.toFixed(2)+' '+m.basis);
+  $('#rateBasis').textContent='assiette = '+m.base;
+  // recette (échelle linéaire sur le taux, mock)
+  const factor = rv/m.val || 0;
+  const rev = m.rev*factor;
+  $('#revVal').textContent=fmt(rev)+' $';
+  // décile chart : profil progressif selon m.prog
+  const vals=[]; for(let i=0;i<8;i++){ const base=10+ i*5; vals.push(base*(1-m.prog) + (8+i*6)*m.prog); }
+  drawBars('calcBars', vals.map(v=>v*(0.6+0.4*factor)), 60);
+  $('#calcAnnot').textContent = m.prog>0.6 ? '↑ Charge nettement croissante avec la valeur — mesure progressive sur l\'assiette.'
+                              : m.prog>0.35 ? '↑ Charge modérément croissante avec la valeur.'
+                              : '→ Charge peu sensible à la valeur — assiette quasi forfaitaire.';
+  // grille
+  const gr=$('#calcGrille'); gr.innerHTML='';
+  m.cotes.forEach((c,i)=>{ const el=document.createElement('span'); el.className='gchip'; el.style.setProperty('--gc',coteColor(c));
+    el.innerHTML='<i></i>'+DIM_LABELS[i]+' <b>'+coteLabel(c)+'</b>'; gr.appendChild(el); });
+  renderPortfolioStrip();
+}
+$('#projectBtn').onclick=()=>{ if(state.anno) return; renderCalc(); toast('Incidence projetée — 7 villes'); };
+$('#addPfBtn').onclick=()=>{
+  if(state.anno) return;
+  const m=curMeasure(); if(state.portfolio.find(p=>p.id===m.id)){ toast('Déjà au portfolio'); return; }
+  state.portfolio.push({id:m.id, rate:state.rate[m.id]}); renderPortfolioStrip(); save(); toast('Ajoutée au portfolio');
+};
+$('#exportFicheBtn').onclick=()=>{ if(state.anno) return; toast('Fiche exportée (.pdf) — mock'); };
+function renderPortfolioStrip(){
+  const strip=$('#pfStrip'); const n=state.portfolio.length;
+  $('#pfCount').textContent='('+n+')';
+  if(!n){ strip.innerHTML='<span class="faint mono" style="font-size:.82rem">Aucune mesure — configurez-en une et cliquez « Ajouter au portfolio +».</span>'; return; }
+  strip.innerHTML='';
+  state.portfolio.forEach(p=>{ const m=MEASURES.find(x=>x.id===p.id);
+    const c=document.createElement('span'); c.className='pf-chip';
+    c.innerHTML='<span>'+m.name.split('—')[0].trim()+'</span><button title="Retirer">×</button>';
+    c.querySelector('button').onclick=()=>{ if(state.anno) return; state.portfolio=state.portfolio.filter(x=>x.id!==p.id); renderPortfolioStrip(); save(); };
+    strip.appendChild(c);
+  });
+}
+
+/* ===================== ANALYSE ===================== */
+function renderAnalyse(){
+  const pf=state.portfolio.length?state.portfolio:MEASURES.slice(0,3).map(m=>({id:m.id,rate:m.val}));
+  let total=0; const body=$('#anaMatrixBody'); body.innerHTML=''; const barVals=[];
+  pf.forEach((p,idx)=>{
+    const m=MEASURES.find(x=>x.id===p.id); const factor=(p.rate/m.val)||0; const rev=m.rev*factor; total+=rev; barVals.push(rev/1000);
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td><b>M'+(idx+1)+'</b> · '+m.name+'</td>'+m.cotes.map(c=>'<td class="cote '+(c==='+'?'pos':c==='-'?'neg':'mid')+'">'+coteLabel(c)+'</td>').join('')+'<td class="n">'+fmt(rev)+' $</td>';
+    body.appendChild(tr);
+  });
+  $('#anaTotal').textContent=fmt(total)+' $';
+  drawBars('anaBars', barVals, Math.max(...barVals,1)*1.1, 'M');
+}
+$$('[data-export]').forEach(b=>b.addEventListener('click',()=>{ if(state.anno) return;
+  const kind=b.dataset.export;
+  if(kind==='Rapport'||kind==='Présentation'){
+    document.getElementById('dbTitle').textContent='Constructeur de '+(kind==='Rapport'?'rapport':'présentation');
+    document.getElementById('dbPage').querySelectorAll('.db-block').forEach(x=>x.remove());
+    go('docbuilder');
+  } else toast(kind+' — export mock');
+}));
+$('#shareBtn').addEventListener('click',()=>{ if(state.anno) return; toast('Partagé aux 7 villes — visible dans Communications'); });
+/* doc builder : insérer une visualisation, partager */
+$$('.viz-chip').forEach(b=>b.addEventListener('click',()=>{ if(state.anno) return;
+  const blk=document.createElement('div'); blk.className='db-block';
+  blk.innerHTML='<div class="bt">Visualisation insérée</div><div>'+b.dataset.viz+'</div>';
+  document.getElementById('dbPage').appendChild(blk); blk.scrollIntoView({block:'nearest'}); toast('« '+b.dataset.viz+' » inséré');
+}));
+$('#dbShare') && $('#dbShare').addEventListener('click',()=>{ if(state.anno) return; toast('Document partagé aux villes'); });
+$('#reloadData') && $('#reloadData').addEventListener('click',()=>{ if(state.anno) return; toast('Rôle d\'évaluation rechargé — 7 villes'); });
+
+/* ===================== COMMUNICATIONS ===================== */
+function renderInbox(){
+  $('#commListCard').hidden=false; $('#commDetail').hidden=true;
+  const box=$('#inbox'); box.innerHTML='';
+  state.comms.forEach(c=>{
+    const b=document.createElement('button'); b.className='msg'+(c.read?' read':'');
+    b.innerHTML='<span class="st"></span><span class="who">'+c.who+'</span><span class="ttl">'+c.title+'</span>'+(c.read?'':'<span class="tag-new">Nouveau</span>')+'<span class="date">'+c.date+'</span>';
+    b.onclick=()=>{ if(state.anno) return; openComm(c.id); };
+    box.appendChild(b);
+  });
+}
+function openComm(id){
+  const c=state.comms.find(x=>x.id===id); if(!c) return;
+  if(!c.read){ c.read=true; toast('Lecture notée — l\'équipe est avisée'); save(); }
+  $('#commListCard').hidden=true; $('#commDetail').hidden=false;
+  $('#commKind').textContent=c.kind; $('#commTitle').textContent=c.title;
+  $('#commMeta').textContent=c.who+' · '+c.date+' · lecture notée';
+  $('#commBody').innerHTML='<p>'+c.body+'</p>';
+  state.screen='Communications — '+c.title;
+  renderComments(id); restorePins();
+}
+$('#commBack').onclick=()=>{ if(state.anno) return; state.screen='Communications (ville)'; renderInbox(); };
+function renderComments(id){
+  const list=$('#commentList'); const arr=state.comments[id]||[]; list.innerHTML='';
+  if(!arr.length){ list.innerHTML='<div class="faint mono" style="font-size:.8rem; margin-bottom:8px">Aucun commentaire.</div>'; }
+  arr.forEach(c=>{ const d=document.createElement('div'); d.className='comment';
+    d.innerHTML='<div class="meta">Ville de Sainte-Thérèse · '+c.t+'</div><div>'+c.txt+'</div>'; list.appendChild(d); });
+}
+$('#commentSend').onclick=()=>{
+  if(state.anno) return;
+  const ta=$('#commentInput'); const v=ta.value.trim(); if(!v) return;
+  const id=state.comms.find(c=>$('#commTitle').textContent===c.title)?.id; if(!id) return;
+  (state.comments[id]=state.comments[id]||[]).push({txt:v, t:'à l\'instant'}); ta.value=''; renderComments(id); save(); toast('Commentaire envoyé');
+};
+
+/* ===================== ANNOTATION ===================== */
+function toggleAnno(on){
+  state.anno = (on===undefined)? !state.anno : on;
+  document.body.classList.toggle('anno-on', state.anno);
+  $('#annoToggle').setAttribute('aria-pressed', state.anno);
+  $('#annoPanel').classList.toggle('open', state.anno);
+  if(!state.anno){ $('#annoPop').hidden=true; clearHl(); }
+  renderAnnoList();
+}
+$('#annoToggle').onclick=()=>toggleAnno();
+$('#annoPanelClose').onclick=()=>toggleAnno(false);
+
+let hlEl=null;
+function clearHl(){ if(hlEl){ hlEl.classList.remove('anno-hl'); hlEl=null; } }
+document.addEventListener('mouseover',e=>{
+  if(!state.anno) return;
+  const t=annoTarget(e.target); if(!t || t===hlEl) return;
+  clearHl(); if(t && !t.closest('[data-noanno]')){ hlEl=t; t.classList.add('anno-hl'); }
+});
+function annoTarget(el){
+  if(!el || el.closest('[data-noanno]')) return null;
+  let cur=el;
+  while(cur && cur!==document.body){ if(cur.dataset && cur.dataset.anno) return cur; cur=cur.parentElement; }
+  return el.closest('.card, .navitem, .msg, .btn, .gchip') || el;
+}
+function targetLabel(el){
+  if(el.dataset && el.dataset.anno) return el.dataset.anno;
+  const h=el.querySelector && el.querySelector('h1,h2,h3'); if(h) return h.textContent.trim();
+  const txt=(el.textContent||'').trim().replace(/\s+/g,' ').slice(0,48);
+  return txt || (el.tagName.toLowerCase()+(el.className?('.'+String(el.className).split(' ')[0]):''));
+}
+document.addEventListener('click',e=>{
+  if(!state.anno) return;
+  if(e.target.closest('[data-noanno]')) return;       // contrôles meta : restent fonctionnels
+  const t=annoTarget(e.target); if(!t) return;
+  e.preventDefault(); e.stopPropagation();
+  openAnnoPop(t, e.clientX, e.clientY);
+}, true);
+
+function openAnnoPop(el, x, y){
+  const pop=$('#annoPop'); pop.hidden=false;
+  pop.innerHTML='<div class="ctx">'+state.screen+'</div><div class="tgt">'+targetLabel(el)+'</div>'+
+    '<textarea id="annoText" placeholder="Votre note pour le dev / le design…"></textarea>'+
+    '<div class="acts"><button class="btn ghost" id="annoCancel">Annuler</button><button class="btn brass" id="annoAdd">Ajouter</button></div>';
+  const w=300, ph=210;
+  pop.style.left=Math.min(x, window.innerWidth-w-14)+'px';
+  pop.style.top=Math.min(y, window.innerHeight-ph-14)+'px';
+  $('#annoText').focus();
+  $('#annoCancel').onclick=()=>{ pop.hidden=true; };
+  $('#annoAdd').onclick=()=>{
+    const v=$('#annoText').value.trim(); if(!v){ pop.hidden=true; return; }
+    const n=state.annos.length+1;
+    state.annos.push({n, screen:state.screen, label:targetLabel(el), text:v});
+    pinElement(el, n);
+    pop.hidden=true; clearHl(); renderAnnoList(); save(); toast('Annotation #'+n+' ajoutée');
+  };
+}
+function pinElement(el, n){
+  if(getComputedStyle(el).position==='static') el.classList.add('has-anno');
+  el.style.position = el.style.position || 'relative';
+  const pin=document.createElement('span'); pin.className='anno-pin'; pin.textContent=n; pin.dataset.pin=n;
+  el.appendChild(pin);
+}
+function restorePins(){
+  // retire les pins courants puis re-épingle ceux dont la cible est visible (best-effort par label sur l'écran courant)
+  $$('.anno-pin').forEach(p=>p.remove());
+  state.annos.filter(a=>a.screen===state.screen).forEach(a=>{
+    const host=[...document.querySelectorAll('[data-anno]')].find(el=>el.dataset.anno===a.label && el.offsetParent!==null);
+    if(host) pinElement(host, a.n);
+  });
+}
+function renderAnnoList(){
+  $('#annoNum').textContent='('+state.annos.length+')';
+  const list=$('#annoList'); list.innerHTML='';
+  if(!state.annos.length){ list.innerHTML='<div class="anno-empty">Aucune annotation.<br>Active « Annoter », clique un élément, écris ta note.</div>'; return; }
+  const groups={}; state.annos.forEach(a=>{ (groups[a.screen]=groups[a.screen]||[]).push(a); });
+  Object.keys(groups).forEach(scr=>{
+    const g=document.createElement('div'); g.className='anno-grp'; g.textContent=scr; list.appendChild(g);
+    groups[scr].forEach(a=>{
+      const r=document.createElement('div'); r.className='anno-row';
+      r.innerHTML='<span class="nn">'+a.n+'</span><div class="bd"><div class="t">'+a.label+'</div><div class="c">'+a.text+'</div></div><button class="del" title="Supprimer">×</button>';
+      r.querySelector('.del').onclick=()=>{ state.annos=state.annos.filter(x=>x!==a); restorePins(); renderAnnoList(); save(); };
+      list.appendChild(r);
+    });
+  });
+}
+function buildAnnoMD(){
+  const L=['# Annotations UX — Écofiscalité (Corda) · ux-sim v1',''];
+  L.push('_'+state.annos.length+' annotation(s) · prototype = `ux-sim.html`_'); L.push('');
+  const groups={}; state.annos.forEach(a=>{ (groups[a.screen]=groups[a.screen]||[]).push(a); });
+  Object.keys(groups).forEach(scr=>{
+    L.push('## Écran — '+scr);
+    groups[scr].forEach(a=>L.push('- **['+a.label+']** (#'+a.n+') — '+a.text));
+    L.push('');
+  });
+  L.push('---'); L.push('_Généré par le mode annotation du simulateur UX. Chaque note cite l\'écran + l\'élément ciblé._');
+  return L.join('\n');
+}
+$('#annoDownload').onclick=()=>{
+  if(!state.annos.length){ toast('Aucune annotation à exporter'); return; }
+  const blob=new Blob([buildAnnoMD()],{type:'text/markdown;charset=utf-8'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='ux-annotations.md';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);
+  toast('ux-annotations.md téléchargé');
+};
+$('#annoCopy').onclick=async()=>{
+  if(!state.annos.length){ toast('Aucune annotation'); return; }
+  const md=buildAnnoMD();
+  try{ await navigator.clipboard.writeText(md); toast('Annotations copiées — colle-les à Claude'); }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=md; ta.style.position='fixed'; ta.style.left='-9999px';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    let ok=false; try{ ok=document.execCommand('copy'); }catch(_){}
+    ta.remove(); toast(ok?'Annotations copiées':'Copie bloquée — voir la console'); if(!ok) console.log(md);
+  }
+};
+$('#annoClear').onclick=()=>{ if(!state.annos.length) return; if(!confirm('Vider toutes les annotations ?')) return; state.annos=[]; $$('.anno-pin').forEach(p=>p.remove()); renderAnnoList(); save(); };
+
+/* ===================== BOOT ===================== */
+renderAnnoList();
+if(state.role){ enter(state.role); } else { logout(); }
+</script>
+</body>
+</html>

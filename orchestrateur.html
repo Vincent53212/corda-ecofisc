@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orchestrateur — Analyse multicritère · Écofiscalité (Corda)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ORCHESTRATEUR — analyse multicritère · un produit Corda
+   Réutilise l'identité + le shell de ux-sim.html (vert/laiton Corda, crème).
+   ============================================================ */
+:root{
+  --font-display:"Fraunces",Georgia,serif;
+  --font-body:"Inter",system-ui,sans-serif;
+  --font-mono:"Space Mono",ui-monospace,monospace;
+  --bg:#FBF7F0; --surface:#FFFFFF; --surface-2:#F4ECDF; --ink:#211C15;
+  --muted:#6B6256; --faint:#94897A; --line:#E6DAC6; --line-2:#EFE7D8;
+  --accent:#1A6E47; --accent-deep:#0E4A2F; --accent-ink:#FFFFFF; --brass:#A9802F;
+  --fav-pos:#2E7D45; --fav-posl:#7DB37D; --fav-mid:#9AA0A6; --fav-warn:#E0A030; --fav-neg:#C0392B;
+  --radius:9px; --pad:16px; --shadow:0 1px 2px rgba(20,16,8,.05), 0 14px 34px -16px rgba(20,16,8,.22);
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0; height:100%}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--font-body);
+  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  display:flex; flex-direction:column; min-height:100vh; min-height:100dvh;
+}
+h1,h2,h3,.display{font-family:var(--font-display); margin:0; color:var(--ink)}
+.num{font-family:var(--font-mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+.mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--font-mono); font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); font-weight:600}
+.muted{color:var(--muted)} .faint{color:var(--faint)}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+
+/* App bar */
+.appbar{display:flex; align-items:center; gap:16px; padding:11px 22px; background:var(--surface); border-bottom:1.5px solid var(--ink); flex:0 0 auto; flex-wrap:wrap; row-gap:8px}
+.brand{display:flex; align-items:center; gap:11px}
+.brand .lock{display:flex; flex-direction:column; line-height:1}
+.brand .wm{font-family:var(--font-display); font-weight:600; font-size:23px; letter-spacing:.02em; margin-bottom:2px}
+.brand .sub{font-family:var(--font-mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--brass)}
+.appbar .spacer{flex:1}
+.proj-pill{font-family:var(--font-mono); font-size:11px; color:var(--muted); border:1px solid var(--line); border-radius:20px; padding:5px 11px; white-space:nowrap}
+select.proj-pill{appearance:none; -webkit-appearance:none; -moz-appearance:none; flex:0 0 auto; width:auto; max-width:240px; background:transparent url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23999' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 9px center; padding-right:26px; cursor:pointer}
+select.proj-pill:hover{border-color:var(--brass,#A9802F); color:var(--ink)}
+.role-badge{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; padding:5px 10px; border-radius:6px; background:color-mix(in srgb,var(--accent) 12%, var(--bg)); color:var(--accent-deep); border:1px solid color-mix(in srgb,var(--accent) 30%,var(--bg)); white-space:nowrap}
+.demo-switch{display:flex; border:1px solid var(--line); border-radius:7px; overflow:hidden}
+.demo-switch button{cursor:pointer; border:none; background:transparent; color:var(--muted); font-size:11px; padding:6px 9px; border-left:1px solid var(--line)}
+.demo-switch button:first-child{border-left:none}
+.demo-switch button[aria-pressed="true"]{background:var(--accent); color:#fff}
+.btn-anno{cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; border:1px solid var(--brass); color:var(--brass); background:transparent; padding:7px 12px; border-radius:8px}
+.btn-anno[aria-pressed="true"]{background:var(--brass); color:#fff}
+.btn-anno .dot{width:8px; height:8px; border-radius:50%; background:currentColor}
+
+/* Shell */
+.shell{display:grid; grid-template-columns:236px 1fr; flex:1 1 auto; min-height:0}
+.shell.solo{grid-template-columns:1fr}
+.side{border-right:1px solid var(--line); background:var(--surface-2); padding:16px 12px 30px; display:flex; flex-direction:column; gap:3px}
+.side .lab{font-family:var(--font-mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); padding:14px 10px 6px}
+.side .lab:first-child{padding-top:2px}
+.navitem{display:flex; align-items:center; gap:10px; cursor:pointer; text-align:left; border:none; background:transparent; color:var(--ink); font-size:14px; font-weight:500; padding:9px 11px; border-radius:8px; width:100%; position:relative}
+.navitem:hover{background:color-mix(in srgb,var(--accent) 8%, transparent)}
+.navitem .ic{flex:0 0 auto; font-size:15px; width:18px}
+.navitem.active{background:var(--accent); color:#fff}
+.navitem.active .pill-soon{color:#dfeee6}
+.navitem:disabled{cursor:not-allowed; color:var(--faint)}
+.navitem:disabled:hover{background:transparent}
+.pill-soon{margin-left:auto; font-family:var(--font-mono); font-size:8.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--brass); border:1px solid color-mix(in srgb,var(--brass) 40%,var(--bg)); border-radius:20px; padding:1px 6px; white-space:nowrap}
+.side .grow{flex:1}
+.side .signout{font-family:var(--font-mono); font-size:11px; color:var(--muted); cursor:pointer; background:transparent; border:1px solid var(--line); border-radius:7px; padding:8px; margin-top:8px}
+
+/* Main / screens */
+.main{overflow:auto; min-height:0; padding:26px 30px 60px}
+.shell.solo .main{display:grid; place-items:center; align-content:center; padding:24px}
+.screen{display:none; max-width:1280px; margin-inline:auto}
+.screen.on{display:block; animation:fade .18s ease}
+@keyframes fade{from{opacity:0; transform:translateY(4px)}to{opacity:1; transform:none}}
+.page-head{margin-bottom:20px}
+.page-head h1{font-size:1.9rem; font-weight:600; line-height:1.1; margin-top:5px}
+.page-head p{color:var(--muted); margin:7px 0 0; max-width:70ch}
+
+/* cards / fields / buttons */
+.card{background:var(--surface); border-radius:var(--radius); padding:var(--pad); box-shadow:var(--shadow)}
+.card + .card{margin-top:16px}
+.card h3{font-size:1.05rem; font-weight:600; margin-bottom:12px}
+.row-between{display:flex; justify-content:space-between; align-items:center; gap:10px}
+.field{margin-bottom:14px}
+.field > label{display:block; font-family:var(--font-mono); font-size:.66rem; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin-bottom:6px}
+select,input[type=text],textarea{width:100%; font-family:inherit; font-size:.95rem; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:7px; padding:10px 12px}
+textarea{line-height:1.5}
+.btn{cursor:pointer; border-radius:8px; padding:10px 15px; font-size:.92rem; font-weight:600; border:1px solid transparent}
+.btn.primary{background:var(--accent); color:#fff}
+.btn.primary:hover{background:var(--accent-deep)}
+.btn.ghost{background:transparent; color:var(--ink); border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--muted)}
+.btn.brass{background:var(--brass); color:#fff}
+.btnrow{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:6px}
+.table-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch}
+
+/* stub */
+.stub{display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:54px 20px; color:var(--muted)}
+.stub .glyph{font-size:34px; margin-bottom:14px; opacity:.5}
+
+/* Login / first-connection */
+.login-wrap{display:flex; align-items:center; justify-content:center; width:100%; padding:0}
+.login-card{width:min(420px,100%); background:var(--surface); border-radius:14px; box-shadow:var(--shadow); padding:34px 30px; text-align:center}
+.login-card .arch{margin:0 auto 12px}
+.login-card h2{font-size:1.5rem; font-weight:600}
+.login-card .lede{color:var(--muted); font-size:.92rem; margin:8px 0 22px}
+.login-card .err{color:var(--fav-neg); font-size:.82rem; min-height:1.1em; margin-top:8px; font-family:var(--font-mono)}
+.login-hint{margin-top:20px; padding-top:16px; border-top:1px solid var(--line-2); font-family:var(--font-mono); font-size:11px; color:var(--faint); line-height:1.7}
+.login-hint b{color:var(--muted)}
+
+/* ---------------- Orchestrateur ---------------- */
+.orch-grid{display:grid; grid-template-columns:300px 1fr; gap:16px; align-items:start}
+.mlist{background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow); padding:8px; max-height:calc(100dvh - 240px); overflow:auto; position:sticky; top:0}
+.mlist .catlab{font-family:var(--font-mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); padding:12px 10px 5px; display:flex; align-items:center; gap:7px}
+.mlist .catlab i{width:9px; height:9px; border-radius:50%; flex:0 0 auto}
+.mitem{display:flex; align-items:center; gap:9px; width:100%; text-align:left; border:none; background:transparent; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:.85rem; color:var(--ink); line-height:1.3}
+.mitem:hover{background:var(--surface-2)}
+.mitem.active{background:color-mix(in srgb,var(--accent) 12%, transparent); box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent)}
+.mitem .st{margin-left:auto; font-family:var(--font-mono); font-size:.64rem; color:var(--faint); flex:0 0 auto}
+.mitem .st.done{color:var(--fav-pos)} .mitem .st.part{color:var(--brass)}
+.progress{height:8px; background:var(--line-2); border-radius:20px; overflow:hidden; margin-top:10px}
+.progress > i{display:block; height:100%; background:var(--accent); transition:width .25s ease}
+.savedflag{font-family:var(--font-mono); font-size:.7rem; color:var(--fav-pos); opacity:0; transition:opacity .2s}
+.savedflag.show{opacity:1}
+.cat-pill{display:inline-flex; align-items:center; gap:7px; font-family:var(--font-mono); font-size:.66rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted)}
+.cat-pill i{width:10px; height:10px; border-radius:50%; flex:0 0 auto}
+
+.dimsec{margin-top:20px}
+.dimhead{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; padding-bottom:6px; border-bottom:2px solid var(--line-2)}
+.dimhead h3{font-size:1rem; font-weight:600}
+.apprec{font-family:var(--font-mono); font-size:.7rem; padding:4px 10px; border-radius:20px; white-space:nowrap; color:#fff; background:var(--line)}
+.q{display:grid; grid-template-columns:1fr auto; gap:8px 14px; padding:13px 0; border-top:1px solid var(--line-2); align-items:start}
+.q:first-of-type{border-top:none}
+.q-label{font-weight:600; font-size:.9rem}
+.q-text{font-size:.8rem; color:var(--muted); margin-top:3px; line-height:1.45}
+.q-actions{display:flex; align-items:center; gap:8px}
+.cote-btns{display:flex; border:1px solid var(--line); border-radius:9px; overflow:hidden}
+.cb{width:42px; height:38px; border:none; border-left:1px solid var(--line); background:var(--surface); cursor:pointer; font-family:var(--font-mono); font-weight:700; font-size:1.05rem; color:var(--muted)}
+.cb:first-child{border-left:none}
+.cb:hover{background:var(--surface-2)}
+.cb.pos.on{background:var(--fav-pos); color:#fff} .cb.mid.on{background:var(--fav-mid); color:#fff} .cb.neg.on{background:var(--fav-neg); color:#fff}
+.cbubble{width:38px; height:38px; border:1px solid var(--line); border-radius:9px; background:var(--surface); cursor:pointer; font-size:1rem; line-height:1}
+.cbubble.has{border-color:var(--brass); background:color-mix(in srgb,var(--brass) 14%,var(--bg))}
+.q-comment{grid-column:1/-1}
+.q-comment textarea{min-height:54px; resize:vertical; font-size:.86rem}
+.reco-banner{display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:var(--radius); margin-top:18px; color:#fff; background:var(--line); flex-wrap:wrap}
+.mdesc{font-size:.9rem; color:var(--ink); background:var(--surface-2); border-radius:8px; padding:11px 13px; margin-bottom:8px; line-height:1.55}
+.mdesc.todo{color:var(--faint); font-style:italic; background:transparent; border:1px dashed var(--line)}
+.q-guide{display:flex; flex-wrap:wrap; gap:6px; margin-top:7px}
+.q-guide .g{display:inline-flex; align-items:flex-start; gap:5px; font-size:.72rem; line-height:1.34; padding:3px 8px; border-radius:7px; border:1px solid var(--line); max-width:100%}
+.q-guide .g b{font-family:var(--font-mono); font-weight:800; flex:none}
+.q-guide .pos{color:var(--fav-pos); background:color-mix(in srgb, var(--fav-pos) 9%, transparent)}
+.q-guide .neg{color:var(--fav-neg); background:color-mix(in srgb, var(--fav-neg) 9%, transparent)}
+.projlist{display:flex; flex-direction:column; gap:8px; margin-top:6px}
+/* réponses par répondant */
+.repdim{margin-top:12px}
+.repdim-h{font-weight:600; font-size:.9rem; display:flex; align-items:center; gap:8px; margin-bottom:4px; padding-bottom:4px; border-bottom:1px solid var(--line-2)}
+.repdim-h .apprec{font-size:.64rem}
+.repq{display:grid; grid-template-columns:1fr auto; gap:3px 10px; padding:6px 0; border-bottom:1px solid var(--line-2); align-items:center}
+.repq-l{font-size:.84rem}
+.repq-c{grid-column:1/-1}
+.repcom{font-size:.8rem; color:var(--muted); background:var(--surface-2); border-radius:7px; padding:6px 9px; margin-top:3px}
+
+/* portrait matrix */
+.pmatrix{width:100%; border-collapse:collapse; font-size:.82rem}
+.pmatrix th,.pmatrix td{padding:8px 7px; border-bottom:1px solid var(--line-2); text-align:center; white-space:nowrap}
+.pmatrix th:first-child,.pmatrix td:first-child{text-align:left; white-space:normal; min-width:210px}
+.pmatrix th{font-family:var(--font-mono); font-size:.58rem; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); font-weight:500}
+.rpill{display:inline-block; min-width:22px; height:22px; line-height:22px; padding:0 5px; border-radius:6px; color:#fff; font-family:var(--font-mono); font-weight:700; font-size:.72rem; text-align:center}
+.rpill.rec{background:var(--fav-pos)} .rpill.etude{background:var(--fav-warn)} .rpill.non{background:var(--fav-neg)} .rpill.none{background:var(--line); color:var(--faint)}
+.mrccell{font-family:var(--font-mono); font-size:.7rem; display:flex; gap:3px; justify-content:center}
+.sumcards{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+.sumcard{border-radius:var(--radius); padding:14px 16px; color:#fff}
+.sumcard .n{font-family:var(--font-mono); font-size:1.9rem; font-weight:700; line-height:1}
+.sumcard .l{font-size:.78rem; opacity:.92; margin-top:4px}
+
+/* accès */
+.codecard{display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line-2); flex-wrap:wrap}
+.codecard:last-child{border-bottom:none}
+.codeval{font-family:var(--font-mono); font-weight:700; font-size:1rem; letter-spacing:.04em; background:var(--surface-2); padding:5px 10px; border-radius:7px; border:1px solid var(--line); white-space:nowrap}
+.codecard .bd{flex:1; min-width:140px}
+.codecard .who2{font-weight:600; font-size:.88rem}
+.codecard .meta2{font-family:var(--font-mono); font-size:.7rem; color:var(--faint)}
+.st3{font-family:var(--font-mono); font-size:.68rem; padding:4px 9px; border-radius:20px; white-space:nowrap}
+.st3.claimed{background:color-mix(in srgb,var(--fav-pos) 16%,var(--bg)); color:var(--fav-pos)}
+.st3.waiting{background:color-mix(in srgb,var(--brass) 16%,var(--bg)); color:var(--brass)}
+
+/* Annotation layer */
+body.anno-on{cursor:crosshair}
+body.anno-on .main *{cursor:crosshair}
+.anno-hint{display:none; position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:60; background:var(--ink); color:#fff; font-family:var(--font-mono); font-size:11.5px; padding:9px 16px; border-radius:30px; box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
+body.anno-on .anno-hint{display:block}
+.anno-hl{outline:2px dashed var(--brass) !important; outline-offset:2px; background:color-mix(in srgb,var(--brass) 9%, transparent)}
+.anno-pin{position:absolute; top:-9px; left:-9px; z-index:30; width:20px; height:20px; border-radius:50%; background:var(--brass); color:#fff; font-family:var(--font-mono); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.3); pointer-events:none}
+.has-anno{position:relative}
+.anno-pop{position:fixed; z-index:70; width:300px; background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:0 18px 50px -16px rgba(20,16,8,.4); padding:13px}
+.anno-pop .ctx{font-family:var(--font-mono); font-size:10px; letter-spacing:.04em; text-transform:uppercase; color:var(--brass); margin-bottom:7px}
+.anno-pop .tgt{font-size:.86rem; font-weight:600; margin-bottom:9px; line-height:1.3}
+.anno-pop textarea{min-height:74px; resize:vertical; font-size:.9rem}
+.anno-pop .acts{display:flex; gap:8px; justify-content:flex-end; margin-top:10px}
+.anno-pop .acts .btn{padding:7px 12px; font-size:.82rem}
+.anno-panel{position:fixed; top:0; right:0; bottom:0; width:min(380px,90vw); z-index:65; background:var(--surface); border-left:1px solid var(--line); box-shadow:-18px 0 50px -22px rgba(20,16,8,.4); transform:translateX(100%); transition:transform .22s ease; display:flex; flex-direction:column}
+.anno-panel.open{transform:none}
+.anno-panel header{display:flex; align-items:center; gap:10px; padding:15px 16px; border-bottom:1px solid var(--line)}
+.anno-panel header h3{font-size:1rem; font-weight:600}
+.anno-panel header .x{margin-left:auto; cursor:pointer; border:1px solid var(--line); background:transparent; border-radius:7px; width:30px; height:30px; font-size:16px}
+.anno-list{flex:1; overflow:auto; padding:8px 14px}
+.anno-grp{font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--brass); margin:14px 0 6px}
+.anno-row{display:flex; gap:9px; padding:9px 0; border-bottom:1px solid var(--line-2)}
+.anno-row .nn{font-family:var(--font-mono); font-weight:700; color:var(--brass); flex:0 0 auto}
+.anno-row .bd{flex:1}
+.anno-row .bd .t{font-size:.82rem; font-weight:600; margin-bottom:2px}
+.anno-row .bd .c{font-size:.86rem; color:var(--muted)}
+.anno-row .del{cursor:pointer; border:none; background:transparent; color:var(--faint); font-size:14px}
+.anno-empty{color:var(--faint); font-size:.86rem; text-align:center; padding:40px 10px; font-family:var(--font-mono)}
+.anno-panel footer{padding:13px 16px; border-top:1px solid var(--line); display:flex; gap:9px}
+.toast{position:fixed; left:50%; bottom:64px; transform:translateX(-50%) translateY(10px); z-index:80; background:var(--accent-deep); color:#fff; font-size:13px; padding:10px 18px; border-radius:30px; box-shadow:0 12px 34px -12px rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:opacity .2s, transform .2s}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+/* Responsive */
+@media (max-width:880px){
+  .shell{grid-template-columns:1fr}
+  .side{flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px; border-right:none; border-bottom:1px solid var(--line); padding:10px 12px}
+  .side .lab{display:none}
+  .side .grow{flex:0}
+  .side .signout{margin:0}
+  .navitem{width:auto; padding:8px 11px}
+  .orch-grid{grid-template-columns:1fr}
+  .mlist{position:static; max-height:340px}
+  .main{padding:20px 16px 50px}
+  .sumcards{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .appbar{padding:10px 14px; gap:10px}
+  .proj-pill{display:none}
+  .main{padding:16px 12px 46px}
+  .page-head h1{font-size:1.55rem}
+  .q{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== APP BAR ===================== -->
+<header class="appbar" data-noanno>
+  <div class="brand">
+    <svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true">
+      <path d="M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31" fill="none" stroke="#1A6E47" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="20" cy="9" r="2.7" fill="#A9802F"/>
+    </svg>
+    <div class="lock"><span class="wm">Corda</span><span class="sub">Écofiscalité · Orchestrateur</span></div>
+  </div>
+  <span class="spacer"></span>
+  <select class="proj-pill" id="projPill" hidden title="Changer de projet" aria-label="Projet actif">
+    <option value="tdb" selected>MRC Thérèse-De Blainville</option>
+    <option value="" disabled>＋ Nouveau projet — à venir</option>
+  </select>
+  <span class="role-badge" id="roleBadge" hidden>—</span>
+  <div class="demo-switch" id="demoSwitch" hidden title="Bascule démo entre les deux espaces">
+    <button data-as="admin" aria-pressed="true">Admin</button>
+    <button data-as="user" aria-pressed="false">Ville</button>
+  </div>
+  <button class="btn-anno" id="annoToggle" aria-pressed="false" hidden><span class="dot"></span>Annoter</button>
+</header>
+
+<!-- ===================== SHELL ===================== -->
+<div class="shell solo" id="shell">
+  <nav class="side" id="side" hidden aria-label="Navigation"></nav>
+  <main class="main" id="main">
+
+    <!-- LOGIN -->
+    <section class="screen on" id="s-login" data-screen="Connexion">
+      <div class="login-wrap"><div class="login-card">
+        <svg class="arch" width="52" height="52" viewBox="0 0 40 40" aria-hidden="true">
+          <path d="M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31" fill="none" stroke="#1A6E47" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="20" cy="9" r="2.7" fill="#A9802F"/>
+        </svg>
+        <h2>Orchestrateur</h2>
+        <div class="lede">Analyse multicritère des mesures fiscales. Entrez votre code d'accès.</div>
+        <input type="text" id="codeInput" placeholder="Code d'accès" autocomplete="off" spellcheck="false">
+        <div class="btnrow" style="margin-top:14px"><button class="btn primary" id="loginBtn" style="flex:1">Entrer</button></div>
+        <div class="err" id="loginErr"></div>
+        <div class="login-hint"><b>Accès réservé.</b> Admins : identifiants fournis par l'équipe MRC/CERGO. Villes : votre code personnel.</div>
+      </div></div>
+    </section>
+
+    <!-- PREMIÈRE CONNEXION -->
+    <section class="screen" id="s-firstconn" data-screen="Première connexion">
+      <div class="login-wrap"><div class="login-card">
+        <svg class="arch" width="52" height="52" viewBox="0 0 40 40" aria-hidden="true">
+          <path d="M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31" fill="none" stroke="#1A6E47" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="20" cy="9" r="2.7" fill="#A9802F"/>
+        </svg>
+        <h2>Première connexion</h2>
+        <div class="lede">Ville de <b id="fcVille">—</b>. Présentez-vous pour démarrer.</div>
+        <input type="text" id="fcPrenom" placeholder="Prénom" autocomplete="off">
+        <input type="text" id="fcNom" placeholder="Nom" autocomplete="off" style="margin-top:10px">
+        <input type="text" id="fcFonction" placeholder="Fonction (ex. directeur des finances)" autocomplete="off" style="margin-top:10px">
+        <div class="btnrow" style="margin-top:14px"><button class="btn primary" id="fcBtn" style="flex:1">Commencer</button></div>
+        <div class="err" id="fcErr"></div>
+      </div></div>
+    </section>
+
+    <!-- ADMIN · PORTRAIT -->
+    <section class="screen" id="s-portrait" data-screen="Portrait (MRC)">
+      <div class="page-head">
+        <span class="eyebrow">Pilotage · admin</span>
+        <h1>Portrait global</h1>
+        <p>Agrégation des cotations pour l'ensemble des mesures. Chaque cellule rapporte la recommandation calculée par ville tandis que la colonne MRC résume la moyenne régionale des recommandations.</p>
+      </div>
+      <div id="portraitHost"></div>
+    </section>
+
+    <!-- ADMIN · ACCÈS -->
+    <section class="screen" id="s-acces" data-screen="Accès">
+      <div class="page-head">
+        <span class="eyebrow">Pilotage · admin</span>
+        <h1>Gestion des accès</h1>
+        <p>Générez un code d'accès par personne. À sa première connexion, la personne saisit son identité ; ses cotations sont rattachées à sa ville.</p>
+      </div>
+      <div id="accesHost"></div>
+    </section>
+
+    <!-- ADMIN · RÉPONSES PAR RÉPONDANT -->
+    <section class="screen" id="s-reponses" data-screen="Réponses par répondant">
+      <div class="page-head">
+        <span class="eyebrow">Pilotage · admin</span>
+        <h1>Réponses par répondant</h1>
+        <p>Consultez les cotations <b>individuelles</b>, par clé d'accès. Dans le Portrait, les réponses d'une même ville sont agrégées (moyenne des répondants).</p>
+      </div>
+      <div id="reponsesHost"></div>
+    </section>
+
+    <!-- ADMIN · GESTIONNAIRE DE PROJETS -->
+    <section class="screen" id="s-projets" data-screen="Gestionnaire de projets">
+      <div class="page-head">
+        <span class="eyebrow">Pilotage · admin</span>
+        <h1>Gestionnaire de projets</h1>
+        <p>Chaque projet a sa propre liste de villes, ses codes d'accès et ses cotations. Le projet actif se choisit dans le menu déroulant en haut.</p>
+      </div>
+      <div id="projetsHost"></div>
+    </section>
+
+    <!-- VILLE · ORCHESTRATEUR -->
+    <section class="screen" id="s-orch" data-screen="Mesures à coter">
+      <div class="page-head">
+        <span class="eyebrow">Analyse multicritère</span>
+        <h1>Cotation des mesures</h1>
+        <p>Pour chaque mesure, répondez aux 22 questions : <b style="color:var(--fav-pos)">+ favorable</b> · <b style="color:var(--fav-mid)">0 neutre</b> · <b style="color:var(--fav-neg)">− défavorable</b>. Tout est enregistré automatiquement.</p>
+      </div>
+      <div id="orchHost"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===================== ANNOTATION UI ===================== -->
+<div class="anno-hint" data-noanno>Mode annotation — cliquez un élément pour le commenter</div>
+<div class="anno-pop" id="annoPop" data-noanno hidden></div>
+<aside class="anno-panel" id="annoPanel" data-noanno aria-label="Annotations">
+  <header>
+    <h3>Annotations <span class="num faint" id="annoNum" style="font-size:.85rem">(0)</span></h3>
+    <button class="x" id="annoPanelClose" aria-label="Fermer">×</button>
+  </header>
+  <div class="anno-list" id="annoList"></div>
+  <footer>
+    <button class="btn brass" id="annoDownload" style="flex:1">Télécharger</button>
+    <button class="btn ghost" id="annoCopy">Copier</button>
+    <button class="btn ghost" id="annoClear">Vider</button>
+  </footer>
+</aside>
+<div class="toast" id="toast" data-noanno></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script>
+"use strict";
+
+/* ===================== DONNÉES DE RÉFÉRENCE ===================== */
+let VILLES = [ /* réassignée au projet actif via syncVilles() ; ces 7 servent à amorcer le projet « MRC Thérèse-De Blainville » */
+  {id:'blainville', nom:'Blainville'},
+  {id:'boisbriand', nom:'Boisbriand'},
+  {id:'bois-des-filion', nom:'Bois-des-Filion'},
+  {id:'lorraine', nom:'Lorraine'},
+  {id:'rosemere', nom:'Rosemère'},
+  {id:'sainte-therese', nom:'Sainte-Thérèse'},
+  {id:'sainte-anne-des-plaines', nom:'Sainte-Anne-des-Plaines'},
+];
+const VILLE_ABBR={'Blainville':'Blain.','Boisbriand':'Boisb.','Bois-des-Filion':'B-d-F','Lorraine':'Lorr.','Rosemère':'Rosem.','Sainte-Thérèse':'Ste-Thé.','Sainte-Anne-des-Plaines':'SADP'};
+const abbrVille=n=>VILLE_ABBR[n]||n.slice(0,6);
+
+const CATS = {
+  fonc:{label:'Fiscalité foncière et assiette', color:'#E6B422'},
+  transp:{label:'Transport et stationnement', color:'#E2574C'},
+  amenag:{label:'Aménagement, sol et développement', color:'#9AA7B4'},
+  crd:{label:'Matières résiduelles, émissions et énergie', color:'#9D6FD0'},
+  eau:{label:'Eau', color:'#4473C5'},
+  autres:{label:'Autres', color:'#B0668F'},
+};
+const MEASURES = [
+  {id:'m01', cat:'fonc', titre:'Sous-catégorie - nombre de logements'},
+  {id:'m02', cat:'fonc', titre:'Sous-catégorie - CUBF'},
+  {id:'m03', cat:'fonc', titre:'Sous-catégorie - secteurs'},
+  {id:'m04', cat:'fonc', titre:'Taux varié par tranche de valeur (non résidentiels)'},
+  {id:'m05', cat:'fonc', titre:'Taux varié terrain vague desservi'},
+  {id:'m06', cat:'fonc', titre:'Taxe logements vacants (résidentiel)'},
+  {id:'m07', cat:'fonc', titre:'Taxe logements vacants (non résidentiel)'},
+  {id:'m08', cat:'fonc', titre:'Taxe sur les terres à vocation agricole exploitables mais non exploitées'},
+  {id:'m09', cat:'transp', titre:'Tarification stationnement sur rue'},
+  {id:'m10', cat:'transp', titre:'Redevance grands générateurs de déplacements'},
+  {id:'m11', cat:'transp', titre:'Redevance transport rémunéré de personnes'},
+  {id:'m12', cat:'transp', titre:'Taxe sur les espaces de stationnement'},
+  {id:'m13', cat:'transp', titre:'Redevances de transport'},
+  {id:'m14', cat:'amenag', titre:"Taxe sur le COS (coefficient d'occupation du sol)"},
+  {id:'m15', cat:'amenag', titre:'Taxe sur les surfaces non végétalisées'},
+  {id:'m16', cat:'amenag', titre:'Redevances visant le financement de la voirie locale'},
+  {id:'m17', cat:'amenag', titre:'Redevances de développement'},
+  {id:'m18', cat:'amenag', titre:'Taxe arbre en cour avant'},
+  {id:'m19', cat:'amenag', titre:'Redevance visant la réduction de la perte de canopée'},
+  {id:'m20', cat:'amenag', titre:'Taxe sur les terrains contaminés'},
+  {id:'m21', cat:'crd', titre:'Tarification variable des matières résiduelles'},
+  {id:'m22', cat:'crd', titre:'Redevance visant les résidus de CRD'},
+  {id:'m23', cat:'crd', titre:'Taxe sur la démolition'},
+  {id:'m24', cat:'crd', titre:'Redevance sur les contenants à usage unique ou individuel'},
+  {id:'m25', cat:'crd', titre:'Redevance sur les émissions de polluant par les industries (dont les GES)'},
+  {id:'m26', cat:'crd', titre:'Redevance visant à compenser les GES associés au développement immobilier'},
+  {id:'m27', cat:'crd', titre:"Redevance à l'égard de la performance énergétique des bâtiments"},
+  {id:'m28', cat:'crd', titre:'Taxe sur les systèmes au mazout ou biénergie'},
+  {id:'m29', cat:'eau', titre:"Redevance rejets d'eaux usées"},
+  {id:'m30', cat:'eau', titre:'Tarification eau résidentiel'},
+  {id:'m31', cat:'eau', titre:'Tarification eau ICI'},
+  {id:'m32', cat:'eau', titre:'Taxe sur les piscines'},
+  {id:'m33', cat:'autres', titre:"Redevance d'amusement"},
+  {id:'m34', cat:'autres', titre:"Redevance d'hébergement touristique"},
+  {id:'m35', cat:'autres', titre:"Taxe sur les panneaux d'affichage"},
+  {id:'m36', cat:'autres', titre:'Redevance sur les services de câblodistribution et télécommunication'},
+  {id:'m37', cat:'autres', titre:'Redevance sur les générateurs de risques (dont les réservoirs de produits chimiques)'},
+];
+
+/* Descriptions des mesures — extraites du doc Mascouche (fiches analytiques, dir. F. Tremblay-Racicot).
+   Mécanismes transférables ; quelques exemples sectoriels propres à Mascouche génériqués. Le reste = « Description à venir ». */
+const DESCRIPTIONS = {
+  m01:"Modulation du taux de taxe foncière selon le nombre de logements et la typologie, via des sous-catégories d'immeubles résidentiels (unifamilial, 2 logements, 3-5, 6-9, 10-49, 50+, habitations en commun, condominiums).",
+  m02:"Taux de taxe foncière distincts pour les immeubles commerciaux/industriels selon le code d'utilisation des biens-fonds (CUBF) : soit pour les industries polluantes (aliments/boissons, minéraux, pétrole, chimie, transport…), soit pour les entreprises d'économie circulaire (recyclage, récupération, vente d'occasion, compostage).",
+  m03:"Régime d'impôt foncier à taux variés modulés selon les secteurs d'imposition définis (p. ex. central, TOD, excentré, rural), avec des taux de base sectoriels respectant un écart maximal de 33,3 % par rapport au taux uniformisé.",
+  m04:"Régime d'impôt foncier à taux variés par tranche de valeur pour les immeubles non résidentiels (p. ex. < 1 M$, 1-2 M$, 2 M$ et plus). Un second taux peut s'appliquer, sans excéder 133,3 % du premier.",
+  m05:"Taxe pouvant atteindre quatre fois le taux de base (résidentiel) sur les terrains vagues desservis par l'aqueduc et l'égout sanitaire, afin de récupérer des revenus, accroître la densification et limiter la spéculation foncière.",
+  m06:"Prélèvement sur la valeur foncière des immeubles comportant un logement vacant ou sous-utilisé, avec un taux maximal progressif (p. ex. 1 % la 1re année, 2 % la 2e, 3 % la 3e).",
+  m09:"Tarif (ou vignette) pour contrôler et gérer le stationnement sur rue ; le montant peut varier selon le secteur, le quartier ou le type de véhicule.",
+  m10:"Redevance auprès des grands générateurs de déplacement (grands employeurs de 100+ employés, organisateurs d'événements) dépourvus d'un programme de gestion des déplacements, pour financer le transport collectif et les infrastructures de transport actif.",
+  m14:"Taxe sur les immeubles non résidentiels/industriels desservis dont le coefficient d'occupation du sol (COS) est inférieur à 20 %, calculée sur la différence entre 20 % de la superficie non contrainte et la superficie réelle, multipliée par un taux sectoriel.",
+  m15:"Taxe sur les surfaces minéralisées (non végétalisées) de certains immeubles non résidentiels : superficie du terrain moins bâtiments moins surfaces végétalisées, avec strates progressives (exemption de base, puis tarifs croissants).",
+  m18:"Taxe visant l'absence d'arbre en cour avant (façade) des immeubles résidentiels et non résidentiels : taxe unitaire imposée aux propriétaires non conformes.",
+  m19:"Redevance visant la réduction de la perte de canopée dans les projets de construction ; montant établi de façon discrétionnaire ou selon la valeur écosystémique des arbres abattus (nombre, essence, âge, taille).",
+  m21:"Tarification incitative selon le nombre de levées et la taille du bac, afin de réduire les matières vouées à l'enfouissement (coûts aujourd'hui assumés par la taxe foncière générale).",
+  m22:"Redevance sur les permis de construction, rénovation et démolition pour détourner les résidus de CRD de l'élimination ; les redevables ayant un plan de gestion des matières pourraient être exemptés.",
+  m28:"Taxe imposée aux propriétaires d'immeubles résidentiels disposant d'appareils de chauffage au mazout ou d'un système biénergie au mazout ; montant fixe par appareil assujetti.",
+  m29:"Redevance sur les rejets d'eaux usées, prélevée selon la quantité et le niveau de contamination rejetés sur une période donnée, pour financer le traitement des eaux usées.",
+  m30:"Tarification de l'eau potable au secteur résidentiel selon le principe utilisateur-payeur : variable (consommation en m³ avec compteurs) ou forfaitaire (tarif annuel au compte de taxes).",
+  m31:"Tarification de l'eau potable pour les industries, commerces et institutions (ICI) selon le principe utilisateur-payeur : variable selon la consommation (compteurs) ou forfaitaire au coût moyen.",
+  m32:"Transformation de la tarification actuelle des piscines en taxe générale, avec un montant par propriété calibré pour générer des revenus supplémentaires.",
+};
+
+/* 4 dimensions · 22 critères (questions verbatim de la grille V3) */
+const DIMENSIONS = [
+  {id:'pf', nom:'Potentiel fiscal', crit:[
+    {id:'pf1', label:"Largeur de l'assiette fiscale", q:"L'assiette fiscale concerne-t-elle un nombre de contribuables ou encore un flux ou un stock monétaire suffisamment grand pour assurer à court terme des revenus qui peuvent être considérés comme étant significatifs ?", pos:"Assiette large (nombreux contribuables ou flux important)", neg:"Assiette étroite ou marginale"},
+    {id:'pf2', label:"Potentiel de croissance", q:"L'assiette fiscale présente-t-elle un potentiel de croissance raisonnablement prévisible à moyen et long terme ?", pos:"Croissance prévisible à moyen-long terme", neg:"Stagnation ou déclin attendu"},
+    {id:'pf3', label:"Marge de manœuvre sur le taux du prélèvement", q:"En considérant le contexte de compétitivité fiscale de la Ville, le taux de prélèvement actuel sur cette assiette fiscale peut-il être considéré comme étant déjà élevé ?", pos:"Taux actuel bas → de la marge de manœuvre", neg:"Taux déjà élevé → peu de marge"},
+  ]},
+  {id:'sg', nom:'Saine gestion administrative', crit:[
+    {id:'sg1', label:"Coûts d'administration", q:"Un prélèvement supplémentaire sur cette assiette fiscale nécessiterait-il des ressources (immobilisations, exploitation, conformité fiscale) dont le coût peut être considéré comme élevé ou prohibitif ? Par exemple, le processus de perception est-il compatible avec la méthode actuelle de gestion du compte de taxes ?", pos:"Coûts d'administration faibles, perception simple", neg:"Coûts élevés ou prohibitifs"},
+    {id:'sg2', label:"Utilisateur-payeur", q:"La mesure s'appuie-t-elle sur le principe d'utilisateur-payeur ? Permet-elle d'accroître la participation financière de catégories de contribuables dont la consommation de services publics excède les coûts de production de la municipalité ?", pos:"S'appuie sur l'utilisateur-payeur", neg:"Aucun lien entre usage et coût"},
+    {id:'sg3', label:"Applicabilité (court terme)", q:"À court terme, les données ou la technologie nécessaires à la mise en œuvre de la mesure sont-elles disponibles et applicables selon les pratiques actuellement en vigueur ?", pos:"Données et technologie déjà disponibles", neg:"Non disponibles à court terme"},
+    {id:'sg4', label:"Conformité réglementaire", q:"La mesure entre-t-elle en contradiction avec des réglementations ou politiques en vigueur ? Nécessite-t-elle un nouveau régime de réglementation ou une modification de la réglementation actuelle ?", pos:"Aucun conflit; le cadre actuel suffit", neg:"Conflit ou nouvelle réglementation requise"},
+    {id:'sg5', label:"Contestation judiciaire", q:"La mesure possède-t-elle un risque de contestation judiciaire ?", pos:"Risque de contestation faible ou nul", neg:"Risque élevé de contestation judiciaire"},
+    {id:'sg6', label:"Orientations du plan stratégique", q:"La mesure renforce-t-elle les orientations ou dispositions prévues au plan stratégique ou à d'autres documents de la municipalité ?", pos:"Renforce le plan stratégique", neg:"S'écarte des orientations"},
+  ]},
+  {id:'ae', nom:'Acceptabilité et équité', crit:[
+    {id:'ae1', label:"Perception", q:"La mesure recevrait-elle un niveau d'approbation de la population supérieur à celui auquel on pourrait s'attendre d'un prélèvement fiscal ?", pos:"Approbation probable de la population", neg:"Rejet probable"},
+    {id:'ae2', label:"Disponibilité d'alternatives", q:"En principe, un contribuable peut-il diminuer ou éviter les prélèvements en modifiant son comportement ?", pos:"Évitable en changeant de comportement", neg:"Prélèvement subi, sans échappatoire"},
+    {id:'ae3', label:"Personnes vulnérables", q:"La mesure a-t-elle un impact financier plus important auprès des personnes vulnérables ?", pos:"Peu ou pas d'impact sur les personnes vulnérables", neg:"Impact important sur les personnes vulnérables"},
+    {id:'ae4', label:"Capacité de payer", q:"La mesure permet-elle d'accroître raisonnablement la participation financière des personnes (morales ou physiques) ayant une capacité de payer supérieure ?", pos:"Cible les hautes capacités de payer", neg:"Frappe surtout les faibles capacités de payer"},
+    {id:'ae5', label:"Équité temporelle", q:"La mesure permet-elle de cibler des catégories de contribuables qui ont bénéficié, dans les dernières années, d'un transfert fiscal favorable ?", pos:"Corrige un avantage fiscal passé", neg:"Sans effet correctif (ou l'accentue)"},
+    {id:'ae6', label:"Équité territoriale", q:"La mesure a-t-elle potentiellement un impact plus important pour les contribuables de certains secteurs de la municipalité ?", pos:"Impact réparti uniformément sur le territoire", neg:"Impact concentré sur certains secteurs"},
+    {id:'ae7', label:"Abordabilité", q:"Lorsqu'applicable, la mesure a-t-elle un effet sur l'abordabilité des logements ?", pos:"Sans effet — ou améliore l'abordabilité du logement", neg:"Nuit à l'abordabilité (renchérit le logement)"},
+  ]},
+  {id:'ee', nom:'Efficacité environnementale', crit:[
+    {id:'ee1', label:"Pertinence", q:"La mesure est-elle le moyen le plus approprié d'atteindre l'objectif environnemental visé ?", pos:"Le moyen le plus approprié pour l'objectif", neg:"Moyen mal adapté ou détourné"},
+    {id:'ee2', label:"Utilisation du sol", q:"En principe, la mesure offre-t-elle un potentiel pour optimiser l'utilisation du sol ou privilégier les formes compactes d'aménagement ?", pos:"Optimise le sol / favorise les formes compactes", neg:"Sans effet (ou favorise l'étalement)"},
+    {id:'ee3', label:"Attractivité", q:"En principe, la mesure offre-t-elle un potentiel pour renforcer l'attractivité du territoire ou orienter la croissance vers les milieux déjà urbanisés pour freiner l'étalement ?", pos:"Renforce l'attractivité / freine l'étalement", neg:"Sans effet sur l'attractivité"},
+    {id:'ee4', label:"Résilience des écosystèmes", q:"En principe, la mesure offre-t-elle un potentiel pour contribuer à la résilience des écosystèmes ?", pos:"Contribue à la résilience des écosystèmes", neg:"Sans effet sur la résilience"},
+    {id:'ee5', label:"Mobilité durable", q:"En principe, la mesure favorise-t-elle une occupation du sol favorable à la mobilité durable ?", pos:"Favorise la mobilité durable", neg:"Sans effet (ou la défavorise)"},
+    {id:'ee6', label:"Pollueur-payeur", q:"En principe, la mesure permet-elle d'internaliser des externalités environnementales négatives ou de faire participer financièrement les générateurs de nuisance ?", pos:"Internalise les externalités / fait payer le pollueur", neg:"Sans effet d'internalisation"},
+  ]},
+];
+const ALLCRIT = DIMENSIONS.flatMap(d=>d.crit);
+const NCRIT = ALLCRIT.length; // 22
+
+const APPREC = {
+  tf:{l:'Très favorable', c:'var(--fav-pos)'},
+  f:{l:'Favorable', c:'var(--fav-posl)'},
+  n:{l:'Neutre', c:'var(--fav-mid)'},
+  pf:{l:'Peu favorable', c:'var(--fav-warn)'},
+  pdf:{l:'Pas du tout favorable', c:'var(--fav-neg)'},
+};
+const RECO = {
+  rec:{l:'Mesure recommandée', abbr:'R', c:'var(--fav-pos)'},
+  etude:{l:"Mise à l'étude", abbr:'É', c:'var(--fav-warn)'},
+  non:{l:'Mesure non recommandée', abbr:'N', c:'var(--fav-neg)'},
+};
+function apprec(cotes){ // cotes : tableau de -1/0/1 (réponses présentes)
+  const S=cotes.reduce((a,b)=>a+b,0);
+  const hasNeg=cotes.some(c=>c<0), hasPos=cotes.some(c=>c>0);
+  if(S>=2 && !hasNeg) return 'tf';
+  if(S>=1) return 'f';
+  if(S===0) return 'n';
+  if(S<=-2 && !hasPos) return 'pdf';
+  return 'pf';
+}
+function reco(aps){ // aps : 4 codes d'appréciation
+  const fav=aps.filter(a=>a==='f'||a==='tf').length;
+  const pf=aps.filter(a=>a==='pf').length;
+  const pdf=aps.filter(a=>a==='pdf').length;
+  const allN=aps.every(a=>a==='n');
+  if(pdf>=1 || pf>=2) return 'non';
+  if(pf===0 && pdf===0 && fav>=2) return 'rec';
+  if((fav>=2 && pf===1) || allN) return 'etude';
+  return 'etude';
+}
+
+/* ===================== STORE (persistance — couture pour Phase B) ===================== */
+const STORE_KEY='orchestrateur-v1';
+function nowISO(){ return new Date().toISOString(); }
+function genCode(villeId){
+  const v=VILLES.find(x=>x.id===villeId);
+  const pre=(v?v.nom:'XXX').normalize('NFD').replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase();
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s='';
+  for(let i=0;i<4;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  return pre+'-'+s;
+}
+function slugify(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase(); }
+const store = {
+  _d:null,
+  _load(){
+    if(this._d) return this._d;
+    try{ this._d=JSON.parse(localStorage.getItem(STORE_KEY)); }catch(e){}
+    if(!this._d) this._d={};
+    this._d.codes=this._d.codes||[]; this._d.responses=this._d.responses||{};
+    this._d.projects=this._d.projects||[]; this._d.archived=this._d.archived||[];
+    if(!this._d.projects.length){ /* amorçage : le projet historique MRC TdB */
+      this._d.projects.push({id:'tdb', title:'MRC Thérèse-De Blainville', type:'multi', villes:VILLES.slice(), createdAt:nowISO()});
+      this._d.activeProject='tdb';
+    }
+    if(!this._d.activeProject || !this._d.projects.some(p=>p.id===this._d.activeProject)) this._d.activeProject=this._d.projects[0].id;
+    this._d.codes.forEach(c=>{ if(!c.project) c.project=this._d.projects[0].id; }); /* migration codes pré-projets */
+    return this._d;
+  },
+  _save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(this._d)); }catch(e){} },
+  /* ---- projets ---- */
+  projects(){ return this._load().projects.slice(); },
+  activeId(){ return this._load().activeProject; },
+  activeProj(){ const d=this._load(); return d.projects.find(p=>p.id===d.activeProject) || d.projects[0] || null; },
+  setActive(id){ const d=this._load(); if(d.projects.some(p=>p.id===id)){ d.activeProject=id; this._save(); } },
+  createProject(p){ const d=this._load(); let base=slugify(p.title).slice(0,14)||'projet', id=base, n=2; while(d.projects.some(x=>x.id===id)){ id=base+'-'+n; n++; }
+    const proj={id, title:p.title, type:p.type, villes:p.villes, createdAt:nowISO()}; d.projects.push(proj); d.activeProject=id; this._save(); return proj; },
+  deleteProject(id){ const d=this._load(); const proj=d.projects.find(p=>p.id===id); if(!proj) return;
+    const codes=d.codes.filter(c=>c.project===id); const responses={};
+    codes.forEach(c=>Object.keys(d.responses).forEach(k=>{ if(k.split('|')[0]===c.code) responses[k]=d.responses[k]; }));
+    d.archived.push({project:proj, codes, responses, archivedAt:nowISO()}); /* sauvegarde complète (≈ /old) avant suppression */
+    codes.forEach(c=>Object.keys(d.responses).forEach(k=>{ if(k.split('|')[0]===c.code) delete d.responses[k]; }));
+    d.codes=d.codes.filter(c=>c.project!==id); d.projects=d.projects.filter(p=>p.id!==id);
+    if(d.activeProject===id) d.activeProject = d.projects.length?d.projects[0].id:null; this._save(); },
+  codeCount(projId){ return this._load().codes.filter(c=>c.project===projId).length; },
+  /* ---- codes (scopés au projet actif) ---- */
+  listCodes(){ const d=this._load(); return d.codes.filter(c=>c.project===d.activeProject).slice(); },
+  findCode(code){ const u=(code||'').trim().toUpperCase(); return this._load().codes.find(c=>c.code===u) || null; }, /* recherche tous projets (login) */
+  createCode(villeId){ const d=this._load(); let code; do{ code=genCode(villeId); }while(d.codes.some(c=>c.code===code)); d.codes.push({code, ville:villeId, project:d.activeProject, person:null, createdAt:nowISO(), claimedAt:null}); this._save(); return code; },
+  claimCode(code, person){ const c=this.findCode(code); if(!c) return null; if(!c.person){ c.person=person; c.claimedAt=nowISO(); this._save(); } return c; },
+  deleteCode(code){ const d=this._load(); const u=(code||'').toUpperCase(); d.codes=d.codes.filter(c=>c.code!==u); Object.keys(d.responses).forEach(k=>{ if(k.split('|')[0]===u) delete d.responses[k]; }); this._save(); },
+  /* réponses indexées par RÉPONDANT (clé d'accès), pas par ville */
+  _k(rid,m,c){ return rid+'|'+m+'|'+c; },
+  getResponse(rid,m,c){ return this._load().responses[this._k(rid,m,c)] || null; },
+  setResponse(rid,m,c,patch){ const d=this._load(); const k=this._k(rid,m,c); const cur=d.responses[k]||{cote:null, comment:''}; d.responses[k]=Object.assign(cur, patch, {updatedAt:nowISO()}); this._save(); },
+};
+function syncVilles(){ const p=store.activeProj(); VILLES = p ? p.villes.slice() : []; }
+
+/* ===================== ÉTAT (session UI) ===================== */
+const UI_KEY='orchestrateur-ui-v1';
+let state = { role:null, ville:null, person:null, respondentId:null, screen:'Connexion', measure:null, annos:[], anno:false, pendingCode:null };
+(function loadUI(){ try{ const s=JSON.parse(localStorage.getItem(UI_KEY)); if(s) Object.assign(state, s, {anno:false, pendingCode:null}); }catch(e){} })();
+function saveUI(){ try{ localStorage.setItem(UI_KEY, JSON.stringify({role:state.role, ville:state.ville, person:state.person, respondentId:state.respondentId, measure:state.measure, annos:state.annos})); }catch(e){} }
+
+/* ===================== HELPERS ===================== */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1900); }
+function measAnswered(rid,mId){ return ALLCRIT.filter(c=>{ const r=store.getResponse(rid,mId,c.id); return r && r.cote!=null; }).length; }
+function recoForRespondent(rid,mId){
+  const aps=DIMENSIONS.map(d=>{ const cotes=d.crit.map(c=>store.getResponse(rid,mId,c.id)).filter(r=>r&&r.cote!=null).map(r=>r.cote); return cotes.length?apprec(cotes):'n'; });
+  return reco(aps);
+}
+/* agrégation au niveau VILLE = moyenne (arrondie) des cotes de ses répondants */
+function respondentsForVille(villeId){ return store.listCodes().filter(c=>c.person && c.ville===villeId).map(c=>c.code); }
+function villeCote(villeId,mId,cId){ const cs=respondentsForVille(villeId).map(rid=>store.getResponse(rid,mId,cId)).filter(r=>r&&r.cote!=null).map(r=>r.cote); if(!cs.length) return null; return Math.round(cs.reduce((a,b)=>a+b,0)/cs.length); }
+function villeAnswered(villeId,mId){ return ALLCRIT.filter(c=>villeCote(villeId,mId,c.id)!=null).length; }
+function dimApprecVille(villeId,mId,dim){ const cotes=dim.crit.map(c=>villeCote(villeId,mId,c.id)).filter(x=>x!=null); return cotes.length?apprec(cotes):null; }
+function recoForVille(villeId,mId){ return reco(DIMENSIONS.map(d=>dimApprecVille(villeId,mId,d)||'n')); }
+
+/* ===================== NAVIGATION ===================== */
+const NAV = {
+  admin:[
+    {grp:'Pilotage'},
+    {id:'portrait', label:'Portrait global', ic:'◔'},
+    {id:'reponses', label:'Réponses', ic:'☰'},
+    {id:'acces', label:'Accès', ic:'⚿'},
+    {id:'projets', label:'Projets', ic:'❐'},
+    {grp:'À venir'},
+    {id:'calculateur', label:'Calculateur', ic:'∑', soon:true, disabled:true},
+    {id:'analyse', label:'Analyse', ic:'◈', soon:true, disabled:true},
+  ],
+  ville:[
+    {grp:'Analyse multicritère'},
+    {id:'orchestrateur', label:'Mesures à coter', ic:'❝'},
+    {grp:'À venir'},
+    {id:'communications', label:'Communications', ic:'✉', soon:true, disabled:true},
+  ]
+};
+const SCREEN_OF = { 'portrait':'s-portrait', 'reponses':'s-reponses', 'acces':'s-acces', 'projets':'s-projets', 'orchestrateur':'s-orch' };
+function renderSide(){
+  const side=$('#side'); side.innerHTML='';
+  (NAV[state.role]||[]).forEach(item=>{
+    if(item.grp){ const l=document.createElement('div'); l.className='lab'; l.textContent=item.grp; side.appendChild(l); return; }
+    const b=document.createElement('button'); b.className='navitem'; b.dataset.target=item.id; b.dataset.anno='Menu — '+item.label;
+    if(item.disabled) b.disabled=true;
+    b.innerHTML='<span class="ic">'+item.ic+'</span><span>'+item.label+'</span>'+(item.soon?'<span class="pill-soon">à suivre</span>':'');
+    if(!item.disabled) b.onclick=()=>go(item.id);
+    side.appendChild(b);
+  });
+  const grow=document.createElement('div'); grow.className='grow'; side.appendChild(grow);
+  const out=document.createElement('button'); out.className='signout'; out.textContent='Déconnexion'; out.onclick=logout; side.appendChild(out);
+}
+function go(target){
+  const id=SCREEN_OF[target]; if(!id) return;
+  $$('.screen').forEach(s=>s.classList.remove('on'));
+  $('#'+id).classList.add('on');
+  state.screen=$('#'+id).dataset.screen;
+  $$('#side .navitem').forEach(n=>n.classList.toggle('active', n.dataset.target===target));
+  $('#main').scrollTop=0;
+  if(target==='orchestrateur') renderOrch();
+  if(target==='portrait') renderPortrait();
+  if(target==='reponses') renderReponses();
+  if(target==='acces') renderAcces();
+  if(target==='projets') renderProjets();
+  restorePins(); saveUI();
+}
+
+/* ===================== AUTH / SESSION ===================== */
+function showShell(roleLabel){
+  $('#shell').classList.remove('solo'); $('#side').hidden=false;
+  ['roleBadge','annoToggle'].forEach(i=>$('#'+i).hidden=false);
+  $('#projPill').hidden = (state.role!=='admin'); // sélecteur de projet = admin uniquement
+  $('#roleBadge').textContent=roleLabel;
+}
+function enterAdmin(){
+  state.role='admin'; state.ville=null; state.person=null; state.respondentId=null;
+  $('#demoSwitch').hidden=false;
+  $$('#demoSwitch button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.as==='admin'));
+  syncVilles(); showShell('Admin'); renderProjPill(); renderSide(); go('portrait'); saveUI();
+}
+function enterVille(c){
+  state.role='ville'; state.ville=c.ville; state.person=c.person; state.respondentId=c.code;
+  if(c.project) store.setActive(c.project); syncVilles();
+  const v=VILLES.find(x=>x.id===c.ville);
+  showShell('Ville · '+(v?v.nom:'—')); $('#demoSwitch').hidden=true; renderSide();
+  go('orchestrateur'); saveUI();
+}
+function logout(){
+  state.role=null; state.ville=null; state.person=null; state.respondentId=null; state.measure=null; state.screen='Connexion';
+  $('#shell').classList.add('solo'); $('#side').hidden=true;
+  ['projPill','roleBadge','demoSwitch','annoToggle'].forEach(i=>$('#'+i).hidden=true);
+  if(state.anno) toggleAnno(false);
+  $$('.screen').forEach(s=>s.classList.remove('on')); $('#s-login').classList.add('on');
+  $('#codeInput').value=''; $('#loginErr').textContent=''; saveUI();
+}
+$('#loginBtn').onclick=()=>{
+  const v=$('#codeInput').value.trim();
+  if(!v){ $('#loginErr').textContent='Entrez un code.'; return; }
+  if(v==='Corda$2026'){ $('#loginErr').textContent=''; enterAdmin(); return; }
+  const c=store.findCode(v);
+  if(!c){ $('#loginErr').textContent='Code inconnu. Vérifiez la saisie.'; return; }
+  $('#loginErr').textContent='';
+  if(!c.person){ state.pendingCode=c.code; showFirstConn(c); }
+  else { enterVille(c); }
+};
+$('#codeInput').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
+function showFirstConn(c){
+  const v=VILLES.find(x=>x.id===c.ville);
+  $('#fcVille').textContent=v?v.nom:'—';
+  $('#fcErr').textContent=''; $('#fcPrenom').value=''; $('#fcNom').value=''; $('#fcFonction').value='';
+  $$('.screen').forEach(s=>s.classList.remove('on')); $('#s-firstconn').classList.add('on');
+}
+$('#fcBtn').onclick=()=>{
+  const prenom=$('#fcPrenom').value.trim(), nom=$('#fcNom').value.trim(), fonction=$('#fcFonction').value.trim();
+  if(!prenom||!nom||!fonction){ $('#fcErr').textContent='Remplissez les trois champs.'; return; }
+  const c=store.claimCode(state.pendingCode, {prenom, nom, fonction});
+  state.pendingCode=null;
+  if(c) enterVille(c);
+};
+function demoVilleCode(){ let c=store.listCodes().find(x=>x.ville==='sainte-therese' && x.person && x.person.prenom==='Démo'); if(!c){ const code=store.createCode('sainte-therese'); c=store.claimCode(code,{prenom:'Démo', nom:'Ville', fonction:'Test'}); } return c; }
+$$('#demoSwitch button').forEach(b=>b.onclick=()=>{
+  if(state.anno) return;
+  if(b.dataset.as==='admin') enterAdmin();
+  else enterVille(demoVilleCode());
+});
+
+/* ===================== ORCHESTRATEUR — vue répondant ===================== */
+function renderOrch(){
+  const host=$('#orchHost'); const v=VILLES.find(x=>x.id===state.ville); const rid=state.respondentId;
+  const prenom=(state.person&&state.person.prenom)||'répondant';
+  const done=MEASURES.filter(m=>measAnswered(rid,m.id)===NCRIT).length;
+  host.innerHTML=`
+    <div class="card" data-anno="Orchestrateur — en-tête répondant">
+      <div class="row-between" style="flex-wrap:wrap; gap:10px">
+        <div><h3 style="margin:0">Bonjour ${esc(prenom)} 👋</h3><div class="faint mono" style="font-size:.78rem">${esc(v?v.nom:'—')} · analyse multicritère</div></div>
+        <div style="text-align:right"><div class="mono" style="font-size:.82rem"><b id="doneCount">${done}</b> / ${MEASURES.length} mesures complétées</div><span class="savedflag" id="orchSaved">Enregistré ✓</span></div>
+      </div>
+      <div class="progress"><i id="globalProg" style="width:${Math.round(done/MEASURES.length*100)}%"></i></div>
+    </div>
+    <div class="orch-grid">
+      <div class="mlist" id="mlist"></div>
+      <div id="mdetail"></div>
+    </div>`;
+  renderMeasureList();
+  if(state.measure) openMeasure(state.measure);
+  else $('#mdetail').innerHTML='<div class="card"><div class="stub"><div class="glyph">☜</div><div>Choisissez une mesure dans la liste pour commencer à la coter.</div></div></div>';
+}
+function renderMeasureList(){
+  const host=$('#mlist'); if(!host) return; host.innerHTML=''; const rid=state.respondentId;
+  Object.keys(CATS).forEach(catId=>{
+    const ms=MEASURES.filter(m=>m.cat===catId); if(!ms.length) return;
+    const lab=document.createElement('div'); lab.className='catlab'; lab.innerHTML='<i style="background:'+CATS[catId].color+'"></i>'+esc(CATS[catId].label); host.appendChild(lab);
+    ms.forEach(m=>{
+      const a=measAnswered(rid,m.id);
+      const b=document.createElement('button'); b.className='mitem'+(state.measure===m.id?' active':''); b.dataset.anno='Mesure — '+m.titre;
+      const st = a===NCRIT ? '<span class="st done">✓</span>' : a>0 ? '<span class="st part">'+a+'/'+NCRIT+'</span>' : '<span class="st">—</span>';
+      b.innerHTML='<span>'+esc(m.titre)+'</span>'+st;
+      b.onclick=()=>{ if(state.anno) return; openMeasure(m.id); };
+      host.appendChild(b);
+    });
+  });
+}
+function descHTML(mId){ const d=DESCRIPTIONS[mId]; return (d&&d.trim())? '<div class="mdesc" data-anno="Mesure — description">'+esc(d)+'</div>' : '<div class="mdesc todo" data-anno="Mesure — description">Description à venir.</div>'; }
+function openMeasure(mId){
+  state.measure=mId; saveUI(); renderMeasureList();
+  const m=MEASURES.find(x=>x.id===mId); const host=$('#mdetail');
+  const dims=DIMENSIONS.map(d=>'<div class="dimsec" data-anno="Dimension — '+esc(d.nom)+'"><div class="dimhead"><h3>'+esc(d.nom)+'</h3><span class="apprec" id="ap-'+d.id+'">À coter</span></div>'+d.crit.map(c=>questionRow(mId,c)).join('')+'</div>').join('');
+  host.innerHTML=`
+    <div class="card">
+      <div class="cat-pill"><i style="background:${CATS[m.cat].color}"></i>${esc(CATS[m.cat].label)}</div>
+      <h2 style="font-size:1.4rem; margin:6px 0 10px">${esc(m.titre)}</h2>
+      ${descHTML(mId)}
+      ${dims}
+      <div class="reco-banner" id="recoBanner"></div>
+    </div>`;
+  wireQuestions(mId); refreshSynthesis(mId);
+}
+function questionRow(mId,c){
+  const r=store.getResponse(state.respondentId,mId,c.id)||{cote:null,comment:''};
+  const on=v=> r.cote===v?' on':'';
+  const hasC=(r.comment&&r.comment.trim())?' has':'';
+  return '<div class="q" data-crit="'+c.id+'">'
+    +'<div class="q-main"><div class="q-label">'+esc(c.label)+'</div><div class="q-text">'+esc(c.q)+'</div>'
+    +'<div class="q-guide"><span class="g pos"><b>＋</b><span>'+esc(c.pos||'Oui')+'</span></span><span class="g neg"><b>−</b><span>'+esc(c.neg||'Non')+'</span></span></div></div>'
+    +'<div class="q-actions"><div class="cote-btns">'
+    +'<button type="button" class="cb pos'+on(1)+'" data-cote="1" title="Favorable">+</button>'
+    +'<button type="button" class="cb mid'+on(0)+'" data-cote="0" title="Neutre">0</button>'
+    +'<button type="button" class="cb neg'+on(-1)+'" data-cote="-1" title="Défavorable">−</button>'
+    +'</div><button type="button" class="cbubble'+hasC+'" title="Commenter">💬</button></div>'
+    +'<div class="q-comment"'+(hasC?'':' hidden')+'><textarea placeholder="Commentaire / justification…">'+esc(r.comment||'')+'</textarea></div>'
+    +'</div>';
+}
+function wireQuestions(mId){
+  const rid=state.respondentId;
+  $$('#mdetail .q').forEach(q=>{
+    const cId=q.dataset.crit;
+    q.querySelectorAll('.cb').forEach(btn=>{
+      btn.onclick=()=>{ if(state.anno) return;
+        const cote=parseInt(btn.dataset.cote,10);
+        const cur=store.getResponse(rid,mId,cId);
+        const nc=(cur&&cur.cote===cote)?null:cote;
+        store.setResponse(rid,mId,cId,{cote:nc});
+        q.querySelectorAll('.cb').forEach(b=>b.classList.toggle('on', nc!=null && parseInt(b.dataset.cote,10)===nc));
+        flashSaved(); refreshSynthesis(mId); refreshProgress();
+      };
+    });
+    const bubble=q.querySelector('.cbubble'), cwrap=q.querySelector('.q-comment'), ta=cwrap.querySelector('textarea');
+    bubble.onclick=()=>{ if(state.anno) return; cwrap.hidden=!cwrap.hidden; if(!cwrap.hidden) ta.focus(); };
+    let t; ta.oninput=()=>{ clearTimeout(t); t=setTimeout(()=>{ store.setResponse(rid,mId,cId,{comment:ta.value}); bubble.classList.toggle('has', !!ta.value.trim()); flashSaved(); }, 400); };
+  });
+}
+function refreshSynthesis(mId){
+  const rid=state.respondentId; const aps=[];
+  DIMENSIONS.forEach(d=>{
+    const cotes=d.crit.map(c=>store.getResponse(rid,mId,c.id)).filter(r=>r&&r.cote!=null).map(r=>r.cote);
+    const code=cotes.length?apprec(cotes):'n'; aps.push(code);
+    const el=$('#ap-'+d.id); if(el){ if(cotes.length){ const A=APPREC[code]; el.textContent=A.l; el.style.background=A.c; el.style.color='#fff'; } else { el.textContent='À coter'; el.style.background='var(--line)'; el.style.color='var(--faint)'; } }
+  });
+  const answered=measAnswered(rid,mId);
+  const R=RECO[reco(aps)]; const banner=$('#recoBanner');
+  if(banner){ banner.style.background=answered?R.c:'var(--line)'; banner.style.color=answered?'#fff':'var(--faint)';
+    banner.innerHTML='<span style="font-family:var(--font-mono); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; opacity:.85">Recommandation'+(answered<NCRIT?' (provisoire — '+answered+'/'+NCRIT+')':'')+'</span> <b style="font-size:1.05rem">'+(answered?R.l:'À coter')+'</b>'; }
+}
+function refreshProgress(){
+  const rid=state.respondentId;
+  const done=MEASURES.filter(m=>measAnswered(rid,m.id)===NCRIT).length;
+  const bar=$('#globalProg'); if(bar) bar.style.width=Math.round(done/MEASURES.length*100)+'%';
+  const cnt=$('#doneCount'); if(cnt) cnt.textContent=done;
+  renderMeasureList();
+}
+function flashSaved(){ const f=$('#orchSaved'); if(!f) return; f.classList.add('show'); clearTimeout(f._t); f._t=setTimeout(()=>f.classList.remove('show'),1100); }
+
+/* ===================== ADMIN — PORTRAIT ===================== */
+function renderPortrait(){
+  const host=$('#portraitHost');
+  const startedCount=VILLES.filter(v=>MEASURES.some(m=>villeAnswered(v.id,m.id)>0)).length;
+  let rows=''; const mrcTally={rec:0,etude:0,non:0};
+  Object.keys(CATS).forEach(catId=>{
+    const ms=MEASURES.filter(m=>m.cat===catId); if(!ms.length) return;
+    rows+='<tr><td colspan="'+(VILLES.length+2)+'" style="background:var(--surface-2); font-family:var(--font-mono); font-size:.6rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted)"><span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:'+CATS[catId].color+'; margin-right:6px"></span>'+esc(CATS[catId].label)+'</td></tr>';
+    ms.forEach(m=>{
+      let cells=''; const recos=[];
+      VILLES.forEach(v=>{
+        const a=villeAnswered(v.id,m.id);
+        if(a===0){ cells+='<td><span class="rpill none" title="'+esc(v.nom)+' — pas de données">·</span></td>'; }
+        else { const rc=recoForVille(v.id,m.id); recos.push(rc);
+          const tip=v.nom+'\n'+DIMENSIONS.map(d=>{ const ap=dimApprecVille(v.id,m.id,d); return '• '+d.nom+' : '+(ap?APPREC[ap].l:'—'); }).join('\n')+'\n→ '+RECO[rc].l+(a<NCRIT?' (provisoire '+a+'/'+NCRIT+')':'');
+          cells+='<td><span class="rpill '+rc+'" title="'+esc(tip)+'">'+RECO[rc].abbr+'</span></td>'; }
+      });
+      let mrc='<span class="faint">—</span>';
+      if(recos.length){ const cc={rec:0,etude:0,non:0}; recos.forEach(r=>cc[r]++);
+        const maj = (cc.non>=cc.rec && cc.non>=cc.etude)?'non':(cc.rec>=cc.etude)?'rec':'etude'; mrcTally[maj]++;
+        mrc='<span class="rpill rec">'+cc.rec+'</span><span class="rpill etude">'+cc.etude+'</span><span class="rpill non">'+cc.non+'</span>'; }
+      cells+='<td><div class="mrccell">'+mrc+'</div></td>';
+      rows+='<tr><td>'+esc(m.titre)+'</td>'+cells+'</tr>';
+    });
+  });
+  host.innerHTML=`
+    <div class="card" data-anno="Portrait — synthèse MRC">
+      <div class="sumcards">
+        <div class="sumcard" style="background:var(--fav-pos)"><div class="n">${mrcTally.rec}</div><div class="l">mesures recommandées (majorité des villes)</div></div>
+        <div class="sumcard" style="background:var(--fav-warn)"><div class="n">${mrcTally.etude}</div><div class="l">mesures à mettre à l'étude</div></div>
+        <div class="sumcard" style="background:var(--fav-neg)"><div class="n">${mrcTally.non}</div><div class="l">mesures non recommandées</div></div>
+      </div>
+      <div class="row-between" style="margin-top:14px; flex-wrap:wrap; gap:10px">
+        <div class="btnrow" style="margin:0">
+          <span class="cat-pill"><span class="rpill rec">R</span> Recommandée</span>
+          <span class="cat-pill"><span class="rpill etude">É</span> À l'étude</span>
+          <span class="cat-pill"><span class="rpill non">N</span> Non recommandée</span>
+          <span class="cat-pill"><span class="rpill none">·</span> Pas de données</span>
+        </div>
+        <div class="btnrow" style="margin:0">
+          <span class="faint mono" style="font-size:.74rem">${startedCount}/${VILLES.length} villes ont commencé</span>
+          <button class="btn brass" id="xlsxBtn">Exporter (Excel)</button>
+        </div>
+      </div>
+    </div>
+    <div class="card" data-anno="Portrait — matrice mesures × villes">
+      <h3>Recommandation par ville <span class="faint mono" style="font-size:.7rem; font-weight:400">— survolez une case pour les 4 appréciations</span></h3>
+      <div class="table-scroll">
+        <table class="pmatrix">
+          <thead><tr><th>Mesure</th>${VILLES.map(v=>'<th title="'+esc(v.nom)+'">'+esc(abbrVille(v.nom))+'</th>').join('')}<th>${VILLES.length>1?'MRC<br>R / É / N':'Synthèse'}</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  $('#xlsxBtn').onclick=()=>{ if(state.anno) return; exportExcel(); };
+}
+
+/* ===================== ADMIN — ACCÈS ===================== */
+function renderAcces(){
+  const host=$('#accesHost'); const codes=store.listCodes();
+  host.innerHTML=`
+    <div class="card" data-anno="Accès — générer un code">
+      <h3>Générer un code d'accès</h3>
+      <p class="muted" style="margin-top:0">Un code par personne. À sa première connexion, elle saisit prénom, nom et fonction.</p>
+      <div class="btnrow">
+        ${VILLES.length>1
+          ? '<select id="accVille" style="max-width:300px">'+VILLES.map(v=>'<option value="'+v.id+'">'+esc(v.nom)+'</option>').join('')+'</select>'
+          : '<span class="cat-pill" style="max-width:300px" title="Projet à ville unique">'+esc(VILLES[0]?VILLES[0].nom:'—')+'</span>'}
+        <button class="btn primary" id="genCodeBtn">Générer le code</button>
+      </div>
+    </div>
+    <div class="card" data-anno="Accès — codes émis">
+      <h3>Codes émis <span class="faint mono" style="font-size:.8rem">(${codes.length})</span></h3>
+      <div id="codeList">${codes.length? codes.slice().reverse().map(codeCardHTML).join('') : '<div class="faint mono" style="font-size:.84rem">Aucun code émis pour l\'instant.</div>'}</div>
+    </div>`;
+  $('#genCodeBtn').onclick=()=>{ if(state.anno) return; const villeId=(VILLES.length>1 && $('#accVille'))?$('#accVille').value:(VILLES[0]&&VILLES[0].id); if(!villeId){ toast('Aucune ville dans ce projet.'); return; } const code=store.createCode(villeId); toast('Code généré : '+code); renderAcces(); };
+  $$('#codeList .copybtn').forEach(b=>b.onclick=()=>{ if(state.anno) return; const code=b.dataset.code;
+    if(navigator.clipboard){ navigator.clipboard.writeText(code).then(()=>toast('Code copié : '+code), ()=>toast(code)); } else toast(code); });
+  $$('#codeList .delbtn').forEach(b=>b.onclick=()=>{ if(state.anno) return; const code=b.dataset.code; const c=store.findCode(code); const cl=c&&c.person;
+    if(!confirm('Supprimer le code '+code+(cl?(' et les réponses de '+c.person.prenom+' '+c.person.nom):'')+' ? Action irréversible.')) return;
+    store.deleteCode(code); toast('Code supprimé'); renderAcces(); });
+}
+function codeCardHTML(c){
+  const v=VILLES.find(x=>x.id===c.ville); const cl=c.person;
+  return '<div class="codecard"><span class="codeval">'+esc(c.code)+'</span>'
+    +'<div class="bd"><div class="who2">'+esc(v?v.nom:'—')+'</div><div class="meta2">'+(cl? esc(c.person.prenom+' '+c.person.nom+' · '+c.person.fonction) : 'en attente de première connexion')+'</div></div>'
+    +'<span class="st3 '+(cl?'claimed':'waiting')+'">'+(cl?'Réclamé':'En attente')+'</span>'
+    +'<button class="btn ghost copybtn" data-code="'+esc(c.code)+'" style="padding:6px 10px">Copier</button>'
+    +'<button class="btn ghost delbtn" data-code="'+esc(c.code)+'" style="padding:6px 10px; color:var(--fav-neg); border-color:color-mix(in srgb,var(--fav-neg) 35%,var(--line))">Supprimer</button></div>';
+}
+
+/* ===================== ADMIN — RÉPONSES PAR RÉPONDANT ===================== */
+function renderReponses(){
+  const host=$('#reponsesHost'); const reps=store.listCodes().filter(c=>c.person);
+  if(!reps.length){ host.innerHTML='<div class="card"><div class="stub"><div class="glyph">☰</div><div>Aucun répondant n\'a encore activé son code. Générez et distribuez des codes dans « Accès ».</div></div></div>'; return; }
+  const opts=reps.map(c=>{ const v=VILLES.find(x=>x.id===c.ville); return '<option value="'+esc(c.code)+'">'+esc((v?v.nom:'—')+' — '+c.person.prenom+' '+c.person.nom+' ('+c.code+')')+'</option>'; }).join('');
+  host.innerHTML=`
+    <div class="card" data-anno="Réponses — sélecteur de répondant">
+      <div class="field" style="margin:0"><label>Répondant (clé d'accès)</label><select id="repSel">${opts}</select></div>
+    </div>
+    <div id="repDetail"></div>`;
+  const sel=$('#repSel'); sel.onchange=()=>{ if(state.anno) return; renderRepDetail(sel.value); };
+  renderRepDetail(sel.value);
+}
+function renderRepDetail(code){
+  const c=store.findCode(code); if(!c) return; const rid=c.code; const v=VILLES.find(x=>x.id===c.ville);
+  const touched=MEASURES.filter(m=>measAnswered(rid,m.id)>0);
+  const total=MEASURES.reduce((s,m)=>s+measAnswered(rid,m.id),0);
+  let body='';
+  if(!touched.length){ body='<div class="card"><div class="faint mono" style="font-size:.86rem">Ce répondant n\'a pas encore commencé à coter.</div></div>'; }
+  else { body=touched.map(m=>{
+    const a=measAnswered(rid,m.id); const rc=recoForRespondent(rid,m.id);
+    const dimrows=DIMENSIONS.map(d=>{
+      const qs=d.crit.map(cr=>{ const r=store.getResponse(rid,m.id,cr.id); const cv=(r&&r.cote!=null)?r.cote:null;
+        const pill=cv==null?'<span class="rpill none">·</span>':'<span class="rpill '+(cv>0?'rec':cv<0?'non':'etude')+'">'+(cv>0?'+':cv<0?'−':'0')+'</span>';
+        const com=(r&&r.comment&&r.comment.trim())?'<div class="repq-c"><div class="repcom">💬 '+esc(r.comment)+'</div></div>':'';
+        return '<div class="repq"><div class="repq-l">'+esc(cr.label)+'</div><div>'+pill+'</div>'+com+'</div>';
+      }).join('');
+      const cotes=d.crit.map(cr=>store.getResponse(rid,m.id,cr.id)).filter(r=>r&&r.cote!=null).map(r=>r.cote);
+      const ap=cotes.length?APPREC[apprec(cotes)]:null;
+      return '<div class="repdim"><div class="repdim-h">'+esc(d.nom)+' <span class="apprec" style="background:'+(ap?ap.c:'var(--line)')+'; color:'+(ap?'#fff':'var(--faint)')+'">'+(ap?ap.l:'—')+'</span></div>'+qs+'</div>';
+    }).join('');
+    return '<div class="card" data-anno="Réponses — mesure"><div class="row-between" style="margin-bottom:4px"><h3 style="margin:0; font-size:1rem">'+esc(m.titre)+'</h3><span class="rpill '+rc+'" title="'+esc(RECO[rc].l)+'">'+RECO[rc].abbr+'</span></div><div class="faint mono" style="font-size:.72rem; margin-bottom:6px">'+a+'/'+NCRIT+' questions cotées</div>'+dimrows+'</div>';
+  }).join(''); }
+  $('#repDetail').innerHTML=`
+    <div class="card" data-anno="Réponses — en-tête répondant">
+      <div class="row-between" style="flex-wrap:wrap; gap:8px">
+        <div><h3 style="margin:0">${esc(c.person.prenom+' '+c.person.nom)}</h3><div class="faint mono" style="font-size:.76rem">${esc((v?v.nom:'—')+' · '+c.person.fonction+' · code '+c.code)}</div></div>
+        <div class="mono" style="font-size:.8rem; text-align:right"><b>${touched.length}</b>/${MEASURES.length} mesures touchées · ${total} réponses</div>
+      </div>
+    </div>`+body;
+}
+
+/* ===================== EXPORT EXCEL (ExcelJS) ===================== */
+async function exportExcel(){
+  if(!window.ExcelJS){ toast('Export Excel indisponible (vérifiez la connexion Internet).'); return; }
+  toast('Génération du fichier Excel…');
+  const wb=new ExcelJS.Workbook(); wb.creator='Orchestrateur — Corda Écofiscalité';
+  const C={green:'FF1A6E47', greenL:'FF2E7D45', grey:'FF9AA0A6', amber:'FFE0A030', red:'FFC0392B', white:'FFFFFFFF', cream:'FFF4ECDF'};
+  const fill=(cell,argb)=>{ cell.fill={type:'pattern', pattern:'solid', fgColor:{argb}}; };
+  const headStyle=cell=>{ cell.font={bold:true, color:{argb:C.white}, size:10}; fill(cell,C.green); cell.alignment={vertical:'middle', horizontal:'center', wrapText:true}; };
+  const apprecColor=ap=> ap==='tf'?C.green : ap==='f'?C.greenL : ap==='n'?C.grey : ap==='pf'?C.amber : ap==='pdf'?C.red : C.cream;
+  const coteColor=v=> v>0?C.greenL : v<0?C.red : C.grey;
+  const recoColor=rc=> rc==='rec'?C.green : rc==='etude'?C.amber : C.red;
+  const mrcMaj=recos=>{ const cc={rec:0,etude:0,non:0}; recos.forEach(r=>cc[r]++); return (cc.non>=cc.rec&&cc.non>=cc.etude)?'non':(cc.rec>=cc.etude)?'rec':'etude'; };
+
+  /* feuille globale */
+  const g=wb.addWorksheet('Synthèse (MRC)', {views:[{state:'frozen', xSplit:2, ySplit:1}]});
+  g.addRow(['Catégorie','Mesure', ...VILLES.map(v=>v.nom), 'MRC (majorité)']); g.getRow(1).eachCell(headStyle);
+  MEASURES.forEach(m=>{
+    const recos=[]; const cellLabels=[];
+    VILLES.forEach(v=>{ const a=villeAnswered(v.id,m.id); if(a===0){ cellLabels.push(''); } else { const rc=recoForVille(v.id,m.id); recos.push(rc); cellLabels.push(RECO[rc].l); } });
+    const maj=recos.length?mrcMaj(recos):null;
+    const row=g.addRow([CATS[m.cat].label, m.titre, ...cellLabels, maj?RECO[maj].l:'']);
+    VILLES.forEach((v,i)=>{ if(villeAnswered(v.id,m.id)>0){ const cell=row.getCell(3+i); fill(cell,recoColor(recoForVille(v.id,m.id))); cell.font={color:{argb:C.white}, bold:true}; cell.alignment={horizontal:'center'}; } });
+    if(maj){ const cell=row.getCell(3+VILLES.length); fill(cell,recoColor(maj)); cell.font={color:{argb:C.white}, bold:true}; cell.alignment={horizontal:'center'}; }
+  });
+  g.columns.forEach((col,i)=>{ col.width = i===0?28 : i===1?44 : 15; });
+
+  /* une feuille par ville ayant des répondants */
+  VILLES.forEach(v=>{
+    if(!respondentsForVille(v.id).length) return;
+    const ws=wb.addWorksheet(v.nom.slice(0,31), {views:[{state:'frozen', xSplit:2, ySplit:1}]});
+    ws.addRow(['Catégorie','Mesure', ...ALLCRIT.map(c=>c.label), ...DIMENSIONS.map(d=>d.nom), 'Recommandation']); ws.getRow(1).eachCell(headStyle);
+    MEASURES.forEach(m=>{
+      const cotes=ALLCRIT.map(c=>villeCote(v.id,m.id,c.id));
+      const coteLabels=cotes.map(ct=> ct==null?'' : ct>0?'+1':ct<0?'−1':'0');
+      const dimLabels=DIMENSIONS.map(d=>{ const ap=dimApprecVille(v.id,m.id,d); return ap?APPREC[ap].l:''; });
+      const a=villeAnswered(v.id,m.id); const rc=a>0?recoForVille(v.id,m.id):null;
+      const row=ws.addRow([CATS[m.cat].label, m.titre, ...coteLabels, ...dimLabels, rc?RECO[rc].l:'']);
+      cotes.forEach((ct,i)=>{ if(ct!=null){ const cell=row.getCell(3+i); fill(cell,coteColor(ct)); cell.font={color:{argb:C.white}, bold:true}; cell.alignment={horizontal:'center'}; } });
+      DIMENSIONS.forEach((d,i)=>{ const ap=dimApprecVille(v.id,m.id,d); if(ap){ const cell=row.getCell(3+ALLCRIT.length+i); fill(cell,apprecColor(ap)); cell.font={color:{argb:C.white}}; } });
+      if(rc){ const cell=row.getCell(3+ALLCRIT.length+DIMENSIONS.length); fill(cell,recoColor(rc)); cell.font={color:{argb:C.white}, bold:true}; }
+    });
+    ws.columns.forEach((col,i)=>{ col.width = i===0?22 : i===1?38 : (i>=2 && i<2+ALLCRIT.length)?7 : 16; });
+  });
+
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='Portrait-orchestrateur-MRC.xlsx';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);
+  toast('Fichier Excel téléchargé ✓');
+}
+
+/* ===================== ANNOTATION ===================== */
+function toggleAnno(on){
+  state.anno=(on===undefined)?!state.anno:on;
+  document.body.classList.toggle('anno-on', state.anno);
+  $('#annoToggle').setAttribute('aria-pressed', state.anno);
+  $('#annoPanel').classList.toggle('open', state.anno);
+  if(!state.anno){ $('#annoPop').hidden=true; clearHl(); }
+  renderAnnoList();
+}
+$('#annoToggle').onclick=()=>toggleAnno();
+$('#annoPanelClose').onclick=()=>toggleAnno(false);
+let hlEl=null;
+function clearHl(){ if(hlEl){ hlEl.classList.remove('anno-hl'); hlEl=null; } }
+document.addEventListener('mouseover',e=>{ if(!state.anno) return; const t=annoTarget(e.target); if(!t||t===hlEl) return; clearHl(); if(t && !t.closest('[data-noanno]')){ hlEl=t; t.classList.add('anno-hl'); } });
+function annoTarget(el){ if(!el||el.closest('[data-noanno]')) return null; let cur=el; while(cur&&cur!==document.body){ if(cur.dataset&&cur.dataset.anno) return cur; cur=cur.parentElement; } return el.closest('.card,.navitem,.mitem,.q,.dimsec,.btn')||el; }
+function targetLabel(el){ if(el.dataset&&el.dataset.anno) return el.dataset.anno; const h=el.querySelector&&el.querySelector('h1,h2,h3'); if(h) return h.textContent.trim(); const txt=(el.textContent||'').trim().replace(/\s+/g,' ').slice(0,48); return txt||el.tagName.toLowerCase(); }
+document.addEventListener('click',e=>{ if(!state.anno) return; if(e.target.closest('[data-noanno]')) return; const t=annoTarget(e.target); if(!t) return; e.preventDefault(); e.stopPropagation(); openAnnoPop(t, e.clientX, e.clientY); }, true);
+function openAnnoPop(el,x,y){
+  const pop=$('#annoPop'); pop.hidden=false;
+  pop.innerHTML='<div class="ctx">'+esc(state.screen)+'</div><div class="tgt">'+esc(targetLabel(el))+'</div><textarea id="annoText" placeholder="Votre note…"></textarea><div class="acts"><button class="btn ghost" id="annoCancel">Annuler</button><button class="btn brass" id="annoAdd">Ajouter</button></div>';
+  pop.style.left=Math.min(x, window.innerWidth-314)+'px'; pop.style.top=Math.min(y, window.innerHeight-224)+'px';
+  $('#annoText').focus();
+  $('#annoCancel').onclick=()=>{ pop.hidden=true; };
+  $('#annoAdd').onclick=()=>{ const v=$('#annoText').value.trim(); if(!v){ pop.hidden=true; return; } const n=state.annos.length+1; state.annos.push({n, screen:state.screen, label:targetLabel(el), text:v}); pinElement(el,n); pop.hidden=true; clearHl(); renderAnnoList(); saveUI(); toast('Annotation #'+n+' ajoutée'); };
+}
+function pinElement(el,n){ if(getComputedStyle(el).position==='static') el.classList.add('has-anno'); const pin=document.createElement('span'); pin.className='anno-pin'; pin.textContent=n; el.appendChild(pin); }
+function restorePins(){ $$('.anno-pin').forEach(p=>p.remove()); state.annos.filter(a=>a.screen===state.screen).forEach(a=>{ const host=$$('[data-anno]').find(el=>el.dataset.anno===a.label && el.offsetParent!==null); if(host) pinElement(host,a.n); }); }
+function renderAnnoList(){
+  $('#annoNum').textContent='('+state.annos.length+')';
+  const list=$('#annoList'); list.innerHTML='';
+  if(!state.annos.length){ list.innerHTML='<div class="anno-empty">Aucune annotation.<br>Active « Annoter », clique un élément, écris ta note.</div>'; return; }
+  const groups={}; state.annos.forEach(a=>{ (groups[a.screen]=groups[a.screen]||[]).push(a); });
+  Object.keys(groups).forEach(scr=>{
+    const g=document.createElement('div'); g.className='anno-grp'; g.textContent=scr; list.appendChild(g);
+    groups[scr].forEach(a=>{ const r=document.createElement('div'); r.className='anno-row'; r.innerHTML='<span class="nn">'+a.n+'</span><div class="bd"><div class="t">'+esc(a.label)+'</div><div class="c">'+esc(a.text)+'</div></div><button class="del" title="Supprimer">×</button>'; r.querySelector('.del').onclick=()=>{ state.annos=state.annos.filter(x=>x!==a); restorePins(); renderAnnoList(); saveUI(); }; list.appendChild(r); });
+  });
+}
+function buildAnnoMD(){
+  const L=['# Annotations — Orchestrateur (Écofiscalité · Corda)','','_'+state.annos.length+' annotation(s) · prototype = `orchestrateur.html`_',''];
+  const groups={}; state.annos.forEach(a=>{ (groups[a.screen]=groups[a.screen]||[]).push(a); });
+  Object.keys(groups).forEach(scr=>{ L.push('## Écran — '+scr); groups[scr].forEach(a=>L.push('- **['+a.label+']** (#'+a.n+') — '+a.text)); L.push(''); });
+  L.push('---'); L.push("_Chaque note cite l'écran + l'élément ciblé._");
+  return L.join('\n');
+}
+$('#annoDownload').onclick=()=>{ if(!state.annos.length){ toast('Aucune annotation'); return; } const md=buildAnnoMD(); const a=document.createElement('a'); a.href='data:text/markdown;charset=utf-8,'+encodeURIComponent(md); a.download='orchestrateur-annotations.md'; document.body.appendChild(a); a.click(); a.remove(); toast('Fichier .md téléchargé (sinon : bouton « Copier »)'); };
+$('#annoCopy').onclick=async()=>{ if(!state.annos.length){ toast('Aucune annotation'); return; } const md=buildAnnoMD(); try{ await navigator.clipboard.writeText(md); toast('Annotations copiées'); }catch(e){ const ta=document.createElement('textarea'); ta.value=md; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); let ok=false; try{ ok=document.execCommand('copy'); }catch(_){} ta.remove(); toast(ok?'Annotations copiées':'Copie bloquée — voir console'); if(!ok) console.log(md); } };
+$('#annoClear').onclick=()=>{ if(!state.annos.length) return; if(!confirm('Vider toutes les annotations ?')) return; state.annos=[]; $$('.anno-pin').forEach(p=>p.remove()); renderAnnoList(); saveUI(); };
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && state.anno){ $('#annoPop').hidden=true; } });
+
+/* ===================== PROJET (sélecteur + gestionnaire) ===================== */
+function fmtDate(iso){ try{ return new Date(iso).toLocaleDateString('fr-CA'); }catch(e){ return ''; } }
+function renderProjPill(){
+  const sel=$('#projPill'); if(!sel) return; const act=store.activeId();
+  sel.innerHTML = store.projects().map(p=>'<option value="'+esc(p.id)+'"'+(p.id===act?' selected':'')+'>'+esc(p.title)+'</option>').join('')
+    + '<option value="__manage">＋ Gestionnaire de projets…</option>';
+}
+$('#projPill').onchange=function(){
+  const val=this.value;
+  if(val==='__manage'){ renderProjPill(); go('projets'); return; }
+  store.setActive(val); syncVilles(); renderProjPill();
+  toast('Projet actif : '+store.activeProj().title); go('portrait');
+};
+function renderProjets(){
+  const host=$('#projetsHost'); if(!host) return; const projs=store.projects(); const act=store.activeId();
+  const list=projs.map(p=>{
+    const villesTxt = p.type==='single' ? 'Ville unique' : (p.villes.length+' villes');
+    const isAct = p.id===act;
+    return '<div class="codecard" data-anno="Projet — '+esc(p.title)+'"><div class="bd"><div class="who2">'+esc(p.title)+(isAct?' <span class="st3 claimed">actif</span>':'')+'</div>'
+      +'<div class="meta2">'+villesTxt+' · '+store.codeCount(p.id)+' code(s) · créé le '+fmtDate(p.createdAt)+'</div></div>'
+      +(isAct?'':'<button class="btn ghost projact" data-act="'+esc(p.id)+'" style="padding:6px 10px">Activer</button>')
+      +'<button class="btn ghost projdel" data-del="'+esc(p.id)+'" style="padding:6px 10px; color:var(--fav-neg); border-color:color-mix(in srgb,var(--fav-neg) 35%,var(--line))">Supprimer</button></div>';
+  }).join('');
+  host.innerHTML=`
+    <div class="card" data-anno="Projets — liste">
+      <h3>Projets ouverts <span class="faint mono" style="font-size:.8rem">(${projs.length})</span></h3>
+      <div class="projlist">${list}</div>
+    </div>
+    <div class="card" data-anno="Projets — nouveau projet">
+      <h3>Nouveau projet</h3>
+      <div class="field"><label>Titre du projet</label><input id="npTitle" type="text" placeholder="ex. Ville de Saint-Jérôme" autocomplete="off"></div>
+      <div class="field"><label>Portée</label>
+        <div class="btnrow" id="npType" style="margin:0">
+          <button type="button" class="btn primary" data-type="single">Ville unique</button>
+          <button type="button" class="btn ghost" data-type="multi">Multi-villes</button>
+        </div>
+      </div>
+      <div class="field" id="npSingleWrap"><label>Ville</label><div class="faint mono" style="font-size:.82rem">Le titre du projet sert de nom à la ville unique.</div></div>
+      <div class="field" id="npMultiWrap" hidden><label>Villes</label><div id="npVilles"></div><button type="button" class="btn ghost" id="npAddVille" style="margin-top:6px">＋ Ajouter une ville</button></div>
+      <div class="btnrow" style="margin-top:6px"><button class="btn primary" id="npCreate">Créer le projet</button></div>
+      <div class="err" id="npErr"></div>
+    </div>`;
+  $$('#projetsHost .projact').forEach(b=>b.onclick=()=>{ if(state.anno) return; store.setActive(b.dataset.act); syncVilles(); renderProjPill(); toast('Projet activé'); go('portrait'); });
+  $$('#projetsHost .projdel').forEach(b=>b.onclick=()=>{ if(state.anno) return; const id=b.dataset.del; const p=store.projects().find(x=>x.id===id);
+    if(store.projects().length<=1){ toast('Impossible de supprimer le dernier projet.'); return; }
+    if(!confirm('Supprimer le projet « '+(p?p.title:id)+' » et toutes ses cotations ?\n\nUne sauvegarde complète (archive) est conservée avant suppression.')) return;
+    store.deleteProject(id); syncVilles(); renderProjPill(); toast('Projet supprimé (archivé)'); renderProjets(); });
+  let npType='single';
+  const setType=t=>{ npType=t; $$('#npType button').forEach(x=>{ x.classList.toggle('primary', x.dataset.type===t); x.classList.toggle('ghost', x.dataset.type!==t); }); $('#npSingleWrap').hidden=(t!=='single'); $('#npMultiWrap').hidden=(t!=='multi'); };
+  $$('#npType button').forEach(b=>b.onclick=()=>setType(b.dataset.type));
+  const villesHost=$('#npVilles');
+  const addVilleRow=val=>{ const row=document.createElement('div'); row.className='btnrow npvrow'; row.style.margin='0 0 6px';
+    row.innerHTML='<input type="text" class="npv" placeholder="Nom de la ville" value="'+esc(val||'')+'" style="flex:1"><button type="button" class="btn ghost npvdel" style="padding:6px 10px">×</button>';
+    row.querySelector('.npvdel').onclick=()=>row.remove(); villesHost.appendChild(row); };
+  addVilleRow(''); addVilleRow('');
+  $('#npAddVille').onclick=()=>addVilleRow('');
+  setType('single');
+  $('#npCreate').onclick=()=>{ if(state.anno) return; const title=$('#npTitle').value.trim(); const err=$('#npErr'); err.textContent='';
+    if(!title){ err.textContent='Donnez un titre au projet.'; return; }
+    let villes=[];
+    if(npType==='single'){ villes=[{id:slugify(title)||'ville', nom:title}]; }
+    else { const names=$$('#npVilles .npv').map(i=>i.value.trim()).filter(Boolean);
+      if(!names.length){ err.textContent='Ajoutez au moins une ville.'; return; }
+      const seen={}; villes=names.map(n=>{ let id=slugify(n)||'ville'; while(seen[id]) id=id+'-2'; seen[id]=1; return {id, nom:n}; }); }
+    const p=store.createProject({title, type:npType, villes}); syncVilles(); renderProjPill(); toast('Projet « '+p.title+' » créé'); go('acces'); };
+}
+
+/* ===================== BOOT ===================== */
+store._load(); syncVilles();
+renderAnnoList();
+if(state.role==='admin'){ enterAdmin(); }
+else if(state.role==='ville' && state.ville && state.respondentId){ const c=store.findCode(state.respondentId); if(c&&c.project) store.setActive(c.project); syncVilles(); const v=VILLES.find(x=>x.id===state.ville); showShell('Ville · '+(v?v.nom:'—')); $('#demoSwitch').hidden=true; renderSide(); go('orchestrateur'); }
+else { logout(); }
+</script>
+</body>
+</html>
