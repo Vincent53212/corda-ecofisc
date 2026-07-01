@@ -25,3 +25,6 @@ old/
 
 # ===== Autre produit Corda (hors périmètre de ce dépôt) =====
 corda-levered-all-weather-factsheet.html
+
+# ===== Documents sources confidentiels (fiches ENAP/CERGO — « ne pas diffuser ») =====
+Document complémentaire*.docx

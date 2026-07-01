@@ -50,13 +50,7 @@ button{font-family:inherit}
 select.proj-pill{appearance:none; -webkit-appearance:none; -moz-appearance:none; flex:0 0 auto; width:auto; max-width:240px; background:transparent url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23999' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 9px center; padding-right:26px; cursor:pointer}
 select.proj-pill:hover{border-color:var(--brass,#A9802F); color:var(--ink)}
 .role-badge{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; padding:5px 10px; border-radius:6px; background:color-mix(in srgb,var(--accent) 12%, var(--bg)); color:var(--accent-deep); border:1px solid color-mix(in srgb,var(--accent) 30%,var(--bg)); white-space:nowrap}
-.demo-switch{display:flex; border:1px solid var(--line); border-radius:7px; overflow:hidden}
-.demo-switch button{cursor:pointer; border:none; background:transparent; color:var(--muted); font-size:11px; padding:6px 9px; border-left:1px solid var(--line)}
-.demo-switch button:first-child{border-left:none}
-.demo-switch button[aria-pressed="true"]{background:var(--accent); color:#fff}
-.btn-anno{cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; border:1px solid var(--brass); color:var(--brass); background:transparent; padding:7px 12px; border-radius:8px}
-.btn-anno[aria-pressed="true"]{background:var(--brass); color:#fff}
-.btn-anno .dot{width:8px; height:8px; border-radius:50%; background:currentColor}
+/* (demo-switch et bouton Annoter retirés — le mode annotation se bascule via Ctrl+Alt+A, admin seulement) */
 
 /* Shell */
 .shell{display:grid; grid-template-columns:236px 1fr; flex:1 1 auto; min-height:0}
@@ -268,11 +262,6 @@ body.anno-on .anno-hint{display:block}
     <option value="" disabled>＋ Nouveau projet — à venir</option>
   </select>
   <span class="role-badge" id="roleBadge" hidden>—</span>
-  <div class="demo-switch" id="demoSwitch" hidden title="Bascule démo entre les deux espaces">
-    <button data-as="admin" aria-pressed="true">Admin</button>
-    <button data-as="user" aria-pressed="false">Ville</button>
-  </div>
-  <button class="btn-anno" id="annoToggle" aria-pressed="false" hidden><span class="dot"></span>Annoter</button>
 </header>
 
 <!-- ===================== SHELL ===================== -->
@@ -371,7 +360,7 @@ body.anno-on .anno-hint{display:block}
 </div>
 
 <!-- ===================== ANNOTATION UI ===================== -->
-<div class="anno-hint" data-noanno>Mode annotation — cliquez un élément pour le commenter</div>
+<div class="anno-hint" data-noanno>Mode annotation — cliquez un élément pour le commenter · Ctrl+Alt+A pour quitter</div>
 <div class="anno-pop" id="annoPop" data-noanno hidden></div>
 <aside class="anno-panel" id="annoPanel" data-noanno aria-label="Annotations">
   <header>
@@ -455,8 +444,9 @@ const MEASURES = [
   {id:'m37', cat:'autres', titre:'Redevance sur les générateurs de risques (dont les réservoirs de produits chimiques)'},
 ];
 
-/* Descriptions des mesures — extraites du doc Mascouche (fiches analytiques, dir. F. Tremblay-Racicot).
-   Mécanismes transférables ; quelques exemples sectoriels propres à Mascouche génériqués. Le reste = « Description à venir ». */
+/* Descriptions des mesures — extraites des fiches analytiques Mascouche et Gatineau (2025)
+   (dir. F. Tremblay-Racicot). Mécanismes transférables ; exemples sectoriels génériqués.
+   Le reste = « Description à venir » (liste des manquantes dans le dossier de validation). */
 const DESCRIPTIONS = {
   m01:"Modulation du taux de taxe foncière selon le nombre de logements et la typologie, via des sous-catégories d'immeubles résidentiels (unifamilial, 2 logements, 3-5, 6-9, 10-49, 50+, habitations en commun, condominiums).",
   m02:"Taux de taxe foncière distincts pour les immeubles commerciaux/industriels selon le code d'utilisation des biens-fonds (CUBF) : soit pour les industries polluantes (aliments/boissons, minéraux, pétrole, chimie, transport…), soit pour les entreprises d'économie circulaire (recyclage, récupération, vente d'occasion, compostage).",
@@ -464,19 +454,25 @@ const DESCRIPTIONS = {
   m04:"Régime d'impôt foncier à taux variés par tranche de valeur pour les immeubles non résidentiels (p. ex. < 1 M$, 1-2 M$, 2 M$ et plus). Un second taux peut s'appliquer, sans excéder 133,3 % du premier.",
   m05:"Taxe pouvant atteindre quatre fois le taux de base (résidentiel) sur les terrains vagues desservis par l'aqueduc et l'égout sanitaire, afin de récupérer des revenus, accroître la densification et limiter la spéculation foncière.",
   m06:"Prélèvement sur la valeur foncière des immeubles comportant un logement vacant ou sous-utilisé, avec un taux maximal progressif (p. ex. 1 % la 1re année, 2 % la 2e, 3 % la 3e).",
+  m08:"Taxe ou redevance visant les terres à vocation agricole exploitables mais non exploitées, pour décourager la spéculation et encourager la remise en culture : taxe sur la valeur foncière (plafonnée à trois fois le taux de base) ou redevance au m² alimentant un fonds de remise en culture, avec exemptions possibles (exploitants enregistrés, agri-projets partenaires).",
   m09:"Tarif (ou vignette) pour contrôler et gérer le stationnement sur rue ; le montant peut varier selon le secteur, le quartier ou le type de véhicule.",
   m10:"Redevance auprès des grands générateurs de déplacement (grands employeurs de 100+ employés, organisateurs d'événements) dépourvus d'un programme de gestion des déplacements, pour financer le transport collectif et les infrastructures de transport actif.",
+  m12:"Taxe auprès des propriétaires de parcs de stationnement non résidentiels dans les zones desservies en transport collectif, calculée sur la superficie ou le nombre de cases (exemptions de base possibles), avec un taux modulable par secteur, type de stationnement (extérieur taxé davantage) et niveau de desserte — pour financer le transport collectif et optimiser l'usage des terrains.",
   m14:"Taxe sur les immeubles non résidentiels/industriels desservis dont le coefficient d'occupation du sol (COS) est inférieur à 20 %, calculée sur la différence entre 20 % de la superficie non contrainte et la superficie réelle, multipliée par un taux sectoriel.",
   m15:"Taxe sur les surfaces minéralisées (non végétalisées) de certains immeubles non résidentiels : superficie du terrain moins bâtiments moins surfaces végétalisées, avec strates progressives (exemption de base, puis tarifs croissants).",
   m18:"Taxe visant l'absence d'arbre en cour avant (façade) des immeubles résidentiels et non résidentiels : taxe unitaire imposée aux propriétaires non conformes.",
   m19:"Redevance visant la réduction de la perte de canopée dans les projets de construction ; montant établi de façon discrétionnaire ou selon la valeur écosystémique des arbres abattus (nombre, essence, âge, taille).",
   m21:"Tarification incitative selon le nombre de levées et la taille du bac, afin de réduire les matières vouées à l'enfouissement (coûts aujourd'hui assumés par la taxe foncière générale).",
   m22:"Redevance sur les permis de construction, rénovation et démolition pour détourner les résidus de CRD de l'élimination ; les redevables ayant un plan de gestion des matières pourraient être exemptés.",
+  m24:"Redevance sur la quantité de contenants et produits à usage unique vendus ou fournis par les commerçants (verres, bouteilles d'eau, pailles…), établie par déclaration périodique, pour financer la gestion des matières résiduelles et inciter à la réduction à la source ; un montant compensatoire peut être retenu par les commerçants pour la gestion.",
+  m26:"Redevance imposée au promoteur lors du permis de construction ou de branchement à l'aqueduc, pour compenser les GES émis par l'urbanisation d'un terrain (perte de biomasse, travaux d'infrastructures) : superficie développée × taux de compensation arrimé au prix du carbone (p. ex. 1,08 $/m²), versée à un fonds dédié à l'atténuation et à l'adaptation ; requalification exemptable.",
   m28:"Taxe imposée aux propriétaires d'immeubles résidentiels disposant d'appareils de chauffage au mazout ou d'un système biénergie au mazout ; montant fixe par appareil assujetti.",
   m29:"Redevance sur les rejets d'eaux usées, prélevée selon la quantité et le niveau de contamination rejetés sur une période donnée, pour financer le traitement des eaux usées.",
   m30:"Tarification de l'eau potable au secteur résidentiel selon le principe utilisateur-payeur : variable (consommation en m³ avec compteurs) ou forfaitaire (tarif annuel au compte de taxes).",
   m31:"Tarification de l'eau potable pour les industries, commerces et institutions (ICI) selon le principe utilisateur-payeur : variable selon la consommation (compteurs) ou forfaitaire au coût moyen.",
   m32:"Transformation de la tarification actuelle des piscines en taxe générale, avec un montant par propriété calibré pour générer des revenus supplémentaires.",
+  m34:"Redevance réglementaire imposée aux exploitants d'établissements d'hébergement touristique — montant annuel par unité de capacité (chambre, lit, site de camping), modulable par type d'établissement et secteur — pour compenser les coûts municipaux liés au tourisme (voirie, parcs, déchets, sécurité) ; distincte de la taxe provinciale sur l'hébergement et non facturée aux touristes.",
+  m36:"Redevance réglementaire liée à l'occupation du domaine public par les réseaux de câblodistribution et de télécommunication (encadrée par un accord d'accès municipal) : frais de permis, dégradation de la chaussée, relocalisations — au coût réel, selon les balises du CRTC (principe de neutralité des coûts pour les contribuables).",
 };
 
 /* ===================== RÈGLES MÉTIER — moteur externalisé (rules.js) ===================== */
@@ -628,27 +624,26 @@ function go(target){
 /* ===================== AUTH / SESSION ===================== */
 function showShell(roleLabel){
   $('#shell').classList.remove('solo'); $('#side').hidden=false;
-  ['roleBadge','annoToggle'].forEach(i=>$('#'+i).hidden=false);
+  $('#roleBadge').hidden=false;
   $('#projPill').hidden = (state.role!=='admin'); // sélecteur de projet = admin uniquement
   $('#roleBadge').textContent=roleLabel;
 }
 function enterAdmin(){
   state.role='admin'; state.ville=null; state.person=null; state.respondentId=null;
-  $('#demoSwitch').hidden=false;
-  $$('#demoSwitch button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.as==='admin'));
   syncVilles(); showShell('Admin'); renderProjPill(); renderSide(); go('portrait'); saveUI();
 }
 function enterVille(c){
+  if(state.anno) toggleAnno(false); /* le mode annotation ne doit jamais suivre dans l'espace ville */
   state.role='ville'; state.ville=c.ville; state.person=c.person; state.respondentId=c.code;
   if(c.project) store.setActive(c.project); syncVilles();
   const v=VILLES.find(x=>x.id===c.ville);
-  showShell('Ville · '+(v?v.nom:'—')); $('#demoSwitch').hidden=true; renderSide();
+  showShell('Ville · '+(v?v.nom:'—')); renderSide();
   go('orchestrateur'); saveUI();
 }
 function logout(){
   state.role=null; state.ville=null; state.person=null; state.respondentId=null; state.measure=null; state.screen='Connexion';
   $('#shell').classList.add('solo'); $('#side').hidden=true;
-  ['projPill','roleBadge','demoSwitch','annoToggle'].forEach(i=>$('#'+i).hidden=true);
+  ['projPill','roleBadge'].forEach(i=>$('#'+i).hidden=true);
   if(state.anno) toggleAnno(false);
   $$('.screen').forEach(s=>s.classList.remove('on')); $('#s-login').classList.add('on');
   $('#codeInput').value=''; $('#loginErr').textContent=''; saveUI();
@@ -677,13 +672,6 @@ $('#fcBtn').onclick=()=>{
   state.pendingCode=null;
   if(c) enterVille(c);
 };
-function demoVilleCode(){ let c=store.listCodes().find(x=>x.ville==='sainte-therese' && x.person && x.person.prenom==='Démo'); if(!c){ const code=store.createCode('sainte-therese'); c=store.claimCode(code,{prenom:'Démo', nom:'Ville', fonction:'Test'}); } return c; }
-$$('#demoSwitch button').forEach(b=>b.onclick=()=>{
-  if(state.anno) return;
-  if(b.dataset.as==='admin') enterAdmin();
-  else enterVille(demoVilleCode());
-});
-
 /* ===================== ORCHESTRATEUR — vue répondant ===================== */
 function renderOrch(){
   const host=$('#orchHost'); const v=VILLES.find(x=>x.id===state.ville); const rid=state.respondentId;
@@ -1000,12 +988,21 @@ async function exportExcel(){
 function toggleAnno(on){
   state.anno=(on===undefined)?!state.anno:on;
   document.body.classList.toggle('anno-on', state.anno);
-  $('#annoToggle').setAttribute('aria-pressed', state.anno);
   $('#annoPanel').classList.toggle('open', state.anno);
   if(!state.anno){ $('#annoPop').hidden=true; clearHl(); }
   renderAnnoList();
 }
-$('#annoToggle').onclick=()=>toggleAnno();
+/* Outil interne de design : bascule via Ctrl+Alt+A, ADMIN seulement — aucun bouton visible
+   (les répondants villes ne doivent pas le voir). e.code = touche physique (insensible à la
+   disposition clavier) ; inerte pendant la saisie dans un champ (évite tout conflit AltGr). */
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey && e.altKey && e.code==='KeyA'){
+    if(state.role!=='admin') return;
+    if(e.target && e.target.closest && e.target.closest('input,textarea,select')) return;
+    e.preventDefault(); toggleAnno();
+    toast(state.anno?'Mode annotation activé — Ctrl+Alt+A pour quitter':'Mode annotation désactivé');
+  }
+});
 $('#annoPanelClose').onclick=()=>toggleAnno(false);
 let hlEl=null;
 function clearHl(){ if(hlEl){ hlEl.classList.remove('anno-hl'); hlEl=null; } }
@@ -1026,7 +1023,7 @@ function restorePins(){ $$('.anno-pin').forEach(p=>p.remove()); state.annos.filt
 function renderAnnoList(){
   $('#annoNum').textContent='('+state.annos.length+')';
   const list=$('#annoList'); list.innerHTML='';
-  if(!state.annos.length){ list.innerHTML='<div class="anno-empty">Aucune annotation.<br>Active « Annoter », clique un élément, écris ta note.</div>'; return; }
+  if(!state.annos.length){ list.innerHTML='<div class="anno-empty">Aucune annotation.<br>Ctrl+Alt+A pour activer le mode, clique un élément, écris ta note.</div>'; return; }
   const groups={}; state.annos.forEach(a=>{ (groups[a.screen]=groups[a.screen]||[]).push(a); });
   Object.keys(groups).forEach(scr=>{
     const g=document.createElement('div'); g.className='anno-grp'; g.textContent=scr; list.appendChild(g);
@@ -1116,7 +1113,7 @@ function renderProjets(){
 store._load(); syncVilles();
 renderAnnoList();
 if(state.role==='admin'){ enterAdmin(); }
-else if(state.role==='ville' && state.ville && state.respondentId){ const c=store.findCode(state.respondentId); if(c&&c.project) store.setActive(c.project); syncVilles(); const v=VILLES.find(x=>x.id===state.ville); showShell('Ville · '+(v?v.nom:'—')); $('#demoSwitch').hidden=true; renderSide(); go('orchestrateur'); }
+else if(state.role==='ville' && state.ville && state.respondentId){ const c=store.findCode(state.respondentId); if(c&&c.project) store.setActive(c.project); syncVilles(); const v=VILLES.find(x=>x.id===state.ville); showShell('Ville · '+(v?v.nom:'—')); renderSide(); go('orchestrateur'); }
 else { logout(); }
 </script>
 </body>
