@@ -17,7 +17,7 @@
   --font-body:"Inter",system-ui,sans-serif;
   --font-mono:"Space Mono",ui-monospace,monospace;
   --bg:#FBF7F0; --surface:#FFFFFF; --surface-2:#F4ECDF; --ink:#211C15;
-  --muted:#6B6256; --faint:#94897A; --line:#E6DAC6; --line-2:#EFE7D8;
+  --muted:#6B6256; --faint:#6F6656; /* faint foncé pour AA : 5.3:1 sur crème, 4.8:1 sur surface-2 */ --line:#E6DAC6; --line-2:#EFE7D8;
   --accent:#1A6E47; --accent-deep:#0E4A2F; --accent-ink:#FFFFFF; --brass:#A9802F;
   --fav-pos:#2E7D45; --fav-posl:#7DB37D; --fav-mid:#9AA0A6; --fav-warn:#E0A030; --fav-neg:#C0392B;
   --radius:9px; --pad:16px; --shadow:0 1px 2px rgba(20,16,8,.05), 0 14px 34px -16px rgba(20,16,8,.22);
@@ -37,6 +37,7 @@ h1,h2,h3,.display{font-family:var(--font-display); margin:0; color:var(--ink)}
 .muted{color:var(--muted)} .faint{color:var(--faint)}
 button{font-family:inherit}
 :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+.sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
 
 /* App bar */
 .appbar{display:flex; align-items:center; gap:16px; padding:11px 22px; background:var(--surface); border-bottom:1.5px solid var(--ink); flex:0 0 auto; flex-wrap:wrap; row-gap:8px}
@@ -61,7 +62,7 @@ select.proj-pill:hover{border-color:var(--brass,#A9802F); color:var(--ink)}
 .shell{display:grid; grid-template-columns:236px 1fr; flex:1 1 auto; min-height:0}
 .shell.solo{grid-template-columns:1fr}
 .side{border-right:1px solid var(--line); background:var(--surface-2); padding:16px 12px 30px; display:flex; flex-direction:column; gap:3px}
-.side .lab{font-family:var(--font-mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); padding:14px 10px 6px}
+.side .lab{font-family:var(--font-mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); padding:14px 10px 6px}
 .side .lab:first-child{padding-top:2px}
 .navitem{display:flex; align-items:center; gap:10px; cursor:pointer; text-align:left; border:none; background:transparent; color:var(--ink); font-size:14px; font-weight:500; padding:9px 11px; border-radius:8px; width:100%; position:relative}
 .navitem:hover{background:color-mix(in srgb,var(--accent) 8%, transparent)}
@@ -70,7 +71,7 @@ select.proj-pill:hover{border-color:var(--brass,#A9802F); color:var(--ink)}
 .navitem.active .pill-soon{color:#dfeee6}
 .navitem:disabled{cursor:not-allowed; color:var(--faint)}
 .navitem:disabled:hover{background:transparent}
-.pill-soon{margin-left:auto; font-family:var(--font-mono); font-size:8.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--brass); border:1px solid color-mix(in srgb,var(--brass) 40%,var(--bg)); border-radius:20px; padding:1px 6px; white-space:nowrap}
+.pill-soon{margin-left:auto; font-family:var(--font-mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--brass); border:1px solid color-mix(in srgb,var(--brass) 40%,var(--bg)); border-radius:20px; padding:1px 6px; white-space:nowrap}
 .side .grow{flex:1}
 .side .signout{font-family:var(--font-mono); font-size:11px; color:var(--muted); cursor:pointer; background:transparent; border:1px solid var(--line); border-radius:7px; padding:8px; margin-top:8px}
 
@@ -119,12 +120,12 @@ textarea{line-height:1.5}
 /* ---------------- Orchestrateur ---------------- */
 .orch-grid{display:grid; grid-template-columns:300px 1fr; gap:16px; align-items:start}
 .mlist{background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow); padding:8px; max-height:calc(100dvh - 240px); overflow:auto; position:sticky; top:0}
-.mlist .catlab{font-family:var(--font-mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); padding:12px 10px 5px; display:flex; align-items:center; gap:7px}
+.mlist .catlab{font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); padding:12px 10px 5px; display:flex; align-items:center; gap:7px}
 .mlist .catlab i{width:9px; height:9px; border-radius:50%; flex:0 0 auto}
 .mitem{display:flex; align-items:center; gap:9px; width:100%; text-align:left; border:none; background:transparent; border-radius:8px; padding:8px 10px; cursor:pointer; font-size:.85rem; color:var(--ink); line-height:1.3}
 .mitem:hover{background:var(--surface-2)}
 .mitem.active{background:color-mix(in srgb,var(--accent) 12%, transparent); box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent)}
-.mitem .st{margin-left:auto; font-family:var(--font-mono); font-size:.64rem; color:var(--faint); flex:0 0 auto}
+.mitem .st{margin-left:auto; font-family:var(--font-mono); font-size:.7rem; color:var(--faint); flex:0 0 auto}
 .mitem .st.done{color:var(--fav-pos)} .mitem .st.part{color:var(--brass)}
 .progress{height:8px; background:var(--line-2); border-radius:20px; overflow:hidden; margin-top:10px}
 .progress > i{display:block; height:100%; background:var(--accent); transition:width .25s ease}
@@ -146,7 +147,7 @@ textarea{line-height:1.5}
 .cb{width:42px; height:38px; border:none; border-left:1px solid var(--line); background:var(--surface); cursor:pointer; font-family:var(--font-mono); font-weight:700; font-size:1.05rem; color:var(--muted)}
 .cb:first-child{border-left:none}
 .cb:hover{background:var(--surface-2)}
-.cb.pos.on{background:var(--fav-pos); color:#fff} .cb.mid.on{background:var(--fav-mid); color:#fff} .cb.neg.on{background:var(--fav-neg); color:#fff}
+.cb.pos.on{background:var(--fav-pos); color:#fff} .cb.mid.on{background:var(--fav-mid); color:var(--ink)} .cb.neg.on{background:var(--fav-neg); color:#fff}
 .cbubble{width:38px; height:38px; border:1px solid var(--line); border-radius:9px; background:var(--surface); cursor:pointer; font-size:1rem; line-height:1}
 .cbubble.has{border-color:var(--brass); background:color-mix(in srgb,var(--brass) 14%,var(--bg))}
 .q-comment{grid-column:1/-1}
@@ -163,7 +164,7 @@ textarea{line-height:1.5}
 /* réponses par répondant */
 .repdim{margin-top:12px}
 .repdim-h{font-weight:600; font-size:.9rem; display:flex; align-items:center; gap:8px; margin-bottom:4px; padding-bottom:4px; border-bottom:1px solid var(--line-2)}
-.repdim-h .apprec{font-size:.64rem}
+.repdim-h .apprec{font-size:.7rem}
 .repq{display:grid; grid-template-columns:1fr auto; gap:3px 10px; padding:6px 0; border-bottom:1px solid var(--line-2); align-items:center}
 .repq-l{font-size:.84rem}
 .repq-c{grid-column:1/-1}
@@ -173,9 +174,11 @@ textarea{line-height:1.5}
 .pmatrix{width:100%; border-collapse:collapse; font-size:.82rem}
 .pmatrix th,.pmatrix td{padding:8px 7px; border-bottom:1px solid var(--line-2); text-align:center; white-space:nowrap}
 .pmatrix th:first-child,.pmatrix td:first-child{text-align:left; white-space:normal; min-width:210px}
-.pmatrix th{font-family:var(--font-mono); font-size:.58rem; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); font-weight:500}
+.pmatrix th{font-family:var(--font-mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); font-weight:500}
 .rpill{display:inline-block; min-width:22px; height:22px; line-height:22px; padding:0 5px; border-radius:6px; color:#fff; font-family:var(--font-mono); font-weight:700; font-size:.72rem; text-align:center}
-.rpill.rec{background:var(--fav-pos)} .rpill.etude{background:var(--fav-warn)} .rpill.non{background:var(--fav-neg)} .rpill.none{background:var(--line); color:var(--faint)}
+.rpill.rec{background:var(--fav-pos)} .rpill.etude{background:var(--fav-warn); color:var(--ink)} .rpill.non{background:var(--fav-neg)} .rpill.none{background:var(--line); color:var(--faint)}
+button.rpill{border:none; cursor:pointer}
+.cellpop{position:fixed; z-index:75; max-width:280px; background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:0 18px 50px -16px rgba(20,16,8,.4); padding:11px 13px; font-size:.84rem; line-height:1.5}
 .mrccell{font-family:var(--font-mono); font-size:.7rem; display:flex; gap:3px; justify-content:center}
 .sumcards{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
 .sumcard{border-radius:var(--radius); padding:14px 16px; color:#fff}
@@ -224,6 +227,7 @@ body.anno-on .anno-hint{display:block}
 .anno-panel footer{padding:13px 16px; border-top:1px solid var(--line); display:flex; gap:9px}
 .toast{position:fixed; left:50%; bottom:64px; transform:translateX(-50%) translateY(10px); z-index:80; background:var(--accent-deep); color:#fff; font-size:13px; padding:10px 18px; border-radius:30px; box-shadow:0 12px 34px -12px rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:opacity .2s, transform .2s}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--fav-neg)}
 
 /* Responsive */
 @media (max-width:880px){
@@ -285,6 +289,7 @@ body.anno-on .anno-hint{display:block}
         </svg>
         <h2>Orchestrateur</h2>
         <div class="lede">Analyse multicritère des mesures fiscales. Entrez votre code d'accès.</div>
+        <label class="sr-only" for="codeInput">Code d'accès</label>
         <input type="text" id="codeInput" placeholder="Code d'accès" autocomplete="off" spellcheck="false">
         <div class="btnrow" style="margin-top:14px"><button class="btn primary" id="loginBtn" style="flex:1">Entrer</button></div>
         <div class="err" id="loginErr"></div>
@@ -301,8 +306,11 @@ body.anno-on .anno-hint{display:block}
         </svg>
         <h2>Première connexion</h2>
         <div class="lede">Ville de <b id="fcVille">—</b>. Présentez-vous pour démarrer.</div>
+        <label class="sr-only" for="fcPrenom">Prénom</label>
         <input type="text" id="fcPrenom" placeholder="Prénom" autocomplete="off">
+        <label class="sr-only" for="fcNom">Nom</label>
         <input type="text" id="fcNom" placeholder="Nom" autocomplete="off" style="margin-top:10px">
+        <label class="sr-only" for="fcFonction">Fonction</label>
         <input type="text" id="fcFonction" placeholder="Fonction (ex. directeur des finances)" autocomplete="off" style="margin-top:10px">
         <div class="btnrow" style="margin-top:14px"><button class="btn primary" id="fcBtn" style="flex:1">Commencer</button></div>
         <div class="err" id="fcErr"></div>
@@ -378,8 +386,10 @@ body.anno-on .anno-hint{display:block}
   </footer>
 </aside>
 <div class="toast" id="toast" data-noanno></div>
+<div class="cellpop" id="cellPop" hidden data-noanno role="dialog" aria-label="Détail des appréciations"></div>
+<div class="sr-only" id="live" aria-live="polite" data-noanno></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" integrity="sha512-dlPw+ytv/6JyepmelABrgeYgHI0O+frEwgfnPdXDTOIZz+eDgfW07QXG02/O8COfivBdGNINy+Vex+lYmJ5rxw==" crossorigin="anonymous"></script>
 <script>
 "use strict";
 
@@ -504,17 +514,19 @@ const DIMENSIONS = [
 const ALLCRIT = DIMENSIONS.flatMap(d=>d.crit);
 const NCRIT = ALLCRIT.length; // 22
 
+/* c = couleur de fond · tc = couleur de TEXTE lisible sur ce fond (AA 4.5:1 : blanc sur les fonds
+   foncés, encre sur les fonds clairs — ambre/gris/vert clair, où le blanc ne passait pas). */
 const APPREC = {
-  tf:{l:'Très favorable', c:'var(--fav-pos)'},
-  f:{l:'Favorable', c:'var(--fav-posl)'},
-  n:{l:'Neutre', c:'var(--fav-mid)'},
-  pf:{l:'Peu favorable', c:'var(--fav-warn)'},
-  pdf:{l:'Pas du tout favorable', c:'var(--fav-neg)'},
+  tf:{l:'Très favorable', c:'var(--fav-pos)', tc:'#fff'},
+  f:{l:'Favorable', c:'var(--fav-posl)', tc:'var(--ink)'},
+  n:{l:'Neutre', c:'var(--fav-mid)', tc:'var(--ink)'},
+  pf:{l:'Peu favorable', c:'var(--fav-warn)', tc:'var(--ink)'},
+  pdf:{l:'Pas du tout favorable', c:'var(--fav-neg)', tc:'#fff'},
 };
 const RECO = {
-  rec:{l:'Mesure recommandée', abbr:'R', c:'var(--fav-pos)'},
-  etude:{l:"Mise à l'étude", abbr:'É', c:'var(--fav-warn)'},
-  non:{l:'Mesure non recommandée', abbr:'N', c:'var(--fav-neg)'},
+  rec:{l:'Mesure recommandée', abbr:'R', c:'var(--fav-pos)', tc:'#fff'},
+  etude:{l:"Mise à l'étude", abbr:'É', c:'var(--fav-warn)', tc:'var(--ink)'},
+  non:{l:'Mesure non recommandée', abbr:'N', c:'var(--fav-neg)', tc:'#fff'},
 };
 function apprec(cotes){ // cotes : tableau de -1/0/1 (réponses présentes)
   const S=cotes.reduce((a,b)=>a+b,0);
@@ -535,9 +547,18 @@ function reco(aps){ // aps : 4 codes d'appréciation
   if((fav>=2 && pf===1) || allN) return 'etude';
   return 'etude';
 }
+/* Synthèse MRC (majorité des recommandations des villes) — source UNIQUE,
+   utilisée par le Portrait ET l'export Excel (révision C : duplication → risque de dérive). */
+function mrcSynthese(recos){
+  const cc={rec:0,etude:0,non:0}; recos.forEach(r=>cc[r]++);
+  const maj=(cc.non>=cc.rec && cc.non>=cc.etude)?'non':(cc.rec>=cc.etude)?'rec':'etude';
+  return {cc, maj};
+}
 
 /* ===================== STORE (persistance — couture pour Phase B) ===================== */
 const STORE_KEY='orchestrateur-v1';
+const DEFAULT_PROJECT_ID='tdb'; /* projet historique, amorcé au premier chargement */
+const ADMIN_CODE='Corda$2026'; /* ⚠ placeholder DÉMO côté client — AUCUNE sécurité réelle ; à retirer en Phase B (auth Supabase, révision A/B/C) */
 function nowISO(){ return new Date().toISOString(); }
 function genCode(villeId){
   const v=VILLES.find(x=>x.id===villeId);
@@ -551,19 +572,25 @@ const store = {
   _d:null,
   _load(){
     if(this._d) return this._d;
-    try{ this._d=JSON.parse(localStorage.getItem(STORE_KEY)); }catch(e){}
+    try{ this._d=JSON.parse(localStorage.getItem(STORE_KEY)); }
+    catch(e){ /* JSON illisible : ne PAS écraser silencieusement — copie de secours d'abord (révision C « perte invisible ») */
+      try{ const raw=localStorage.getItem(STORE_KEY); if(raw) localStorage.setItem(STORE_KEY+'-secours-'+Date.now(), raw); }catch(_){}
+      console.error('Données locales illisibles — copie de secours conservée.', e);
+    }
     if(!this._d) this._d={};
     this._d.codes=this._d.codes||[]; this._d.responses=this._d.responses||{};
     this._d.projects=this._d.projects||[]; this._d.archived=this._d.archived||[];
     if(!this._d.projects.length){ /* amorçage : le projet historique MRC TdB */
-      this._d.projects.push({id:'tdb', title:'MRC Thérèse-De Blainville', type:'multi', villes:VILLES.slice(), createdAt:nowISO()});
-      this._d.activeProject='tdb';
+      this._d.projects.push({id:DEFAULT_PROJECT_ID, title:'MRC Thérèse-De Blainville', type:'multi', villes:VILLES.slice(), createdAt:nowISO()});
+      this._d.activeProject=DEFAULT_PROJECT_ID;
     }
     if(!this._d.activeProject || !this._d.projects.some(p=>p.id===this._d.activeProject)) this._d.activeProject=this._d.projects[0].id;
     this._d.codes.forEach(c=>{ if(!c.project) c.project=this._d.projects[0].id; }); /* migration codes pré-projets */
     return this._d;
   },
-  _save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(this._d)); }catch(e){} },
+  _save(){ /* retourne true/false — ne plus avaler l'échec (quota plein, stockage bloqué) */
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(this._d)); return true; }
+    catch(e){ console.error('Échec de sauvegarde locale', e); toast('⚠ Sauvegarde impossible — vos dernières modifications ne sont PAS enregistrées.','err'); return false; } },
   /* ---- projets ---- */
   projects(){ return this._load().projects.slice(); },
   activeId(){ return this._load().activeProject; },
@@ -588,7 +615,7 @@ const store = {
   /* réponses indexées par RÉPONDANT (clé d'accès), pas par ville */
   _k(rid,m,c){ return rid+'|'+m+'|'+c; },
   getResponse(rid,m,c){ return this._load().responses[this._k(rid,m,c)] || null; },
-  setResponse(rid,m,c,patch){ const d=this._load(); const k=this._k(rid,m,c); const cur=d.responses[k]||{cote:null, comment:''}; d.responses[k]=Object.assign(cur, patch, {updatedAt:nowISO()}); this._save(); },
+  setResponse(rid,m,c,patch){ const d=this._load(); const k=this._k(rid,m,c); const cur=d.responses[k]||{cote:null, comment:''}; d.responses[k]=Object.assign(cur, patch, {updatedAt:nowISO()}); return this._save(); },
 };
 function syncVilles(){ const p=store.activeProj(); VILLES = p ? p.villes.slice() : []; }
 
@@ -600,8 +627,9 @@ function saveUI(){ try{ localStorage.setItem(UI_KEY, JSON.stringify({role:state.
 
 /* ===================== HELPERS ===================== */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1900); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"'\/]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#47;'}[m])); }
+function announce(msg){ const l=$('#live'); if(!l) return; l.textContent=''; setTimeout(()=>{ l.textContent=msg; },30); } /* zone aria-live (WCAG 4.1.3) */
+function toast(msg,type){ const t=$('#toast'); t.textContent=msg; t.classList.toggle('err', type==='err'); t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'), type==='err'?4200:1900); announce(msg); }
 function measAnswered(rid,mId){ return ALLCRIT.filter(c=>{ const r=store.getResponse(rid,mId,c.id); return r && r.cote!=null; }).length; }
 function recoForRespondent(rid,mId){
   const aps=DIMENSIONS.map(d=>{ const cotes=d.crit.map(c=>store.getResponse(rid,mId,c.id)).filter(r=>r&&r.cote!=null).map(r=>r.cote); return cotes.length?apprec(cotes):'n'; });
@@ -659,6 +687,7 @@ function go(target){
   if(target==='reponses') renderReponses();
   if(target==='acces') renderAcces();
   if(target==='projets') renderProjets();
+  const h=$('#'+id+' h1'); if(h){ h.setAttribute('tabindex','-1'); h.focus({preventScroll:true}); } /* WCAG 2.4.3 — focus sur le titre de l'écran cible */
   restorePins(); saveUI();
 }
 
@@ -693,7 +722,7 @@ function logout(){
 $('#loginBtn').onclick=()=>{
   const v=$('#codeInput').value.trim();
   if(!v){ $('#loginErr').textContent='Entrez un code.'; return; }
-  if(v==='Corda$2026'){ $('#loginErr').textContent=''; enterAdmin(); return; }
+  if(v===ADMIN_CODE){ $('#loginErr').textContent=''; enterAdmin(); return; }
   const c=store.findCode(v);
   if(!c){ $('#loginErr').textContent='Code inconnu. Vérifiez la saisie.'; return; }
   $('#loginErr').textContent='';
@@ -732,7 +761,7 @@ function renderOrch(){
         <div><h3 style="margin:0">Bonjour ${esc(prenom)} 👋</h3><div class="faint mono" style="font-size:.78rem">${esc(v?v.nom:'—')} · analyse multicritère</div></div>
         <div style="text-align:right"><div class="mono" style="font-size:.82rem"><b id="doneCount">${done}</b> / ${MEASURES.length} mesures complétées</div><span class="savedflag" id="orchSaved">Enregistré ✓</span></div>
       </div>
-      <div class="progress"><i id="globalProg" style="width:${Math.round(done/MEASURES.length*100)}%"></i></div>
+      <div class="progress" id="progWrap" role="progressbar" aria-label="Mesures complétées" aria-valuemin="0" aria-valuemax="${MEASURES.length}" aria-valuenow="${done}"><i id="globalProg" style="width:${Math.round(done/MEASURES.length*100)}%"></i></div>
     </div>
     <div class="orch-grid">
       <div class="mlist" id="mlist"></div>
@@ -779,12 +808,12 @@ function questionRow(mId,c){
   return '<div class="q" data-crit="'+c.id+'">'
     +'<div class="q-main"><div class="q-label">'+esc(c.label)+'</div><div class="q-text">'+esc(c.q)+'</div>'
     +'<div class="q-guide"><span class="g pos"><b>＋</b><span>'+esc(c.pos||'Oui')+'</span></span><span class="g neg"><b>−</b><span>'+esc(c.neg||'Non')+'</span></span></div></div>'
-    +'<div class="q-actions"><div class="cote-btns">'
-    +'<button type="button" class="cb pos'+on(1)+'" data-cote="1" title="Favorable">+</button>'
-    +'<button type="button" class="cb mid'+on(0)+'" data-cote="0" title="Neutre">0</button>'
-    +'<button type="button" class="cb neg'+on(-1)+'" data-cote="-1" title="Défavorable">−</button>'
-    +'</div><button type="button" class="cbubble'+hasC+'" title="Commenter">💬</button></div>'
-    +'<div class="q-comment"'+(hasC?'':' hidden')+'><textarea placeholder="Commentaire / justification…">'+esc(r.comment||'')+'</textarea></div>'
+    +'<div class="q-actions"><div class="cote-btns" role="group" aria-label="'+esc('Cotation — '+c.label)+'">'
+    +'<button type="button" class="cb pos'+on(1)+'" data-cote="1" title="Favorable" aria-label="Favorable" aria-pressed="'+(r.cote===1)+'">+</button>'
+    +'<button type="button" class="cb mid'+on(0)+'" data-cote="0" title="Neutre" aria-label="Neutre" aria-pressed="'+(r.cote===0)+'">0</button>'
+    +'<button type="button" class="cb neg'+on(-1)+'" data-cote="-1" title="Défavorable" aria-label="Défavorable" aria-pressed="'+(r.cote===-1)+'">−</button>'
+    +'</div><button type="button" class="cbubble'+hasC+'" title="Commenter" aria-label="'+esc('Commenter — '+c.label)+'">💬</button></div>'
+    +'<div class="q-comment"'+(hasC?'':' hidden')+'><textarea placeholder="Commentaire / justification…" aria-label="'+esc('Commentaire — '+c.label)+'">'+esc(r.comment||'')+'</textarea></div>'
     +'</div>';
 }
 function wireQuestions(mId){
@@ -796,14 +825,15 @@ function wireQuestions(mId){
         const cote=parseInt(btn.dataset.cote,10);
         const cur=store.getResponse(rid,mId,cId);
         const nc=(cur&&cur.cote===cote)?null:cote;
-        store.setResponse(rid,mId,cId,{cote:nc});
-        q.querySelectorAll('.cb').forEach(b=>b.classList.toggle('on', nc!=null && parseInt(b.dataset.cote,10)===nc));
-        flashSaved(); refreshSynthesis(mId); refreshProgress();
+        const ok=store.setResponse(rid,mId,cId,{cote:nc});
+        q.querySelectorAll('.cb').forEach(b=>{ const sel=nc!=null && parseInt(b.dataset.cote,10)===nc; b.classList.toggle('on', sel); b.setAttribute('aria-pressed', sel); });
+        if(ok) flashSaved(); /* le ✓ seulement après écriture réussie */
+        refreshSynthesis(mId); refreshProgress();
       };
     });
     const bubble=q.querySelector('.cbubble'), cwrap=q.querySelector('.q-comment'), ta=cwrap.querySelector('textarea');
     bubble.onclick=()=>{ if(state.anno) return; cwrap.hidden=!cwrap.hidden; if(!cwrap.hidden) ta.focus(); };
-    let t; ta.oninput=()=>{ clearTimeout(t); t=setTimeout(()=>{ store.setResponse(rid,mId,cId,{comment:ta.value}); bubble.classList.toggle('has', !!ta.value.trim()); flashSaved(); }, 400); };
+    let t; ta.oninput=()=>{ clearTimeout(t); t=setTimeout(()=>{ const ok=store.setResponse(rid,mId,cId,{comment:ta.value}); bubble.classList.toggle('has', !!ta.value.trim()); if(ok) flashSaved(); }, 400); };
   });
 }
 function refreshSynthesis(mId){
@@ -811,21 +841,22 @@ function refreshSynthesis(mId){
   DIMENSIONS.forEach(d=>{
     const cotes=d.crit.map(c=>store.getResponse(rid,mId,c.id)).filter(r=>r&&r.cote!=null).map(r=>r.cote);
     const code=cotes.length?apprec(cotes):'n'; aps.push(code);
-    const el=$('#ap-'+d.id); if(el){ if(cotes.length){ const A=APPREC[code]; el.textContent=A.l; el.style.background=A.c; el.style.color='#fff'; } else { el.textContent='À coter'; el.style.background='var(--line)'; el.style.color='var(--faint)'; } }
+    const el=$('#ap-'+d.id); if(el){ if(cotes.length){ const A=APPREC[code]; el.textContent=A.l; el.style.background=A.c; el.style.color=A.tc; } else { el.textContent='À coter'; el.style.background='var(--line)'; el.style.color='var(--faint)'; } }
   });
   const answered=measAnswered(rid,mId);
   const R=RECO[reco(aps)]; const banner=$('#recoBanner');
-  if(banner){ banner.style.background=answered?R.c:'var(--line)'; banner.style.color=answered?'#fff':'var(--faint)';
+  if(banner){ banner.style.background=answered?R.c:'var(--line)'; banner.style.color=answered?R.tc:'var(--faint)';
     banner.innerHTML='<span style="font-family:var(--font-mono); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; opacity:.85">Recommandation'+(answered<NCRIT?' (provisoire — '+answered+'/'+NCRIT+')':'')+'</span> <b style="font-size:1.05rem">'+(answered?R.l:'À coter')+'</b>'; }
 }
 function refreshProgress(){
   const rid=state.respondentId;
   const done=MEASURES.filter(m=>measAnswered(rid,m.id)===NCRIT).length;
   const bar=$('#globalProg'); if(bar) bar.style.width=Math.round(done/MEASURES.length*100)+'%';
+  const pw=$('#progWrap'); if(pw) pw.setAttribute('aria-valuenow',done);
   const cnt=$('#doneCount'); if(cnt) cnt.textContent=done;
   renderMeasureList();
 }
-function flashSaved(){ const f=$('#orchSaved'); if(!f) return; f.classList.add('show'); clearTimeout(f._t); f._t=setTimeout(()=>f.classList.remove('show'),1100); }
+function flashSaved(){ const f=$('#orchSaved'); if(!f) return; f.classList.add('show'); clearTimeout(f._t); f._t=setTimeout(()=>f.classList.remove('show'),1100); announce('Enregistré'); }
 
 /* ===================== ADMIN — PORTRAIT ===================== */
 function renderPortrait(){
@@ -834,19 +865,19 @@ function renderPortrait(){
   let rows=''; const mrcTally={rec:0,etude:0,non:0};
   Object.keys(CATS).forEach(catId=>{
     const ms=MEASURES.filter(m=>m.cat===catId); if(!ms.length) return;
-    rows+='<tr><td colspan="'+(VILLES.length+2)+'" style="background:var(--surface-2); font-family:var(--font-mono); font-size:.6rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted)"><span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:'+CATS[catId].color+'; margin-right:6px"></span>'+esc(CATS[catId].label)+'</td></tr>';
+    rows+='<tr><td colspan="'+(VILLES.length+2)+'" style="background:var(--surface-2); font-family:var(--font-mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted)"><span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:'+CATS[catId].color+'; margin-right:6px"></span>'+esc(CATS[catId].label)+'</td></tr>';
     ms.forEach(m=>{
       let cells=''; const recos=[];
       VILLES.forEach(v=>{
         const a=villeAnswered(v.id,m.id);
-        if(a===0){ cells+='<td><span class="rpill none" title="'+esc(v.nom)+' — pas de données">·</span></td>'; }
+        if(a===0){ cells+='<td><span class="rpill none" title="'+esc(v.nom)+' — pas de données">·<span class="sr-only">'+esc(v.nom)+' : pas de données</span></span></td>'; }
         else { const rc=recoForVille(v.id,m.id); recos.push(rc);
           const tip=v.nom+'\n'+DIMENSIONS.map(d=>{ const ap=dimApprecVille(v.id,m.id,d); return '• '+d.nom+' : '+(ap?APPREC[ap].l:'—'); }).join('\n')+'\n→ '+RECO[rc].l+(a<NCRIT?' (provisoire '+a+'/'+NCRIT+')':'');
-          cells+='<td><span class="rpill '+rc+'" title="'+esc(tip)+'">'+RECO[rc].abbr+'</span></td>'; }
+          /* bouton (pas span) : détail accessible au clic/clavier, pas seulement au survol (WCAG 1.4.13) */
+          cells+='<td><button type="button" class="rpill '+rc+' cellbtn" title="'+esc(tip)+'" data-tip="'+esc(tip)+'" aria-label="'+esc(v.nom+' : '+RECO[rc].l+' — afficher le détail')+'">'+RECO[rc].abbr+'</button></td>'; }
       });
       let mrc='<span class="faint">—</span>';
-      if(recos.length){ const cc={rec:0,etude:0,non:0}; recos.forEach(r=>cc[r]++);
-        const maj = (cc.non>=cc.rec && cc.non>=cc.etude)?'non':(cc.rec>=cc.etude)?'rec':'etude'; mrcTally[maj]++;
+      if(recos.length){ const {cc, maj}=mrcSynthese(recos); mrcTally[maj]++;
         mrc='<span class="rpill rec">'+cc.rec+'</span><span class="rpill etude">'+cc.etude+'</span><span class="rpill non">'+cc.non+'</span>'; }
       cells+='<td><div class="mrccell">'+mrc+'</div></td>';
       rows+='<tr><td>'+esc(m.titre)+'</td>'+cells+'</tr>';
@@ -856,7 +887,7 @@ function renderPortrait(){
     <div class="card" data-anno="Portrait — synthèse MRC">
       <div class="sumcards">
         <div class="sumcard" style="background:var(--fav-pos)"><div class="n">${mrcTally.rec}</div><div class="l">mesures recommandées (majorité des villes)</div></div>
-        <div class="sumcard" style="background:var(--fav-warn)"><div class="n">${mrcTally.etude}</div><div class="l">mesures à mettre à l'étude</div></div>
+        <div class="sumcard" style="background:var(--fav-warn); color:var(--ink)"><div class="n">${mrcTally.etude}</div><div class="l">mesures à mettre à l'étude</div></div>
         <div class="sumcard" style="background:var(--fav-neg)"><div class="n">${mrcTally.non}</div><div class="l">mesures non recommandées</div></div>
       </div>
       <div class="row-between" style="margin-top:14px; flex-wrap:wrap; gap:10px">
@@ -873,16 +904,30 @@ function renderPortrait(){
       </div>
     </div>
     <div class="card" data-anno="Portrait — matrice mesures × villes">
-      <h3>Recommandation par ville <span class="faint mono" style="font-size:.7rem; font-weight:400">— survolez une case pour les 4 appréciations</span></h3>
+      <h3>Recommandation par ville <span class="faint mono" style="font-size:.7rem; font-weight:400">— cliquez une case pour le détail des 4 appréciations</span></h3>
       <div class="table-scroll">
         <table class="pmatrix">
-          <thead><tr><th>Mesure</th>${VILLES.map(v=>'<th title="'+esc(v.nom)+'">'+esc(abbrVille(v.nom))+'</th>').join('')}<th>${VILLES.length>1?'MRC<br>R / É / N':'Synthèse'}</th></tr></thead>
+          <thead><tr><th>Mesure</th>${VILLES.map(v=>'<th title="'+esc(v.nom)+'" aria-label="'+esc(v.nom)+'">'+esc(abbrVille(v.nom))+'</th>').join('')}<th>${VILLES.length>1?'MRC<br>R / É / N':'Synthèse'}</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
     </div>`;
   $('#xlsxBtn').onclick=()=>{ if(state.anno) return; exportExcel(); };
+  $$('#portraitHost .cellbtn').forEach(b=>b.onclick=()=>{ if(state.anno) return; openCellPop(b); });
 }
+/* Popover de détail d'une cellule du Portrait (clic/clavier ; Échap ou clic ailleurs pour fermer) */
+function openCellPop(btn){
+  const pop=$('#cellPop'); const r=btn.getBoundingClientRect();
+  pop.innerHTML='<div style="white-space:pre-line">'+esc(btn.dataset.tip||'')+'</div>';
+  pop.hidden=false;
+  const w=Math.min(280, window.innerWidth-20);
+  pop.style.left=Math.max(10, Math.min(r.left, window.innerWidth-w-10))+'px';
+  pop.style.top=Math.min(r.bottom+6, window.innerHeight-160)+'px';
+}
+function closeCellPop(){ const pop=$('#cellPop'); if(pop) pop.hidden=true; }
+document.addEventListener('click',e=>{ if(!e.target.closest('#cellPop') && !e.target.closest('.cellbtn')) closeCellPop(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeCellPop(); });
+$('#main').addEventListener('scroll',closeCellPop);
 
 /* ===================== ADMIN — ACCÈS ===================== */
 function renderAcces(){
@@ -893,7 +938,7 @@ function renderAcces(){
       <p class="muted" style="margin-top:0">Un code par personne. À sa première connexion, elle saisit prénom, nom et fonction.</p>
       <div class="btnrow">
         ${VILLES.length>1
-          ? '<select id="accVille" style="max-width:300px">'+VILLES.map(v=>'<option value="'+v.id+'">'+esc(v.nom)+'</option>').join('')+'</select>'
+          ? '<select id="accVille" aria-label="Ville" style="max-width:300px">'+VILLES.map(v=>'<option value="'+v.id+'">'+esc(v.nom)+'</option>').join('')+'</select>'
           : '<span class="cat-pill" style="max-width:300px" title="Projet à ville unique">'+esc(VILLES[0]?VILLES[0].nom:'—')+'</span>'}
         <button class="btn primary" id="genCodeBtn">Générer le code</button>
       </div>
@@ -925,7 +970,7 @@ function renderReponses(){
   const opts=reps.map(c=>{ const v=VILLES.find(x=>x.id===c.ville); return '<option value="'+esc(c.code)+'">'+esc((v?v.nom:'—')+' — '+c.person.prenom+' '+c.person.nom+' ('+c.code+')')+'</option>'; }).join('');
   host.innerHTML=`
     <div class="card" data-anno="Réponses — sélecteur de répondant">
-      <div class="field" style="margin:0"><label>Répondant (clé d'accès)</label><select id="repSel">${opts}</select></div>
+      <div class="field" style="margin:0"><label for="repSel">Répondant (clé d'accès)</label><select id="repSel">${opts}</select></div>
     </div>
     <div id="repDetail"></div>`;
   const sel=$('#repSel'); sel.onchange=()=>{ if(state.anno) return; renderRepDetail(sel.value); };
@@ -947,7 +992,7 @@ function renderRepDetail(code){
       }).join('');
       const cotes=d.crit.map(cr=>store.getResponse(rid,m.id,cr.id)).filter(r=>r&&r.cote!=null).map(r=>r.cote);
       const ap=cotes.length?APPREC[apprec(cotes)]:null;
-      return '<div class="repdim"><div class="repdim-h">'+esc(d.nom)+' <span class="apprec" style="background:'+(ap?ap.c:'var(--line)')+'; color:'+(ap?'#fff':'var(--faint)')+'">'+(ap?ap.l:'—')+'</span></div>'+qs+'</div>';
+      return '<div class="repdim"><div class="repdim-h">'+esc(d.nom)+' <span class="apprec" style="background:'+(ap?ap.c:'var(--line)')+'; color:'+(ap?ap.tc:'var(--faint)')+'">'+(ap?ap.l:'—')+'</span></div>'+qs+'</div>';
     }).join('');
     return '<div class="card" data-anno="Réponses — mesure"><div class="row-between" style="margin-bottom:4px"><h3 style="margin:0; font-size:1rem">'+esc(m.titre)+'</h3><span class="rpill '+rc+'" title="'+esc(RECO[rc].l)+'">'+RECO[rc].abbr+'</span></div><div class="faint mono" style="font-size:.72rem; margin-bottom:6px">'+a+'/'+NCRIT+' questions cotées</div>'+dimrows+'</div>';
   }).join(''); }
@@ -971,18 +1016,24 @@ async function exportExcel(){
   const apprecColor=ap=> ap==='tf'?C.green : ap==='f'?C.greenL : ap==='n'?C.grey : ap==='pf'?C.amber : ap==='pdf'?C.red : C.cream;
   const coteColor=v=> v>0?C.greenL : v<0?C.red : C.grey;
   const recoColor=rc=> rc==='rec'?C.green : rc==='etude'?C.amber : C.red;
-  const mrcMaj=recos=>{ const cc={rec:0,etude:0,non:0}; recos.forEach(r=>cc[r]++); return (cc.non>=cc.rec&&cc.non>=cc.etude)?'non':(cc.rec>=cc.etude)?'rec':'etude'; };
+  /* Texte lisible sur remplissage : encre sur fonds clairs (vert clair, gris, ambre), blanc sinon — même règle que l'UI */
+  const inkFills=[C.greenL,C.grey,C.amber];
+  const fontOn=(argb,bold)=>({color:{argb: inkFills.includes(argb)?'FF211C15':C.white}, bold:!!bold});
+  /* Anti-injection de formule (OWASP) : ExcelJS écrit des chaînes inertes en .xlsx, mais on préfixe
+     par prudence les données SAISIES par un utilisateur (noms de villes) débutant par = + - @
+     — défense en profondeur si un export CSV/brut s'ajoute plus tard. Ne PAS appliquer aux cotes «+1». */
+  const xlSafe=v=> (typeof v==='string' && /^[=+\-@]/.test(v)) ? "'"+v : v;
 
   /* feuille globale */
   const g=wb.addWorksheet('Synthèse (MRC)', {views:[{state:'frozen', xSplit:2, ySplit:1}]});
-  g.addRow(['Catégorie','Mesure', ...VILLES.map(v=>v.nom), 'MRC (majorité)']); g.getRow(1).eachCell(headStyle);
+  g.addRow(['Catégorie','Mesure', ...VILLES.map(v=>xlSafe(v.nom)), 'MRC (majorité)']); g.getRow(1).eachCell(headStyle);
   MEASURES.forEach(m=>{
     const recos=[]; const cellLabels=[];
     VILLES.forEach(v=>{ const a=villeAnswered(v.id,m.id); if(a===0){ cellLabels.push(''); } else { const rc=recoForVille(v.id,m.id); recos.push(rc); cellLabels.push(RECO[rc].l); } });
-    const maj=recos.length?mrcMaj(recos):null;
+    const maj=recos.length?mrcSynthese(recos).maj:null;
     const row=g.addRow([CATS[m.cat].label, m.titre, ...cellLabels, maj?RECO[maj].l:'']);
-    VILLES.forEach((v,i)=>{ if(villeAnswered(v.id,m.id)>0){ const cell=row.getCell(3+i); fill(cell,recoColor(recoForVille(v.id,m.id))); cell.font={color:{argb:C.white}, bold:true}; cell.alignment={horizontal:'center'}; } });
-    if(maj){ const cell=row.getCell(3+VILLES.length); fill(cell,recoColor(maj)); cell.font={color:{argb:C.white}, bold:true}; cell.alignment={horizontal:'center'}; }
+    VILLES.forEach((v,i)=>{ if(villeAnswered(v.id,m.id)>0){ const cell=row.getCell(3+i); const fc=recoColor(recoForVille(v.id,m.id)); fill(cell,fc); cell.font=fontOn(fc,true); cell.alignment={horizontal:'center'}; } });
+    if(maj){ const cell=row.getCell(3+VILLES.length); const fc=recoColor(maj); fill(cell,fc); cell.font=fontOn(fc,true); cell.alignment={horizontal:'center'}; }
   });
   g.columns.forEach((col,i)=>{ col.width = i===0?28 : i===1?44 : 15; });
 
@@ -997,9 +1048,9 @@ async function exportExcel(){
       const dimLabels=DIMENSIONS.map(d=>{ const ap=dimApprecVille(v.id,m.id,d); return ap?APPREC[ap].l:''; });
       const a=villeAnswered(v.id,m.id); const rc=a>0?recoForVille(v.id,m.id):null;
       const row=ws.addRow([CATS[m.cat].label, m.titre, ...coteLabels, ...dimLabels, rc?RECO[rc].l:'']);
-      cotes.forEach((ct,i)=>{ if(ct!=null){ const cell=row.getCell(3+i); fill(cell,coteColor(ct)); cell.font={color:{argb:C.white}, bold:true}; cell.alignment={horizontal:'center'}; } });
-      DIMENSIONS.forEach((d,i)=>{ const ap=dimApprecVille(v.id,m.id,d); if(ap){ const cell=row.getCell(3+ALLCRIT.length+i); fill(cell,apprecColor(ap)); cell.font={color:{argb:C.white}}; } });
-      if(rc){ const cell=row.getCell(3+ALLCRIT.length+DIMENSIONS.length); fill(cell,recoColor(rc)); cell.font={color:{argb:C.white}, bold:true}; }
+      cotes.forEach((ct,i)=>{ if(ct!=null){ const cell=row.getCell(3+i); const fc=coteColor(ct); fill(cell,fc); cell.font=fontOn(fc,true); cell.alignment={horizontal:'center'}; } });
+      DIMENSIONS.forEach((d,i)=>{ const ap=dimApprecVille(v.id,m.id,d); if(ap){ const cell=row.getCell(3+ALLCRIT.length+i); const fc=apprecColor(ap); fill(cell,fc); cell.font=fontOn(fc,false); } });
+      if(rc){ const cell=row.getCell(3+ALLCRIT.length+DIMENSIONS.length); const fc=recoColor(rc); fill(cell,fc); cell.font=fontOn(fc,true); }
     });
     ws.columns.forEach((col,i)=>{ col.width = i===0?22 : i===1?38 : (i>=2 && i<2+ALLCRIT.length)?7 : 16; });
   });
@@ -1030,7 +1081,7 @@ function targetLabel(el){ if(el.dataset&&el.dataset.anno) return el.dataset.anno
 document.addEventListener('click',e=>{ if(!state.anno) return; if(e.target.closest('[data-noanno]')) return; const t=annoTarget(e.target); if(!t) return; e.preventDefault(); e.stopPropagation(); openAnnoPop(t, e.clientX, e.clientY); }, true);
 function openAnnoPop(el,x,y){
   const pop=$('#annoPop'); pop.hidden=false;
-  pop.innerHTML='<div class="ctx">'+esc(state.screen)+'</div><div class="tgt">'+esc(targetLabel(el))+'</div><textarea id="annoText" placeholder="Votre note…"></textarea><div class="acts"><button class="btn ghost" id="annoCancel">Annuler</button><button class="btn brass" id="annoAdd">Ajouter</button></div>';
+  pop.innerHTML='<div class="ctx">'+esc(state.screen)+'</div><div class="tgt">'+esc(targetLabel(el))+'</div><textarea id="annoText" aria-label="Votre note" placeholder="Votre note…"></textarea><div class="acts"><button class="btn ghost" id="annoCancel">Annuler</button><button class="btn brass" id="annoAdd">Ajouter</button></div>';
   pop.style.left=Math.min(x, window.innerWidth-314)+'px'; pop.style.top=Math.min(y, window.innerHeight-224)+'px';
   $('#annoText').focus();
   $('#annoCancel').onclick=()=>{ pop.hidden=true; };
@@ -1045,7 +1096,7 @@ function renderAnnoList(){
   const groups={}; state.annos.forEach(a=>{ (groups[a.screen]=groups[a.screen]||[]).push(a); });
   Object.keys(groups).forEach(scr=>{
     const g=document.createElement('div'); g.className='anno-grp'; g.textContent=scr; list.appendChild(g);
-    groups[scr].forEach(a=>{ const r=document.createElement('div'); r.className='anno-row'; r.innerHTML='<span class="nn">'+a.n+'</span><div class="bd"><div class="t">'+esc(a.label)+'</div><div class="c">'+esc(a.text)+'</div></div><button class="del" title="Supprimer">×</button>'; r.querySelector('.del').onclick=()=>{ state.annos=state.annos.filter(x=>x!==a); restorePins(); renderAnnoList(); saveUI(); }; list.appendChild(r); });
+    groups[scr].forEach(a=>{ const r=document.createElement('div'); r.className='anno-row'; r.innerHTML='<span class="nn">'+a.n+'</span><div class="bd"><div class="t">'+esc(a.label)+'</div><div class="c">'+esc(a.text)+'</div></div><button class="del" title="Supprimer" aria-label="Supprimer la note">×</button>'; r.querySelector('.del').onclick=()=>{ state.annos=state.annos.filter(x=>x!==a); restorePins(); renderAnnoList(); saveUI(); }; list.appendChild(r); });
   });
 }
 function buildAnnoMD(){
@@ -1090,7 +1141,7 @@ function renderProjets(){
     </div>
     <div class="card" data-anno="Projets — nouveau projet">
       <h3>Nouveau projet</h3>
-      <div class="field"><label>Titre du projet</label><input id="npTitle" type="text" placeholder="ex. Ville de Saint-Jérôme" autocomplete="off"></div>
+      <div class="field"><label for="npTitle">Titre du projet</label><input id="npTitle" type="text" placeholder="ex. Ville de Saint-Jérôme" autocomplete="off"></div>
       <div class="field"><label>Portée</label>
         <div class="btnrow" id="npType" style="margin:0">
           <button type="button" class="btn primary" data-type="single">Ville unique</button>
@@ -1112,7 +1163,7 @@ function renderProjets(){
   $$('#npType button').forEach(b=>b.onclick=()=>setType(b.dataset.type));
   const villesHost=$('#npVilles');
   const addVilleRow=val=>{ const row=document.createElement('div'); row.className='btnrow npvrow'; row.style.margin='0 0 6px';
-    row.innerHTML='<input type="text" class="npv" placeholder="Nom de la ville" value="'+esc(val||'')+'" style="flex:1"><button type="button" class="btn ghost npvdel" style="padding:6px 10px">×</button>';
+    row.innerHTML='<input type="text" class="npv" aria-label="Nom de la ville" placeholder="Nom de la ville" value="'+esc(val||'')+'" style="flex:1"><button type="button" class="btn ghost npvdel" aria-label="Retirer cette ville" style="padding:6px 10px">×</button>';
     row.querySelector('.npvdel').onclick=()=>row.remove(); villesHost.appendChild(row); };
   addVilleRow(''); addVilleRow('');
   $('#npAddVille').onclick=()=>addVilleRow('');
