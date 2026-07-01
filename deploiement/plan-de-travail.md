@@ -18,7 +18,7 @@
 ## Bloc 0 — Fondation ✅ FAIT (2026-06-30)
 `git init` + dépôt **privé** `corda-ecofisc`, 1er commit poussé, `.gitignore` (exclut `old/`, factsheet autre projet, secrets). *(Constat C Critique « pas de contrôle de version ».)*
 
-## Bloc 1 — Durcissement du prototype ⭐ PROCHAINE SÉANCE (🤖, ~1 séance, sans backend)
+## Bloc 1 — Durcissement du prototype ✅ FAIT (2026-07-01, commit `cadd404`)
 Tout dans `orchestrateur.html`. Faible risque, gros gain de qualité ; chaque point = un constat de la révision.
 1. **Sauvegarde fiable** (C — « perte de données invisible ») : `store._save()` ne doit plus avaler l'exception ; n'afficher « Enregistré ✓ » (`flashSaved`) **qu'après** écriture réussie ; toast d'erreur si quota/JSON.
 2. **Accessibilité** (A) : `<label for=…>` sur tous les champs (`#codeInput`, `#fcPrenom/#fcNom/#fcFonction`, textarea commentaire) ; rendre le détail des 4 appréciations du Portrait accessible au **clic/focus** (pas seulement `title` au survol) ; déplacer le focus + `aria-live` sur changements d'écran/toasts/« Enregistré ✓ ».
@@ -27,7 +27,7 @@ Tout dans `orchestrateur.html`. Faible risque, gros gain de qualité ; chaque po
 5. **Nettoyage** (C) : factoriser la **règle de majorité MRC** dupliquée (`renderPortrait` vs `mrcMaj` dans `exportExcel`) en une fonction unique ; regrouper quelques **chaînes magiques** (ids d'écran) en constantes ; `aria-label` sur boutons-icônes (`💬`, `×`), `role=progressbar` sur la barre.
 - **Vérif :** Playwright PC + mobile (0 débordement, focus/aria) ; contrastomètre ; tests manuels (forcer un échec localStorage → toast d'erreur ; exporter un nom « =SUM » → pas de formule active). ⮕ 🤖 commit + push.
 
-## Bloc 2 — Moteur testable + méthodologie documentée (🤖, ~1 séance) ⛓️ après Bloc 1
+## Bloc 2 — Moteur testable + méthodologie documentée ⭐ PROCHAINE SÉANCE (🤖, ~1 séance)
 1. **Extraire le moteur** (C) : sortir `apprec()`/`reco()`/agrégation (`villeCote`, `dimApprecVille`, `recoForVille`) + données de référence (`DIMENSIONS`, seuils) dans un **module isolé** (`rules.js` exporté), importé par l'UI — UI inchangée.
 2. **Tests unitaires** (C) : petite suite (Vitest) sur les règles ; cas connus (tous +1 → tf/rec ; mélanges) ; **clarifier/supprimer la branche morte de `reco()`** (deux issues identiques).
 3. **Doc méthodo** (A/C) : **table de décision en prose** (somme→appréciation ; 4 appréciations→reco) + **dictionnaire de données** (localStorage ↔ `schema.sql`). → 🧑/Fanny valident les règles (cas limites + l'agrégation ville = **moyenne des répondants**).
