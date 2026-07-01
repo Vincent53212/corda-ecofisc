@@ -390,6 +390,7 @@ body.anno-on .anno-hint{display:block}
 <div class="sr-only" id="live" aria-live="polite" data-noanno></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" integrity="sha512-dlPw+ytv/6JyepmelABrgeYgHI0O+frEwgfnPdXDTOIZz+eDgfW07QXG02/O8COfivBdGNINy+Vex+lYmJ5rxw==" crossorigin="anonymous"></script>
+<script src="rules.js"></script>
 <script>
 "use strict";
 
@@ -478,82 +479,15 @@ const DESCRIPTIONS = {
   m32:"Transformation de la tarification actuelle des piscines en taxe générale, avec un montant par propriété calibré pour générer des revenus supplémentaires.",
 };
 
-/* 4 dimensions · 22 critères (questions verbatim de la grille V3) */
-const DIMENSIONS = [
-  {id:'pf', nom:'Potentiel fiscal', crit:[
-    {id:'pf1', label:"Largeur de l'assiette fiscale", q:"L'assiette fiscale concerne-t-elle un nombre de contribuables ou encore un flux ou un stock monétaire suffisamment grand pour assurer à court terme des revenus qui peuvent être considérés comme étant significatifs ?", pos:"Assiette large (nombreux contribuables ou flux important)", neg:"Assiette étroite ou marginale"},
-    {id:'pf2', label:"Potentiel de croissance", q:"L'assiette fiscale présente-t-elle un potentiel de croissance raisonnablement prévisible à moyen et long terme ?", pos:"Croissance prévisible à moyen-long terme", neg:"Stagnation ou déclin attendu"},
-    {id:'pf3', label:"Marge de manœuvre sur le taux du prélèvement", q:"En considérant le contexte de compétitivité fiscale de la Ville, le taux de prélèvement actuel sur cette assiette fiscale peut-il être considéré comme étant déjà élevé ?", pos:"Taux actuel bas → de la marge de manœuvre", neg:"Taux déjà élevé → peu de marge"},
-  ]},
-  {id:'sg', nom:'Saine gestion administrative', crit:[
-    {id:'sg1', label:"Coûts d'administration", q:"Un prélèvement supplémentaire sur cette assiette fiscale nécessiterait-il des ressources (immobilisations, exploitation, conformité fiscale) dont le coût peut être considéré comme élevé ou prohibitif ? Par exemple, le processus de perception est-il compatible avec la méthode actuelle de gestion du compte de taxes ?", pos:"Coûts d'administration faibles, perception simple", neg:"Coûts élevés ou prohibitifs"},
-    {id:'sg2', label:"Utilisateur-payeur", q:"La mesure s'appuie-t-elle sur le principe d'utilisateur-payeur ? Permet-elle d'accroître la participation financière de catégories de contribuables dont la consommation de services publics excède les coûts de production de la municipalité ?", pos:"S'appuie sur l'utilisateur-payeur", neg:"Aucun lien entre usage et coût"},
-    {id:'sg3', label:"Applicabilité (court terme)", q:"À court terme, les données ou la technologie nécessaires à la mise en œuvre de la mesure sont-elles disponibles et applicables selon les pratiques actuellement en vigueur ?", pos:"Données et technologie déjà disponibles", neg:"Non disponibles à court terme"},
-    {id:'sg4', label:"Conformité réglementaire", q:"La mesure entre-t-elle en contradiction avec des réglementations ou politiques en vigueur ? Nécessite-t-elle un nouveau régime de réglementation ou une modification de la réglementation actuelle ?", pos:"Aucun conflit; le cadre actuel suffit", neg:"Conflit ou nouvelle réglementation requise"},
-    {id:'sg5', label:"Contestation judiciaire", q:"La mesure possède-t-elle un risque de contestation judiciaire ?", pos:"Risque de contestation faible ou nul", neg:"Risque élevé de contestation judiciaire"},
-    {id:'sg6', label:"Orientations du plan stratégique", q:"La mesure renforce-t-elle les orientations ou dispositions prévues au plan stratégique ou à d'autres documents de la municipalité ?", pos:"Renforce le plan stratégique", neg:"S'écarte des orientations"},
-  ]},
-  {id:'ae', nom:'Acceptabilité et équité', crit:[
-    {id:'ae1', label:"Perception", q:"La mesure recevrait-elle un niveau d'approbation de la population supérieur à celui auquel on pourrait s'attendre d'un prélèvement fiscal ?", pos:"Approbation probable de la population", neg:"Rejet probable"},
-    {id:'ae2', label:"Disponibilité d'alternatives", q:"En principe, un contribuable peut-il diminuer ou éviter les prélèvements en modifiant son comportement ?", pos:"Évitable en changeant de comportement", neg:"Prélèvement subi, sans échappatoire"},
-    {id:'ae3', label:"Personnes vulnérables", q:"La mesure a-t-elle un impact financier plus important auprès des personnes vulnérables ?", pos:"Peu ou pas d'impact sur les personnes vulnérables", neg:"Impact important sur les personnes vulnérables"},
-    {id:'ae4', label:"Capacité de payer", q:"La mesure permet-elle d'accroître raisonnablement la participation financière des personnes (morales ou physiques) ayant une capacité de payer supérieure ?", pos:"Cible les hautes capacités de payer", neg:"Frappe surtout les faibles capacités de payer"},
-    {id:'ae5', label:"Équité temporelle", q:"La mesure permet-elle de cibler des catégories de contribuables qui ont bénéficié, dans les dernières années, d'un transfert fiscal favorable ?", pos:"Corrige un avantage fiscal passé", neg:"Sans effet correctif (ou l'accentue)"},
-    {id:'ae6', label:"Équité territoriale", q:"La mesure a-t-elle potentiellement un impact plus important pour les contribuables de certains secteurs de la municipalité ?", pos:"Impact réparti uniformément sur le territoire", neg:"Impact concentré sur certains secteurs"},
-    {id:'ae7', label:"Abordabilité", q:"Lorsqu'applicable, la mesure a-t-elle un effet sur l'abordabilité des logements ?", pos:"Sans effet — ou améliore l'abordabilité du logement", neg:"Nuit à l'abordabilité (renchérit le logement)"},
-  ]},
-  {id:'ee', nom:'Efficacité environnementale', crit:[
-    {id:'ee1', label:"Pertinence", q:"La mesure est-elle le moyen le plus approprié d'atteindre l'objectif environnemental visé ?", pos:"Le moyen le plus approprié pour l'objectif", neg:"Moyen mal adapté ou détourné"},
-    {id:'ee2', label:"Utilisation du sol", q:"En principe, la mesure offre-t-elle un potentiel pour optimiser l'utilisation du sol ou privilégier les formes compactes d'aménagement ?", pos:"Optimise le sol / favorise les formes compactes", neg:"Sans effet (ou favorise l'étalement)"},
-    {id:'ee3', label:"Attractivité", q:"En principe, la mesure offre-t-elle un potentiel pour renforcer l'attractivité du territoire ou orienter la croissance vers les milieux déjà urbanisés pour freiner l'étalement ?", pos:"Renforce l'attractivité / freine l'étalement", neg:"Sans effet sur l'attractivité"},
-    {id:'ee4', label:"Résilience des écosystèmes", q:"En principe, la mesure offre-t-elle un potentiel pour contribuer à la résilience des écosystèmes ?", pos:"Contribue à la résilience des écosystèmes", neg:"Sans effet sur la résilience"},
-    {id:'ee5', label:"Mobilité durable", q:"En principe, la mesure favorise-t-elle une occupation du sol favorable à la mobilité durable ?", pos:"Favorise la mobilité durable", neg:"Sans effet (ou la défavorise)"},
-    {id:'ee6', label:"Pollueur-payeur", q:"En principe, la mesure permet-elle d'internaliser des externalités environnementales négatives ou de faire participer financièrement les générateurs de nuisance ?", pos:"Internalise les externalités / fait payer le pollueur", neg:"Sans effet d'internalisation"},
-  ]},
-];
-const ALLCRIT = DIMENSIONS.flatMap(d=>d.crit);
-const NCRIT = ALLCRIT.length; // 22
-
-/* c = couleur de fond · tc = couleur de TEXTE lisible sur ce fond (AA 4.5:1 : blanc sur les fonds
-   foncés, encre sur les fonds clairs — ambre/gris/vert clair, où le blanc ne passait pas). */
-const APPREC = {
-  tf:{l:'Très favorable', c:'var(--fav-pos)', tc:'#fff'},
-  f:{l:'Favorable', c:'var(--fav-posl)', tc:'var(--ink)'},
-  n:{l:'Neutre', c:'var(--fav-mid)', tc:'var(--ink)'},
-  pf:{l:'Peu favorable', c:'var(--fav-warn)', tc:'var(--ink)'},
-  pdf:{l:'Pas du tout favorable', c:'var(--fav-neg)', tc:'#fff'},
-};
-const RECO = {
-  rec:{l:'Mesure recommandée', abbr:'R', c:'var(--fav-pos)', tc:'#fff'},
-  etude:{l:"Mise à l'étude", abbr:'É', c:'var(--fav-warn)', tc:'var(--ink)'},
-  non:{l:'Mesure non recommandée', abbr:'N', c:'var(--fav-neg)', tc:'#fff'},
-};
-function apprec(cotes){ // cotes : tableau de -1/0/1 (réponses présentes)
-  const S=cotes.reduce((a,b)=>a+b,0);
-  const hasNeg=cotes.some(c=>c<0), hasPos=cotes.some(c=>c>0);
-  if(S>=2 && !hasNeg) return 'tf';
-  if(S>=1) return 'f';
-  if(S===0) return 'n';
-  if(S<=-2 && !hasPos) return 'pdf';
-  return 'pf';
+/* ===================== RÈGLES MÉTIER — moteur externalisé (rules.js) ===================== */
+/* Les 4 dimensions · 22 critères (grille V3), les seuils d'appréciation, la règle de
+   recommandation et l'agrégation vivent dans rules.js (même dossier) — source unique,
+   testée (node --test tests/) et documentée (docs/methodologie.md). */
+if(!window.Rules){
+  document.body.innerHTML='<p style="font-family:system-ui,sans-serif; padding:34px; max-width:60ch">⚠ Fichier <b>rules.js</b> introuvable. <code>orchestrateur.html</code> et <code>rules.js</code> doivent rester dans le même dossier (les deux fichiers se téléversent ensemble).</p>';
+  throw new Error('rules.js manquant');
 }
-function reco(aps){ // aps : 4 codes d'appréciation
-  const fav=aps.filter(a=>a==='f'||a==='tf').length;
-  const pf=aps.filter(a=>a==='pf').length;
-  const pdf=aps.filter(a=>a==='pdf').length;
-  const allN=aps.every(a=>a==='n');
-  if(pdf>=1 || pf>=2) return 'non';
-  if(pf===0 && pdf===0 && fav>=2) return 'rec';
-  if((fav>=2 && pf===1) || allN) return 'etude';
-  return 'etude';
-}
-/* Synthèse MRC (majorité des recommandations des villes) — source UNIQUE,
-   utilisée par le Portrait ET l'export Excel (révision C : duplication → risque de dérive). */
-function mrcSynthese(recos){
-  const cc={rec:0,etude:0,non:0}; recos.forEach(r=>cc[r]++);
-  const maj=(cc.non>=cc.rec && cc.non>=cc.etude)?'non':(cc.rec>=cc.etude)?'rec':'etude';
-  return {cc, maj};
-}
+const {DIMENSIONS, ALLCRIT, NCRIT, APPREC, RECO, apprec, reco, villeMoyenne, mrcSynthese} = window.Rules;
 
 /* ===================== STORE (persistance — couture pour Phase B) ===================== */
 const STORE_KEY='orchestrateur-v1';
@@ -637,7 +571,7 @@ function recoForRespondent(rid,mId){
 }
 /* agrégation au niveau VILLE = moyenne (arrondie) des cotes de ses répondants */
 function respondentsForVille(villeId){ return store.listCodes().filter(c=>c.person && c.ville===villeId).map(c=>c.code); }
-function villeCote(villeId,mId,cId){ const cs=respondentsForVille(villeId).map(rid=>store.getResponse(rid,mId,cId)).filter(r=>r&&r.cote!=null).map(r=>r.cote); if(!cs.length) return null; return Math.round(cs.reduce((a,b)=>a+b,0)/cs.length); }
+function villeCote(villeId,mId,cId){ const cs=respondentsForVille(villeId).map(rid=>store.getResponse(rid,mId,cId)).filter(r=>r&&r.cote!=null).map(r=>r.cote); return villeMoyenne(cs); /* règle d'agrégation : moyenne arrondie des répondants (rules.js) */ }
 function villeAnswered(villeId,mId){ return ALLCRIT.filter(c=>villeCote(villeId,mId,c.id)!=null).length; }
 function dimApprecVille(villeId,mId,dim){ const cotes=dim.crit.map(c=>villeCote(villeId,mId,c.id)).filter(x=>x!=null); return cotes.length?apprec(cotes):null; }
 function recoForVille(villeId,mId){ return reco(DIMENSIONS.map(d=>dimApprecVille(villeId,mId,d)||'n')); }

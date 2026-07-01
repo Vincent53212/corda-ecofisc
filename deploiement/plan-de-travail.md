@@ -27,7 +27,7 @@ Tout dans `orchestrateur.html`. Faible risque, gros gain de qualité ; chaque po
 5. **Nettoyage** (C) : factoriser la **règle de majorité MRC** dupliquée (`renderPortrait` vs `mrcMaj` dans `exportExcel`) en une fonction unique ; regrouper quelques **chaînes magiques** (ids d'écran) en constantes ; `aria-label` sur boutons-icônes (`💬`, `×`), `role=progressbar` sur la barre.
 - **Vérif :** Playwright PC + mobile (0 débordement, focus/aria) ; contrastomètre ; tests manuels (forcer un échec localStorage → toast d'erreur ; exporter un nom « =SUM » → pas de formule active). ⮕ 🤖 commit + push.
 
-## Bloc 2 — Moteur testable + méthodologie documentée ⭐ PROCHAINE SÉANCE (🤖, ~1 séance)
+## Bloc 2 — Moteur testable + méthodologie documentée ✅ FAIT côté 🤖 (2026-07-01 — validation Fanny en attente, voir `docs/methodologie.md` §6)
 1. **Extraire le moteur** (C) : sortir `apprec()`/`reco()`/agrégation (`villeCote`, `dimApprecVille`, `recoForVille`) + données de référence (`DIMENSIONS`, seuils) dans un **module isolé** (`rules.js` exporté), importé par l'UI — UI inchangée.
 2. **Tests unitaires** (C) : petite suite (Vitest) sur les règles ; cas connus (tous +1 → tf/rec ; mélanges) ; **clarifier/supprimer la branche morte de `reco()`** (deux issues identiques).
 3. **Doc méthodo** (A/C) : **table de décision en prose** (somme→appréciation ; 4 appréciations→reco) + **dictionnaire de données** (localStorage ↔ `schema.sql`). → 🧑/Fanny valident les règles (cas limites + l'agrégation ville = **moyenne des répondants**).
