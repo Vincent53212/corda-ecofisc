@@ -20,6 +20,9 @@ desktop.ini
 # ===== Dépendances éventuelles =====
 node_modules/
 
+# ===== Paquet de déploiement (généré par tools/build-dist.js) =====
+deploiement/dist/
+
 # ===== Versionnage manuel, remplacé par l'historique Git =====
 old/
 

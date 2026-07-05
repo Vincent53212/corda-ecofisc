@@ -4,7 +4,7 @@
 
 ## L'idée en une phrase (l'architecture retenue)
 **cPanel sert la page ; Supabase garde les données.** Deux morceaux qui vivent à deux endroits :
-- **Le frontend** (`orchestrateur.html` + `rules.js`, le moteur de calcul) = deux fichiers plats → hébergés sur **cPanel** à `ecofisc.corda.consulting`.
+- **Le frontend** = le paquet **`deploiement/dist/`** (`index.html` + `rules.js` + `demo-data.js` + `.htaccess`), généré par `node tools/build-dist.js` → hébergé sur **cPanel** à `ecofisc.corda.consulting`.
 - **Les données + l'auth** (codes, identités, réponses, commentaires) = **Supabase**, **région Canada**.
 
 ```
@@ -19,7 +19,7 @@ Tu as **déjà verrouillé** « région Canada exigée par la Loi 25 » (on stoc
 
 ## Décisions verrouillées (mise à jour 2026-06-30)
 - **Adresse publique : `ecofisc.corda.consulting`** (sous-domaine de `corda.consulting`, domaine Namecheap, hébergement **cPanel**). On part **de zéro** sur ce domaine.
-- **Frontend : hébergé sur cPanel** (deux fichiers : `index.html` + `rules.js`). **Backend : Supabase**, **région Canada (Central)**.
+- **Frontend : hébergé sur cPanel** (paquet `deploiement/dist/` : `index.html` + `rules.js` + `demo-data.js` + `.htaccess`). **Backend : Supabase**, **région Canada (Central)**.
 - **Multi-projets** : l'app pilote plusieurs projets, chacun **« ville unique »** ou **« multi-villes »** (ex. une MRC). Le schéma inclut donc une table `projects` + un `project_id` sur les codes ; le projet « MRC Thérèse-De Blainville » est **amorcé d'office**. La suppression d'un projet est **douce** (champ `deleted_at` = archive, on ne détruit jamais).
 - **Connexion des villes : par code**, validé **côté serveur** (Edge Functions). **Admin = vrai compte** (courriel + mot de passe Supabase).
 - **Pas de dev pour l'instant** → ce guide flagge chaque point de sécurité à valider avant une vraie utilisation.
@@ -41,7 +41,7 @@ Tu as **déjà verrouillé** « région Canada exigée par la Loi 25 » (on stoc
 
 ### A3. Téléverser l'app
 1. **cPanel → File Manager** → entre dans le **dossier racine** du sous-domaine (celui noté en A2).
-2. **Upload** les fichiers `orchestrateur.html` **et** `rules.js` (ils vont ensemble — le second contient le moteur de calcul), puis **renomme `orchestrateur.html` en `index.html`** (pour qu'il s'ouvre à la racine de l'adresse). `rules.js` garde son nom tel quel.
+2. **Upload** les **4 fichiers** du dossier `Appli/deploiement/dist/` : `index.html`, `rules.js`, `demo-data.js` et `.htaccess` (déjà nommés correctement — rien à renommer). ⚠ `.htaccess` commence par un point : dans File Manager, active « **Show Hidden Files** » (Settings, coin supérieur droit) pour le voir après le téléversement.
    - *Alternative :* via **FTP** (identifiants dans cPanel → FTP Accounts) si tu préfères glisser-déposer depuis l'explorateur.
 
 ### A4. Activer le HTTPS (cadenas)
@@ -63,7 +63,8 @@ Ouvre **`https://ecofisc.corda.consulting`** → l'écran de connexion de l'Orch
 
 ### B2. Créer les tables
 1. **SQL Editor → New query.**
-2. Ouvre **`schema.sql`** (ce dossier), copie tout, colle, **Run**. Tu dois voir « Success » (Table Editor → `projects`, `access_codes` et `responses`).
+2. Ouvre **`schema.sql`** (ce dossier, version **v2 révisée**), copie tout, colle, **Run**. Tu dois voir « Success » (Table Editor → `projects`, `access_codes`, `responses`, `audit_log`, `login_attempts`).
+3. *(Optionnel mais recommandé pour la démo)* Même manœuvre avec **`seed-demo.sql`** : installe le projet « Démo — MRC (données fictives) » (7 villes, 9 répondants fictifs) — le même jeu de données que le bouton « Projet Démo » de l'app. Rejouable à volonté (il remplace le projet demo).
 
 ### B3. Verrouiller les inscriptions + créer les comptes admin
 1. **Authentication → Sign In / Providers** → **désactive les inscriptions publiques** (« Allow new users to sign up » → OFF).
@@ -85,7 +86,7 @@ Juste **Project URL** + **anon public key** (les deux publiques). Avec ça je br
 - **C1. Edge Functions « villes »** (`ville-claim`, `ville-get`, `ville-set`) : la porte serveur qui valide un code et lit/écrit seulement **ses** réponses (clé `service_role` côté serveur, jamais exposée).
 - **C2. Brancher `index.html`** sur ta base : mode « en ligne » (lit/écrit dans Supabase) avec **repli localStorage** si pas de config. L'admin parle à la base (auth Supabase) ; les villes passent par les Edge Functions.
 - **C3. Autoriser ton domaine (CORS)** : déclarer `https://ecofisc.corda.consulting` comme origine permise côté Supabase, pour que la page hébergée sur cPanel ait le droit d'appeler la base.
-- **C4. Re-téléverser** les fichiers finaux sur cPanel (re-upload via File Manager) — `index.html` + `rules.js`, comme en Partie A.
+- **C4. Re-téléverser** les fichiers finaux sur cPanel (re-upload via File Manager) — le contenu regénéré de `deploiement/dist/`, comme en Partie A.
 - **C5. Test de bout en bout** : admin génère un code → une « ville » se connecte depuis un **autre appareil** sur `ecofisc.corda.consulting` → code → ses réponses atterrissent dans Supabase → l'admin les voit dans le Portrait.
 
 ---

@@ -114,3 +114,32 @@ test('APPREC / RECO — codes complets et libellés français', () => {
   assert.deepEqual(Object.keys(R.RECO), ['rec','etude','non']);
   for(const k of Object.keys(R.RECO)) assert.ok(R.RECO[k].l && R.RECO[k].abbr && R.RECO[k].tc);
 });
+
+/* ---------- Intégrité du catalogue des mesures (source de la whitelist serveur) ---------- */
+test('MEASURES — 37 mesures, ids m01…m37 uniques, catégories valides', () => {
+  assert.equal(R.MEASURES.length, 37);
+  const ids = R.MEASURES.map(m=>m.id);
+  assert.equal(new Set(ids).size, 37);
+  for(const [i,id] of ids.entries()) assert.equal(id, 'm'+String(i+1).padStart(2,'0'));
+  for(const m of R.MEASURES){
+    assert.ok(m.titre && m.titre.trim(), `mesure ${m.id} : titre manquant`);
+    assert.ok(R.CATS[m.cat], `mesure ${m.id} : catégorie inconnue « ${m.cat} »`);
+  }
+});
+test('CATS — 6 catégories, libellé et couleur présents', () => {
+  assert.equal(Object.keys(R.CATS).length, 6);
+  for(const [k,c] of Object.entries(R.CATS)) assert.ok(c.label && c.color, `catégorie ${k} incomplète`);
+});
+test('DESCRIPTIONS — chaque description pointe vers une mesure existante (25/37 rédigées)', () => {
+  const ids = new Set(R.MEASURES.map(m=>m.id));
+  for(const k of Object.keys(R.DESCRIPTIONS)){
+    assert.ok(ids.has(k), `description orpheline : ${k}`);
+    assert.ok(R.DESCRIPTIONS[k].trim().length > 40, `description ${k} anormalement courte`);
+  }
+  assert.equal(Object.keys(R.DESCRIPTIONS).length, 25); // 12 manquantes — dossier de validation §C2
+});
+test('Whitelist serveur — measure_id et criterion_id générables depuis rules.js', () => {
+  const wl = new Set([...R.MEASURES.map(m=>m.id), ...R.ALLCRIT.map(c=>c.id)]);
+  assert.equal(wl.size, 37+22);            // aucune collision entre les deux familles d'ids
+  assert.ok(wl.has('m05') && wl.has('pf1') && wl.has('ee6'));
+});

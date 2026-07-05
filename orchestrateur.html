@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orchestrateur — Analyse multicritère · Écofiscalité (Corda)</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23FBF7F0'/%3E%3Cpath d='M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31' fill='none' stroke='%231A6E47' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='20' cy='9' r='3' fill='%23A9802F'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -25,6 +26,11 @@
 *{box-sizing:border-box}
 [hidden]{display:none !important}
 html,body{margin:0; height:100%}
+/* jamais de défilement horizontal de la PAGE (les tableaux défilent dans leur propre
+   conteneur .table-scroll) — sans ceci, l'aire de défilement des scrollers internes
+   fuit vers la page sur mobile (défilement fantôme) */
+html{overflow-x:hidden}
+@supports (overflow-x:clip){ html{overflow-x:clip} }
 body{
   background:var(--bg); color:var(--ink); font-family:var(--font-body);
   font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
@@ -110,6 +116,12 @@ textarea{line-height:1.5}
 .login-card .err{color:var(--fav-neg); font-size:.82rem; min-height:1.1em; margin-top:8px; font-family:var(--font-mono)}
 .login-hint{margin-top:20px; padding-top:16px; border-top:1px solid var(--line-2); font-family:var(--font-mono); font-size:11px; color:var(--faint); line-height:1.7}
 .login-hint b{color:var(--muted)}
+/* avis de collecte + consentement (Loi 25, art. 8) */
+.consent{text-align:left; background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:13px 15px; margin-top:14px}
+.consent .ct{font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); margin-bottom:6px}
+.consent p{font-size:.8rem; color:var(--ink); line-height:1.55; margin:0 0 10px}
+.consent-check{display:flex; gap:9px; align-items:flex-start; font-size:.84rem; font-weight:600; cursor:pointer}
+.consent-check input{width:17px; height:17px; margin-top:1px; flex:0 0 auto; accent-color:var(--accent); cursor:pointer}
 
 /* ---------------- Orchestrateur ---------------- */
 .orch-grid{display:grid; grid-template-columns:300px 1fr; gap:16px; align-items:start}
@@ -204,7 +216,11 @@ body.anno-on .anno-hint{display:block}
 .anno-pop textarea{min-height:74px; resize:vertical; font-size:.9rem}
 .anno-pop .acts{display:flex; gap:8px; justify-content:flex-end; margin-top:10px}
 .anno-pop .acts .btn{padding:7px 12px; font-size:.82rem}
-.anno-panel{position:fixed; top:0; right:0; bottom:0; width:min(380px,90vw); z-index:65; background:var(--surface); border-left:1px solid var(--line); box-shadow:-18px 0 50px -22px rgba(20,16,8,.4); transform:translateX(100%); transition:transform .22s ease; display:flex; flex-direction:column}
+/* gaine de recadrage : un élément FIXED translaté hors-écran échappe au clipping de la
+   page et crée un défilement horizontal fantôme sur mobile — la gaine (plein viewport,
+   overflow hidden, transparente aux clics) le contient */
+.anno-clip{position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:65}
+.anno-panel{position:absolute; top:0; right:0; bottom:0; width:min(380px,90vw); pointer-events:auto; background:var(--surface); border-left:1px solid var(--line); box-shadow:-18px 0 50px -22px rgba(20,16,8,.4); transform:translateX(100%); transition:transform .22s ease; display:flex; flex-direction:column}
 .anno-panel.open{transform:none}
 .anno-panel header{display:flex; align-items:center; gap:10px; padding:15px 16px; border-bottom:1px solid var(--line)}
 .anno-panel header h3{font-size:1rem; font-weight:600}
@@ -301,6 +317,11 @@ body.anno-on .anno-hint{display:block}
         <input type="text" id="fcNom" placeholder="Nom" autocomplete="off" style="margin-top:10px">
         <label class="sr-only" for="fcFonction">Fonction</label>
         <input type="text" id="fcFonction" placeholder="Fonction (ex. directeur des finances)" autocomplete="off" style="margin-top:10px">
+        <div class="consent">
+          <div class="ct">Avis de collecte — renseignements personnels</div>
+          <p>Vos prénom, nom et fonction servent uniquement à rattacher vos cotations à votre ville dans le cadre du mandat d'analyse écofiscale « <b id="fcProjet">—</b> » (ENAP/CERGO). L'accès est restreint à l'équipe de recherche ; aucune diffusion nominative. Vous pouvez en tout temps demander l'accès à vos renseignements, leur rectification ou leur retrait auprès de l'équipe du mandat.</p>
+          <label class="consent-check"><input type="checkbox" id="fcConsent"><span>J'ai lu l'avis et je consens à la collecte de ces renseignements.</span></label>
+        </div>
         <div class="btnrow" style="margin-top:14px"><button class="btn primary" id="fcBtn" style="flex:1">Commencer</button></div>
         <div class="err" id="fcErr"></div>
       </div></div>
@@ -362,7 +383,7 @@ body.anno-on .anno-hint{display:block}
 <!-- ===================== ANNOTATION UI ===================== -->
 <div class="anno-hint" data-noanno>Mode annotation — cliquez un élément pour le commenter · Ctrl+Alt+A pour quitter</div>
 <div class="anno-pop" id="annoPop" data-noanno hidden></div>
-<aside class="anno-panel" id="annoPanel" data-noanno aria-label="Annotations">
+<div class="anno-clip" data-noanno><aside class="anno-panel" id="annoPanel" data-noanno aria-label="Annotations">
   <header>
     <h3>Annotations <span class="num faint" id="annoNum" style="font-size:.85rem">(0)</span></h3>
     <button class="x" id="annoPanelClose" aria-label="Fermer">×</button>
@@ -373,13 +394,14 @@ body.anno-on .anno-hint{display:block}
     <button class="btn ghost" id="annoCopy">Copier</button>
     <button class="btn ghost" id="annoClear">Vider</button>
   </footer>
-</aside>
+</aside></div>
 <div class="toast" id="toast" data-noanno></div>
 <div class="cellpop" id="cellPop" hidden data-noanno role="dialog" aria-label="Détail des appréciations"></div>
 <div class="sr-only" id="live" aria-live="polite" data-noanno></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" integrity="sha512-dlPw+ytv/6JyepmelABrgeYgHI0O+frEwgfnPdXDTOIZz+eDgfW07QXG02/O8COfivBdGNINy+Vex+lYmJ5rxw==" crossorigin="anonymous"></script>
 <script src="rules.js"></script>
+<script src="demo-data.js"></script>
 <script>
 "use strict";
 
@@ -396,96 +418,35 @@ let VILLES = [ /* réassignée au projet actif via syncVilles() ; ces 7 servent 
 const VILLE_ABBR={'Blainville':'Blain.','Boisbriand':'Boisb.','Bois-des-Filion':'B-d-F','Lorraine':'Lorr.','Rosemère':'Rosem.','Sainte-Thérèse':'Ste-Thé.','Sainte-Anne-des-Plaines':'SADP'};
 const abbrVille=n=>VILLE_ABBR[n]||n.slice(0,6);
 
-const CATS = {
-  fonc:{label:'Fiscalité foncière et assiette', color:'#E6B422'},
-  transp:{label:'Transport et stationnement', color:'#E2574C'},
-  amenag:{label:'Aménagement, sol et développement', color:'#9AA7B4'},
-  crd:{label:'Matières résiduelles, émissions et énergie', color:'#9D6FD0'},
-  eau:{label:'Eau', color:'#4473C5'},
-  autres:{label:'Autres', color:'#B0668F'},
-};
-const MEASURES = [
-  {id:'m01', cat:'fonc', titre:'Sous-catégorie - nombre de logements'},
-  {id:'m02', cat:'fonc', titre:'Sous-catégorie - CUBF'},
-  {id:'m03', cat:'fonc', titre:'Sous-catégorie - secteurs'},
-  {id:'m04', cat:'fonc', titre:'Taux varié par tranche de valeur (non résidentiels)'},
-  {id:'m05', cat:'fonc', titre:'Taux varié terrain vague desservi'},
-  {id:'m06', cat:'fonc', titre:'Taxe logements vacants (résidentiel)'},
-  {id:'m07', cat:'fonc', titre:'Taxe logements vacants (non résidentiel)'},
-  {id:'m08', cat:'fonc', titre:'Taxe sur les terres à vocation agricole exploitables mais non exploitées'},
-  {id:'m09', cat:'transp', titre:'Tarification stationnement sur rue'},
-  {id:'m10', cat:'transp', titre:'Redevance grands générateurs de déplacements'},
-  {id:'m11', cat:'transp', titre:'Redevance transport rémunéré de personnes'},
-  {id:'m12', cat:'transp', titre:'Taxe sur les espaces de stationnement'},
-  {id:'m13', cat:'transp', titre:'Redevances de transport'},
-  {id:'m14', cat:'amenag', titre:"Taxe sur le COS (coefficient d'occupation du sol)"},
-  {id:'m15', cat:'amenag', titre:'Taxe sur les surfaces non végétalisées'},
-  {id:'m16', cat:'amenag', titre:'Redevances visant le financement de la voirie locale'},
-  {id:'m17', cat:'amenag', titre:'Redevances de développement'},
-  {id:'m18', cat:'amenag', titre:'Taxe arbre en cour avant'},
-  {id:'m19', cat:'amenag', titre:'Redevance visant la réduction de la perte de canopée'},
-  {id:'m20', cat:'amenag', titre:'Taxe sur les terrains contaminés'},
-  {id:'m21', cat:'crd', titre:'Tarification variable des matières résiduelles'},
-  {id:'m22', cat:'crd', titre:'Redevance visant les résidus de CRD'},
-  {id:'m23', cat:'crd', titre:'Taxe sur la démolition'},
-  {id:'m24', cat:'crd', titre:'Redevance sur les contenants à usage unique ou individuel'},
-  {id:'m25', cat:'crd', titre:'Redevance sur les émissions de polluant par les industries (dont les GES)'},
-  {id:'m26', cat:'crd', titre:'Redevance visant à compenser les GES associés au développement immobilier'},
-  {id:'m27', cat:'crd', titre:"Redevance à l'égard de la performance énergétique des bâtiments"},
-  {id:'m28', cat:'crd', titre:'Taxe sur les systèmes au mazout ou biénergie'},
-  {id:'m29', cat:'eau', titre:"Redevance rejets d'eaux usées"},
-  {id:'m30', cat:'eau', titre:'Tarification eau résidentiel'},
-  {id:'m31', cat:'eau', titre:'Tarification eau ICI'},
-  {id:'m32', cat:'eau', titre:'Taxe sur les piscines'},
-  {id:'m33', cat:'autres', titre:"Redevance d'amusement"},
-  {id:'m34', cat:'autres', titre:"Redevance d'hébergement touristique"},
-  {id:'m35', cat:'autres', titre:"Taxe sur les panneaux d'affichage"},
-  {id:'m36', cat:'autres', titre:'Redevance sur les services de câblodistribution et télécommunication'},
-  {id:'m37', cat:'autres', titre:'Redevance sur les générateurs de risques (dont les réservoirs de produits chimiques)'},
-];
-
-/* Descriptions des mesures — extraites des fiches analytiques Mascouche et Gatineau (2025)
-   (dir. F. Tremblay-Racicot). Mécanismes transférables ; exemples sectoriels génériqués.
-   Le reste = « Description à venir » (liste des manquantes dans le dossier de validation). */
-const DESCRIPTIONS = {
-  m01:"Modulation du taux de taxe foncière selon le nombre de logements et la typologie, via des sous-catégories d'immeubles résidentiels (unifamilial, 2 logements, 3-5, 6-9, 10-49, 50+, habitations en commun, condominiums).",
-  m02:"Taux de taxe foncière distincts pour les immeubles commerciaux/industriels selon le code d'utilisation des biens-fonds (CUBF) : soit pour les industries polluantes (aliments/boissons, minéraux, pétrole, chimie, transport…), soit pour les entreprises d'économie circulaire (recyclage, récupération, vente d'occasion, compostage).",
-  m03:"Régime d'impôt foncier à taux variés modulés selon les secteurs d'imposition définis (p. ex. central, TOD, excentré, rural), avec des taux de base sectoriels respectant un écart maximal de 33,3 % par rapport au taux uniformisé.",
-  m04:"Régime d'impôt foncier à taux variés par tranche de valeur pour les immeubles non résidentiels (p. ex. < 1 M$, 1-2 M$, 2 M$ et plus). Un second taux peut s'appliquer, sans excéder 133,3 % du premier.",
-  m05:"Taxe pouvant atteindre quatre fois le taux de base (résidentiel) sur les terrains vagues desservis par l'aqueduc et l'égout sanitaire, afin de récupérer des revenus, accroître la densification et limiter la spéculation foncière.",
-  m06:"Prélèvement sur la valeur foncière des immeubles comportant un logement vacant ou sous-utilisé, avec un taux maximal progressif (p. ex. 1 % la 1re année, 2 % la 2e, 3 % la 3e).",
-  m08:"Taxe ou redevance visant les terres à vocation agricole exploitables mais non exploitées, pour décourager la spéculation et encourager la remise en culture : taxe sur la valeur foncière (plafonnée à trois fois le taux de base) ou redevance au m² alimentant un fonds de remise en culture, avec exemptions possibles (exploitants enregistrés, agri-projets partenaires).",
-  m09:"Tarif (ou vignette) pour contrôler et gérer le stationnement sur rue ; le montant peut varier selon le secteur, le quartier ou le type de véhicule.",
-  m10:"Redevance auprès des grands générateurs de déplacement (grands employeurs de 100+ employés, organisateurs d'événements) dépourvus d'un programme de gestion des déplacements, pour financer le transport collectif et les infrastructures de transport actif.",
-  m12:"Taxe auprès des propriétaires de parcs de stationnement non résidentiels dans les zones desservies en transport collectif, calculée sur la superficie ou le nombre de cases (exemptions de base possibles), avec un taux modulable par secteur, type de stationnement (extérieur taxé davantage) et niveau de desserte — pour financer le transport collectif et optimiser l'usage des terrains.",
-  m14:"Taxe sur les immeubles non résidentiels/industriels desservis dont le coefficient d'occupation du sol (COS) est inférieur à 20 %, calculée sur la différence entre 20 % de la superficie non contrainte et la superficie réelle, multipliée par un taux sectoriel.",
-  m15:"Taxe sur les surfaces minéralisées (non végétalisées) de certains immeubles non résidentiels : superficie du terrain moins bâtiments moins surfaces végétalisées, avec strates progressives (exemption de base, puis tarifs croissants).",
-  m18:"Taxe visant l'absence d'arbre en cour avant (façade) des immeubles résidentiels et non résidentiels : taxe unitaire imposée aux propriétaires non conformes.",
-  m19:"Redevance visant la réduction de la perte de canopée dans les projets de construction ; montant établi de façon discrétionnaire ou selon la valeur écosystémique des arbres abattus (nombre, essence, âge, taille).",
-  m21:"Tarification incitative selon le nombre de levées et la taille du bac, afin de réduire les matières vouées à l'enfouissement (coûts aujourd'hui assumés par la taxe foncière générale).",
-  m22:"Redevance sur les permis de construction, rénovation et démolition pour détourner les résidus de CRD de l'élimination ; les redevables ayant un plan de gestion des matières pourraient être exemptés.",
-  m24:"Redevance sur la quantité de contenants et produits à usage unique vendus ou fournis par les commerçants (verres, bouteilles d'eau, pailles…), établie par déclaration périodique, pour financer la gestion des matières résiduelles et inciter à la réduction à la source ; un montant compensatoire peut être retenu par les commerçants pour la gestion.",
-  m26:"Redevance imposée au promoteur lors du permis de construction ou de branchement à l'aqueduc, pour compenser les GES émis par l'urbanisation d'un terrain (perte de biomasse, travaux d'infrastructures) : superficie développée × taux de compensation arrimé au prix du carbone (p. ex. 1,08 $/m²), versée à un fonds dédié à l'atténuation et à l'adaptation ; requalification exemptable.",
-  m28:"Taxe imposée aux propriétaires d'immeubles résidentiels disposant d'appareils de chauffage au mazout ou d'un système biénergie au mazout ; montant fixe par appareil assujetti.",
-  m29:"Redevance sur les rejets d'eaux usées, prélevée selon la quantité et le niveau de contamination rejetés sur une période donnée, pour financer le traitement des eaux usées.",
-  m30:"Tarification de l'eau potable au secteur résidentiel selon le principe utilisateur-payeur : variable (consommation en m³ avec compteurs) ou forfaitaire (tarif annuel au compte de taxes).",
-  m31:"Tarification de l'eau potable pour les industries, commerces et institutions (ICI) selon le principe utilisateur-payeur : variable selon la consommation (compteurs) ou forfaitaire au coût moyen.",
-  m32:"Transformation de la tarification actuelle des piscines en taxe générale, avec un montant par propriété calibré pour générer des revenus supplémentaires.",
-  m34:"Redevance réglementaire imposée aux exploitants d'établissements d'hébergement touristique — montant annuel par unité de capacité (chambre, lit, site de camping), modulable par type d'établissement et secteur — pour compenser les coûts municipaux liés au tourisme (voirie, parcs, déchets, sécurité) ; distincte de la taxe provinciale sur l'hébergement et non facturée aux touristes.",
-  m36:"Redevance réglementaire liée à l'occupation du domaine public par les réseaux de câblodistribution et de télécommunication (encadrée par un accord d'accès municipal) : frais de permis, dégradation de la chaussée, relocalisations — au coût réel, selon les balises du CRTC (principe de neutralité des coûts pour les contribuables).",
-};
-
-/* ===================== RÈGLES MÉTIER — moteur externalisé (rules.js) ===================== */
+/* ===================== RÈGLES MÉTIER + CATALOGUE — externalisés (rules.js) ===================== */
 /* Les 4 dimensions · 22 critères (grille V3), les seuils d'appréciation, la règle de
-   recommandation et l'agrégation vivent dans rules.js (même dossier) — source unique,
-   testée (node --test tests/) et documentée (docs/methodologie.md). */
+   recommandation, l'agrégation ET le catalogue des mesures (CATS/MEASURES/DESCRIPTIONS)
+   vivent dans rules.js (même dossier) — source unique, testée (node --test tests/)
+   et documentée (docs/methodologie.md). */
 if(!window.Rules){
   document.body.innerHTML='<p style="font-family:system-ui,sans-serif; padding:34px; max-width:60ch">⚠ Fichier <b>rules.js</b> introuvable. <code>orchestrateur.html</code> et <code>rules.js</code> doivent rester dans le même dossier (les deux fichiers se téléversent ensemble).</p>';
   throw new Error('rules.js manquant');
 }
-const {DIMENSIONS, ALLCRIT, NCRIT, APPREC, RECO, apprec, reco, villeMoyenne, mrcSynthese} = window.Rules;
+const {DIMENSIONS, ALLCRIT, NCRIT, CATS, MEASURES, DESCRIPTIONS, APPREC, RECO, apprec, reco, villeMoyenne, mrcSynthese} = window.Rules;
 
-/* ===================== STORE (persistance — couture pour Phase B) ===================== */
+/* ===================== SYNC (couture backend — Bloc 3.5) =====================
+   Façade de synchronisation : aujourd'hui backend=null (mode 100 % local), au
+   Bloc 4 on y branche l'adaptateur Supabase {load(), push(op)} SANS toucher à
+   l'UI ni au store. Chaque mutation du store émet une opération ; si le réseau
+   flanche, la file persiste et repart à la prochaine écriture (repli local). */
+const sync = {
+  backend:null, queue:[], _flushing:false,
+  push(op){ if(!this.backend) return; this.queue.push(op); this._flush(); },
+  async _flush(){
+    if(this._flushing || !this.backend) return; this._flushing=true;
+    try{ while(this.queue.length){ await this.backend.push(this.queue[0]); this.queue.shift(); } }
+    catch(e){ console.error('Synchronisation en attente — nouvel essai à la prochaine écriture.', e);
+      toast('⚠ Connexion au serveur perdue — vos réponses restent gardées sur cet appareil.','err'); }
+    finally{ this._flushing=false; }
+  }
+};
+
+/* ===================== STORE (persistance) ===================== */
 const STORE_KEY='orchestrateur-v1';
 const DEFAULT_PROJECT_ID='tdb'; /* projet historique, amorcé au premier chargement */
 const ADMIN_CODE='Corda$2026'; /* ⚠ placeholder DÉMO côté client — AUCUNE sécurité réelle ; à retirer en Phase B (auth Supabase, révision A/B/C) */
@@ -493,13 +454,22 @@ function nowISO(){ return new Date().toISOString(); }
 function genCode(villeId){
   const v=VILLES.find(x=>x.id===villeId);
   const pre=(v?v.nom:'XXX').normalize('NFD').replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase();
-  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s='';
-  for(let i=0;i<4;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  /* entropie cryptographique (révision B) : 6 caractères sur un alphabet de 32 → ~30 bits */
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const rnd=new Uint8Array(6); crypto.getRandomValues(rnd);
+  let s=''; rnd.forEach(b=>{ s+=chars[b%32]; });
   return pre+'-'+s;
 }
 function slugify(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase(); }
 const store = {
   _d:null,
+  async init(){ /* pré-chargement (couture Bloc 3.5) : localStorage aujourd'hui, Supabase demain — même façade, UI inchangée */
+    if(sync.backend && sync.backend.load){
+      try{ const remote=await sync.backend.load(); if(remote){ this._d=remote; this._normalize(); return this._d; } }
+      catch(e){ console.error('Chargement distant impossible — repli sur les données locales.', e); }
+    }
+    return this._load();
+  },
   _load(){
     if(this._d) return this._d;
     try{ this._d=JSON.parse(localStorage.getItem(STORE_KEY)); }
@@ -507,6 +477,10 @@ const store = {
       try{ const raw=localStorage.getItem(STORE_KEY); if(raw) localStorage.setItem(STORE_KEY+'-secours-'+Date.now(), raw); }catch(_){}
       console.error('Données locales illisibles — copie de secours conservée.', e);
     }
+    this._normalize();
+    return this._d;
+  },
+  _normalize(){ /* défauts + migrations, quel que soit l'endroit d'où viennent les données */
     if(!this._d) this._d={};
     this._d.codes=this._d.codes||[]; this._d.responses=this._d.responses||{};
     this._d.projects=this._d.projects||[]; this._d.archived=this._d.archived||[];
@@ -516,7 +490,6 @@ const store = {
     }
     if(!this._d.activeProject || !this._d.projects.some(p=>p.id===this._d.activeProject)) this._d.activeProject=this._d.projects[0].id;
     this._d.codes.forEach(c=>{ if(!c.project) c.project=this._d.projects[0].id; }); /* migration codes pré-projets */
-    return this._d;
   },
   _save(){ /* retourne true/false — ne plus avaler l'échec (quota plein, stockage bloqué) */
     try{ localStorage.setItem(STORE_KEY, JSON.stringify(this._d)); return true; }
@@ -527,25 +500,35 @@ const store = {
   activeProj(){ const d=this._load(); return d.projects.find(p=>p.id===d.activeProject) || d.projects[0] || null; },
   setActive(id){ const d=this._load(); if(d.projects.some(p=>p.id===id)){ d.activeProject=id; this._save(); } },
   createProject(p){ const d=this._load(); let base=slugify(p.title).slice(0,14)||'projet', id=base, n=2; while(d.projects.some(x=>x.id===id)){ id=base+'-'+n; n++; }
-    const proj={id, title:p.title, type:p.type, villes:p.villes, createdAt:nowISO()}; d.projects.push(proj); d.activeProject=id; this._save(); return proj; },
+    const proj={id, title:p.title, type:p.type, villes:p.villes, createdAt:nowISO()}; d.projects.push(proj); d.activeProject=id; this._save();
+    sync.push({t:'project.create', project:proj}); return proj; },
   deleteProject(id){ const d=this._load(); const proj=d.projects.find(p=>p.id===id); if(!proj) return;
     const codes=d.codes.filter(c=>c.project===id); const responses={};
-    codes.forEach(c=>Object.keys(d.responses).forEach(k=>{ if(k.split('|')[0]===c.code) responses[k]=d.responses[k]; }));
+    codes.forEach(c=>Object.keys(d.responses).forEach(k=>{ if(this._kRid(k)===c.code) responses[k]=d.responses[k]; }));
     d.archived.push({project:proj, codes, responses, archivedAt:nowISO()}); /* sauvegarde complète (≈ /old) avant suppression */
-    codes.forEach(c=>Object.keys(d.responses).forEach(k=>{ if(k.split('|')[0]===c.code) delete d.responses[k]; }));
+    codes.forEach(c=>Object.keys(d.responses).forEach(k=>{ if(this._kRid(k)===c.code) delete d.responses[k]; }));
     d.codes=d.codes.filter(c=>c.project!==id); d.projects=d.projects.filter(p=>p.id!==id);
-    if(d.activeProject===id) d.activeProject = d.projects.length?d.projects[0].id:null; this._save(); },
+    if(d.activeProject===id) d.activeProject = d.projects.length?d.projects[0].id:null; this._save();
+    sync.push({t:'project.delete', id}); },
   codeCount(projId){ return this._load().codes.filter(c=>c.project===projId).length; },
   /* ---- codes (scopés au projet actif) ---- */
   listCodes(){ const d=this._load(); return d.codes.filter(c=>c.project===d.activeProject).slice(); },
   findCode(code){ const u=(code||'').trim().toUpperCase(); return this._load().codes.find(c=>c.code===u) || null; }, /* recherche tous projets (login) */
-  createCode(villeId){ const d=this._load(); let code; do{ code=genCode(villeId); }while(d.codes.some(c=>c.code===code)); d.codes.push({code, ville:villeId, project:d.activeProject, person:null, createdAt:nowISO(), claimedAt:null}); this._save(); return code; },
-  claimCode(code, person){ const c=this.findCode(code); if(!c) return null; if(!c.person){ c.person=person; c.claimedAt=nowISO(); this._save(); } return c; },
-  deleteCode(code){ const d=this._load(); const u=(code||'').toUpperCase(); d.codes=d.codes.filter(c=>c.code!==u); Object.keys(d.responses).forEach(k=>{ if(k.split('|')[0]===u) delete d.responses[k]; }); this._save(); },
-  /* réponses indexées par RÉPONDANT (clé d'accès), pas par ville */
+  createCode(villeId){ const d=this._load(); let code; do{ code=genCode(villeId); }while(d.codes.some(c=>c.code===code));
+    const rec={code, ville:villeId, project:d.activeProject, person:null, createdAt:nowISO(), claimedAt:null}; d.codes.push(rec); this._save();
+    sync.push({t:'code.create', code:rec}); return code; },
+  claimCode(code, person){ const c=this.findCode(code); if(!c) return null;
+    if(!c.person){ c.person=person; c.claimedAt=nowISO(); c.consentAt=nowISO(); this._save();
+      sync.push({t:'code.claim', code:c.code, person, consentAt:c.consentAt}); } return c; },
+  deleteCode(code){ const d=this._load(); const u=(code||'').toUpperCase(); d.codes=d.codes.filter(c=>c.code!==u); Object.keys(d.responses).forEach(k=>{ if(this._kRid(k)===u) delete d.responses[k]; }); this._save();
+    sync.push({t:'code.delete', code:u}); },
+  /* réponses indexées par RÉPONDANT (clé d'accès), pas par ville.
+     La clé composite rid|m|c est un DÉTAIL INTERNE : toujours passer par _k/_kRid. */
   _k(rid,m,c){ return rid+'|'+m+'|'+c; },
+  _kRid(k){ return k.slice(0, k.indexOf('|')); },
   getResponse(rid,m,c){ return this._load().responses[this._k(rid,m,c)] || null; },
-  setResponse(rid,m,c,patch){ const d=this._load(); const k=this._k(rid,m,c); const cur=d.responses[k]||{cote:null, comment:''}; d.responses[k]=Object.assign(cur, patch, {updatedAt:nowISO()}); return this._save(); },
+  setResponse(rid,m,c,patch){ const d=this._load(); const k=this._k(rid,m,c); const cur=d.responses[k]||{cote:null, comment:''}; const rec=Object.assign(cur, patch, {updatedAt:nowISO()}); d.responses[k]=rec; const ok=this._save();
+    sync.push({t:'response.set', code:rid, measureId:m, critId:c, cote:rec.cote, comment:rec.comment}); return ok; },
 };
 function syncVilles(){ const p=store.activeProj(); VILLES = p ? p.villes.slice() : []; }
 
@@ -662,13 +645,16 @@ $('#codeInput').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn
 function showFirstConn(c){
   const v=VILLES.find(x=>x.id===c.ville);
   $('#fcVille').textContent=v?v.nom:'—';
-  $('#fcErr').textContent=''; $('#fcPrenom').value=''; $('#fcNom').value=''; $('#fcFonction').value='';
+  const proj=store.projects().find(p=>p.id===c.project);
+  $('#fcProjet').textContent=proj?proj.title:'—';
+  $('#fcErr').textContent=''; $('#fcPrenom').value=''; $('#fcNom').value=''; $('#fcFonction').value=''; $('#fcConsent').checked=false;
   $$('.screen').forEach(s=>s.classList.remove('on')); $('#s-firstconn').classList.add('on');
 }
 $('#fcBtn').onclick=()=>{
   const prenom=$('#fcPrenom').value.trim(), nom=$('#fcNom').value.trim(), fonction=$('#fcFonction').value.trim();
   if(!prenom||!nom||!fonction){ $('#fcErr').textContent='Remplissez les trois champs.'; return; }
-  const c=store.claimCode(state.pendingCode, {prenom, nom, fonction});
+  if(!$('#fcConsent').checked){ $('#fcErr').textContent="Veuillez lire l'avis et cocher la case de consentement."; return; }
+  const c=store.claimCode(state.pendingCode, {prenom, nom, fonction}); /* claimCode horodate le consentement (consentAt) */
   state.pendingCode=null;
   if(c) enterVille(c);
 };
@@ -1070,6 +1056,11 @@ function renderProjets(){
       <h3>Projets ouverts <span class="faint mono" style="font-size:.8rem">(${projs.length})</span></h3>
       <div class="projlist">${list}</div>
     </div>
+    <div class="card" data-anno="Projets — démonstration">
+      <h3>Projet de démonstration</h3>
+      <p class="muted" style="margin-top:0">Recrée le projet « <b>Démo — MRC (données fictives)</b> » : 7 villes, 9 répondants fictifs, cotations plausibles. Aucune personne réelle — sert aux présentations et à l'exploration, et se supprime comme n'importe quel projet. Pour démontrer la première connexion (avis de consentement), un code reste volontairement non réclamé : <span class="codeval">LOR-DEMO02</span></p>
+      <div class="btnrow"><button class="btn brass" id="demoResetBtn">Créer / réinitialiser le projet Démo</button></div>
+    </div>
     <div class="card" data-anno="Projets — nouveau projet">
       <h3>Nouveau projet</h3>
       <div class="field"><label for="npTitle">Titre du projet</label><input id="npTitle" type="text" placeholder="ex. Ville de Saint-Jérôme" autocomplete="off"></div>
@@ -1084,6 +1075,7 @@ function renderProjets(){
       <div class="btnrow" style="margin-top:6px"><button class="btn primary" id="npCreate">Créer le projet</button></div>
       <div class="err" id="npErr"></div>
     </div>`;
+  $('#demoResetBtn').onclick=()=>{ if(state.anno) return; resetDemoProject(); };
   $$('#projetsHost .projact').forEach(b=>b.onclick=()=>{ if(state.anno) return; store.setActive(b.dataset.act); syncVilles(); renderProjPill(); toast('Projet activé'); go('portrait'); });
   $$('#projetsHost .projdel').forEach(b=>b.onclick=()=>{ if(state.anno) return; const id=b.dataset.del; const p=store.projects().find(x=>x.id===id);
     if(store.projects().length<=1){ toast('Impossible de supprimer le dernier projet.'); return; }
@@ -1109,12 +1101,30 @@ function renderProjets(){
     const p=store.createProject({title, type:npType, villes}); syncVilles(); renderProjPill(); toast('Projet « '+p.title+' » créé'); go('acces'); };
 }
 
-/* ===================== BOOT ===================== */
-store._load(); syncVilles();
-renderAnnoList();
-if(state.role==='admin'){ enterAdmin(); }
-else if(state.role==='ville' && state.ville && state.respondentId){ const c=store.findCode(state.respondentId); if(c&&c.project) store.setActive(c.project); syncVilles(); const v=VILLES.find(x=>x.id===state.ville); showShell('Ville · '+(v?v.nom:'—')); renderSide(); go('orchestrateur'); }
-else { logout(); }
+/* Projet Démo (données fictives, generées par demo-data.js — déterministe).
+   Volontairement LOCAL seulement (pas de sync.push) : en ligne, le même jeu de
+   données s'installe côté Supabase via deploiement/seed-demo.sql. */
+function resetDemoProject(){
+  if(!window.DemoData){ toast('Fichier demo-data.js introuvable — à téléverser avec l\'app.','err'); return; }
+  const ds=window.DemoData.build();
+  const d=store._load();
+  const oldCodes=d.codes.filter(c=>c.project===window.DemoData.PROJECT_ID).map(c=>c.code);
+  oldCodes.forEach(code=>Object.keys(d.responses).forEach(k=>{ if(store._kRid(k)===code) delete d.responses[k]; }));
+  d.codes=d.codes.filter(c=>c.project!==window.DemoData.PROJECT_ID);
+  d.projects=d.projects.filter(p=>p.id!==window.DemoData.PROJECT_ID);
+  d.projects.push(ds.project); d.codes.push(...ds.codes); Object.assign(d.responses, ds.responses);
+  d.activeProject=ds.project.id;
+  if(store._save()){ syncVilles(); renderProjPill(); toast('Projet Démo prêt — données fictives chargées'); go('portrait'); }
+}
+
+/* ===================== BOOT (async — couture Bloc 3.5) ===================== */
+(async function boot(){
+  await store.init(); syncVilles();
+  renderAnnoList();
+  if(state.role==='admin'){ enterAdmin(); }
+  else if(state.role==='ville' && state.ville && state.respondentId){ const c=store.findCode(state.respondentId); if(c&&c.project) store.setActive(c.project); syncVilles(); const v=VILLES.find(x=>x.id===state.ville); showShell('Ville · '+(v?v.nom:'—')); renderSide(); go('orchestrateur'); }
+  else { logout(); }
+})();
 </script>
 </body>
 </html>
