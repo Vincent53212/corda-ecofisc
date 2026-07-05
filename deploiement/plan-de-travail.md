@@ -1,6 +1,16 @@
-# Plan de travail v2 — Orchestrateur (Écofiscalité · Corda)
+# Plan de travail v2.1 — Orchestrateur (Écofiscalité · Corda)
 
+> **v2.1 du 2026-07-05 — MODE SPRINT.** Rencontre Fanny + équipe dans ~4 jours (≈ 9 juillet) : objectif = produit « fini » (à ajuster) démontrable sur **`ecofisc.corda.consulting`**, backend complet **avec repli local** (la démo ne peut pas échouer), projet « Démo » en données fictives. Décisions Vincent (2026-07-05) : backend Supabase pour la rencontre ✔ · projet Démo distinct ✔ · + README non-initié · + présentation d'équipe (vision moyen terme).
+>
 > **v2 du 2026-07-01** — révision autonome du plan v1 (approuvée par Vincent), après achèvement des Blocs 0-2. Source d'origine : `déploiement_révision_1.md` (3 réviseurs : normes admin publique · sécurité · dev). Changement majeur : **le goulot n'est pas le code, c'est la latence de validation (Fanny)** → toutes les validations sont **batchées** dans un dossier unique, et le travail technique se poursuit en parallèle de l'attente.
+
+## 🏃 Sprint 4 jours (avant la rencontre)
+- **J1 (2026-07-05) ✅ 🤖** : `schema.sql` v2 (`017de7c`) · Bloc 3.5 complet + consentement art. 8 + projet Démo + paquet `dist/` + correctif mobile (`3732695`) · README non-initié · présentation d'équipe.
+- **J1 🧑 (~40 min de clics, peut se faire dès maintenant)** : Partie A cPanel (sous-domaine + téléverser `dist/` + AutoSSL) · Partie B Supabase (projet **région Canada**, rouler `schema.sql` v2 puis `seed-demo.sql`, désactiver les inscriptions, comptes admin, m'envoyer **Project URL + anon key** seulement).
+- **J2 🤖** : Edge Functions (`ville-claim`/`ville-get`/`ville-set` : dérivation serveur, whitelist générée de `rules.js`, rate-limit via `login_attempts`, bornage) · adaptateur Supabase branché sur la couture `sync` · auth admin réelle en ligne (placeholder conservé en repli local seulement) · CORS · re-upload `dist/`.
+- **J3 🤖** : test bout-en-bout multi-appareils sur le domaine · gabarits Loi 25 essentiels pour la rencontre (avis ✅ déjà dans l'app ; politique de confidentialité + EFVP courte + trame d'entente) · corrections.
+- **J4** : marge, répétition de la démo (scénario : Portrait Démo → `LOR-DEMO02` en direct → export Excel), checklist finale.
+- ⚠ Gating Loi 25 inchangé : **données fictives seulement** tant que le Bloc 3 n'est pas signé — les codes réels ne sont pas distribués.
 
 ## Contexte et décisions structurantes
 - Vincent n'est **pas développeur** (un dev révisera) → code propre, testé, documenté, prêt au handoff. Dépôt privé `Vincent53212/corda-ecofisc`.
@@ -15,6 +25,7 @@
 - **Bloc 1 — Durcissement du prototype** (2026-07-01, `cadd404`) : sauvegarde fiable (+ copie de secours JSON), accessibilité (labels, aria, popover Portrait, focus, aria-live), sécurité légère (esc, SRI vérifié, anti-formule Excel), contrastes AA (ambre → texte encre), factorisation MRC.
 - **Bloc 2 — Moteur testable + méthodo** (2026-07-01, `9cbb05a`) : `rules.js` (source unique, gelée), **25 tests** (`node --test tests/rules.test.js`, zéro dépendance), `docs/methodologie.md`, `docs/dictionnaire-donnees.md`, `README.md`. Branche morte de `reco()` clarifiée ; asymétrie d'arrondi ±0,5 découverte par les tests.
 - **Intermède — révision du plan** (2026-07-01) : descriptions Gatineau intégrées (25/37), `demoSwitch` retiré (pollution des vraies données), annotation → Ctrl+Alt+A admin seulement (coupée en entrant côté ville), **dossier de validation Fanny** produit (`docs/dossier-validation-fanny.md` + `.docx`).
+- **Bloc 3.5 — Préparation backend sans Supabase** (2026-07-05, `3732695`) : couture `store` async (`store.init()` + couche `sync` à backend enfichable, file d'opérations, repli local) ; catalogue `CATS`/`MEASURES`/`DESCRIPTIONS` → `rules.js` (whitelist générable) ; clé `rid|m|c` encapsulée ; codes à entropie crypto (6 car.). En bonus : consentement art. 8 à la 1re connexion (bloquant, horodaté), projet Démo déterministe (app + `seed-demo.sql`), paquet `deploiement/dist/` (+ `.htaccess` CSP), correctif défilement fantôme mobile, favicon.
 
 ---
 
@@ -32,12 +43,7 @@
 7. **Portail-LLM commentaires** : inscrire l'interdiction par défaut + conditions. Pas d'implémentation.
 - 🧩 Les gabarits sont écrits **avec variables client** (réutilisables pour les futurs projets Corda ville-unique).
 
-## Bloc 3.5 — Préparation backend SANS Supabase (🤖, pendant l'attente des validations)
-1. **Couture `store` sync → async** (constat C « gros morceau structurant ») : refactorer sur localStorage derrière une façade async (pré-chargement + flush), UI inchangée, régression Playwright complète. Dérisquer AVANT d'écrire le serveur.
-2. **`MEASURES`/`CATS` → `rules.js`** : le catalogue rejoint le moteur → la **whitelist** `measure_id`/`criterion_id` des Edge Functions sera **générée depuis la même source** (jamais recopiée à la main).
-3. Encapsulation résiduelle de la clé `rid|m|c` (les `split('|')` de `deleteProject`/`deleteCode`).
-
-## Bloc 4 — Backend Supabase (⛓️ après 3 + 3.5)
+## Bloc 4 — Backend Supabase (⛓️ après 3.5 ✅ — EN COURS, J2 du sprint)
 **Prérequis 🧑 :** projet Supabase **région Canada**, rouler le `schema.sql` **révisé (post-Bloc 3)**, désactiver inscriptions publiques, comptes admin, m'envoyer **Project URL + anon key** (`service_role` = SECRÈTE, jamais partagée).
 **Code 🤖 :**
 1. **Codes** : entropie `crypto.getRandomValues` (6-8 car.) + **rate-limit / lockout** dans `ville-claim`.

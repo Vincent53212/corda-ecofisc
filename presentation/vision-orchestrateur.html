@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orchestrateur — remue-méninges vision · Corda Écofiscalité</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23211C15'/%3E%3Cpath d='M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31' fill='none' stroke='%237DB37D' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='20' cy='9' r='3' fill='%23E0A030'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   REMUE-MÉNINGES VISION — un deck qui parle la langue du produit.
+   Chaque question de vision = une « mesure à coter » de l'Orchestrateur.
+   Identité Corda : Terrain/Crème · Fraunces + Inter + Space Mono.
+   ============================================================ */
+:root{
+  --font-display:"Fraunces",Georgia,serif;
+  --font-body:"Inter",system-ui,sans-serif;
+  --font-mono:"Space Mono",ui-monospace,monospace;
+  --bg:#FBF7F0; --surface:#FFFFFF; --surface-2:#F4ECDF; --ink:#211C15;
+  --muted:#6B6256; --faint:#6F6656; --line:#E6DAC6; --line-2:#EFE7D8;
+  --accent:#1A6E47; --accent-deep:#0E4A2F; --brass:#A9802F;
+  --pos:#2E7D45; --posl:#7DB37D; --mid:#9AA0A6; --warn:#E0A030; --neg:#C0392B;
+}
+*{box-sizing:border-box}
+html,body{margin:0; height:100%}
+body{background:var(--ink); color:var(--ink); font-family:var(--font-body); overflow:hidden}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--warn); outline-offset:2px; border-radius:4px}
+
+/* ---------- scène ---------- */
+.stage{position:fixed; inset:0; display:grid; place-items:center; background:var(--ink)}
+.deck{position:relative; width:min(100vw, 177.78vh); height:min(100vh, 56.25vw); background:var(--bg); overflow:hidden; box-shadow:0 30px 90px -30px rgba(0,0,0,.8)}
+
+/* ---------- diapositives ---------- */
+.slide{position:absolute; inset:0; padding:clamp(22px,4.2vmin,54px) clamp(26px,5vmin,72px); display:flex; flex-direction:column; opacity:0; visibility:hidden; transform:translateX(24px); transition:opacity .32s ease, transform .32s ease, visibility 0s .32s}
+.slide.on{opacity:1; visibility:visible; transform:none; transition:opacity .32s ease, transform .32s ease}
+.slide.prev{transform:translateX(-24px)}
+
+h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
+.eyebrow{font-family:var(--font-mono); font-size:clamp(.58rem,1.35vmin,.78rem); letter-spacing:.17em; text-transform:uppercase; color:var(--accent); font-weight:700}
+.eyebrow .qn{color:var(--brass)}
+.slide h2{font-size:clamp(1.5rem,4.6vmin,2.7rem); font-weight:600; margin:.35em 0 .45em; max-width:24ch}
+.lede{color:var(--muted); font-size:clamp(.82rem,1.9vmin,1.05rem); line-height:1.55; max-width:66ch; margin:0}
+.grow{flex:1}
+.mono{font-family:var(--font-mono)}
+.k{color:var(--accent-deep); font-weight:600}
+
+/* pastilles de l'app (langue visuelle du produit) */
+.rpill{display:inline-flex; align-items:center; justify-content:center; min-width:1.55em; height:1.55em; padding:0 .3em; border-radius:.42em; color:#fff; font-family:var(--font-mono); font-weight:700; font-size:clamp(.62rem,1.5vmin,.8rem)}
+.rpill.rec{background:var(--pos)} .rpill.etude{background:var(--warn); color:var(--ink)} .rpill.non{background:var(--neg)}
+
+/* ---------- couverture ---------- */
+.cover{justify-content:center; align-items:flex-start; background:
+  radial-gradient(120% 90% at 85% -10%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 60%), var(--bg)}
+.cover .bigarch{position:absolute; right:-14%; bottom:-24%; width:72%; opacity:.5; pointer-events:none}
+.cover .bigarch path{stroke:color-mix(in srgb, var(--accent) 16%, transparent)}
+.cover .bigarch circle{fill:color-mix(in srgb, var(--brass) 34%, transparent)}
+.cover > *{position:relative}
+.cover .arch{width:clamp(84px,17vmin,150px); margin-bottom:2.4vmin}
+.cover .arch path{stroke-dasharray:120; stroke-dashoffset:120; animation:draw 1.4s .25s ease forwards}
+.cover .arch circle{opacity:0; animation:pop .5s 1.45s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes pop{from{opacity:0; transform:translateY(5px)}to{opacity:1; transform:none}}
+.cover h1{font-size:clamp(2.1rem,7.6vmin,4.6rem); font-weight:600; max-width:15ch}
+.cover h1 em{font-style:italic; color:var(--accent-deep)}
+.cover .sub{margin-top:2.4vmin; font-size:clamp(.85rem,2vmin,1.1rem); color:var(--muted); max-width:56ch; line-height:1.55}
+.cover .meta{margin-top:auto; display:flex; gap:2.6vmin; flex-wrap:wrap; font-family:var(--font-mono); font-size:clamp(.6rem,1.4vmin,.78rem); color:var(--faint); letter-spacing:.06em; text-transform:uppercase}
+.cover .meta b{color:var(--brass)}
+
+/* ---------- ordre du jour ---------- */
+.agenda{display:flex; flex-direction:column; gap:clamp(6px,1.2vmin,12px); margin-top:1vmin}
+.agenda .item{display:flex; align-items:center; gap:clamp(10px,2vmin,20px); background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:clamp(9px,1.7vmin,16px) clamp(12px,2.2vmin,22px)}
+.agenda .n{font-family:var(--font-mono); font-weight:700; color:var(--brass); font-size:clamp(.8rem,2vmin,1.1rem); flex:0 0 auto}
+.agenda .t{font-weight:600; font-size:clamp(.85rem,2.1vmin,1.15rem)}
+.agenda .d{color:var(--faint); font-size:clamp(.68rem,1.55vmin,.86rem); margin-top:1px}
+.agenda .item .rpill{margin-left:auto; flex:0 0 auto}
+.agenda-note{margin-top:1.6vmin; font-size:clamp(.7rem,1.6vmin,.9rem); color:var(--muted)}
+
+/* ---------- état des lieux ---------- */
+.statgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(8px,1.6vmin,16px); margin:1.2vmin 0 2vmin}
+.stat{background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:clamp(10px,2vmin,18px)}
+.stat .n{font-family:var(--font-mono); font-weight:700; font-size:clamp(1.15rem,3.4vmin,2rem); color:var(--accent-deep); line-height:1}
+.stat .l{font-size:clamp(.62rem,1.45vmin,.8rem); color:var(--muted); margin-top:.5em; line-height:1.35}
+.livebar{display:flex; align-items:center; gap:clamp(8px,1.6vmin,14px); background:var(--accent-deep); color:#fff; border-radius:11px; padding:clamp(10px,2vmin,17px) clamp(13px,2.4vmin,22px)}
+.livebar .dot{width:.65em; height:.65em; border-radius:50%; background:#7DE8A8; box-shadow:0 0 0 0 rgba(125,232,168,.6); animation:pulse 2s infinite; flex:0 0 auto}
+@keyframes pulse{70%{box-shadow:0 0 0 .55em rgba(125,232,168,0)}100%{box-shadow:0 0 0 0 rgba(125,232,168,0)}}
+.livebar .url{font-family:var(--font-mono); font-weight:700; font-size:clamp(.78rem,2vmin,1.08rem); letter-spacing:.02em}
+.livebar .note{margin-left:auto; font-size:clamp(.62rem,1.45vmin,.8rem); opacity:.85; text-align:right}
+.done-strip{display:flex; gap:clamp(6px,1.2vmin,10px); flex-wrap:wrap; margin-top:2vmin}
+.done-strip .chip{font-family:var(--font-mono); font-size:clamp(.56rem,1.3vmin,.72rem); letter-spacing:.03em; color:var(--accent-deep); background:color-mix(in srgb, var(--accent) 10%, transparent); border:1px solid color-mix(in srgb, var(--accent) 26%, transparent); border-radius:20px; padding:.35em .8em}
+
+/* ---------- la grille ---------- */
+.dims{display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(8px,1.6vmin,16px); margin-top:1.4vmin}
+.dim{background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:clamp(10px,2vmin,18px); border-top:4px solid var(--accent)}
+.dim:nth-child(2){border-top-color:var(--brass)}
+.dim:nth-child(3){border-top-color:var(--warn)}
+.dim:nth-child(4){border-top-color:var(--posl)}
+.dim .t{font-family:var(--font-display); font-weight:600; font-size:clamp(.85rem,2vmin,1.1rem)}
+.dim .c{font-family:var(--font-mono); font-size:clamp(.58rem,1.35vmin,.74rem); color:var(--faint); margin-top:.4em}
+.gridflow{display:flex; align-items:center; gap:clamp(8px,1.8vmin,18px); margin-top:2.2vmin; flex-wrap:wrap}
+.gridflow .step{background:var(--surface-2); border-radius:9px; padding:clamp(8px,1.6vmin,14px) clamp(10px,2vmin,18px); font-size:clamp(.68rem,1.6vmin,.9rem); font-weight:600}
+.gridflow .step small{display:block; font-weight:400; color:var(--faint); font-size:.82em; margin-top:2px}
+.gridflow .arr{font-family:var(--font-mono); color:var(--brass); font-weight:700; font-size:clamp(.8rem,2vmin,1.15rem)}
+
+/* ---------- question = mesure à coter ---------- */
+.mcard{background:var(--surface); border-radius:13px; box-shadow:0 1px 2px rgba(20,16,8,.05), 0 16px 40px -18px rgba(20,16,8,.25); padding:clamp(14px,2.6vmin,26px) clamp(16px,3vmin,30px); display:flex; flex-direction:column; flex:1; min-height:0}
+.mdesc{font-size:clamp(.74rem,1.75vmin,.98rem); color:var(--ink); background:var(--surface-2); border-radius:9px; padding:clamp(9px,1.8vmin,15px) clamp(11px,2.1vmin,18px); line-height:1.5; margin-bottom:clamp(10px,2vmin,18px)}
+.opts{display:grid; gap:clamp(8px,1.5vmin,14px); flex:1; min-height:0; align-content:center}
+.opts .opt{align-self:center; height:auto}
+.opts.c2{grid-template-columns:1fr 1fr}
+.opts.c3{grid-template-columns:1fr 1fr 1fr}
+.opt{border:1px solid var(--line); border-radius:11px; padding:clamp(9px,1.8vmin,16px) clamp(11px,2vmin,18px); display:flex; flex-direction:column; gap:.45em; background:var(--bg)}
+.opt.hold{border-style:dashed}
+.opt .h{display:flex; align-items:baseline; gap:.6em}
+.opt .t{font-weight:700; font-size:clamp(.78rem,1.85vmin,1.02rem)}
+.opt .tag{margin-left:auto; font-family:var(--font-mono); font-size:clamp(.52rem,1.2vmin,.66rem); letter-spacing:.08em; text-transform:uppercase; color:var(--brass); white-space:nowrap}
+.opt p{margin:0; font-size:clamp(.68rem,1.55vmin,.88rem); color:var(--muted); line-height:1.45}
+.bous{display:flex; flex-direction:column; gap:.3em; margin-top:auto; padding-top:.5em}
+.bous .g{display:flex; gap:.5em; font-size:clamp(.64rem,1.5vmin,.84rem); line-height:1.4}
+.bous b{font-family:var(--font-mono); flex:none}
+.bous .p{color:var(--pos)} .bous .m{color:var(--neg)}
+.qbanner{display:flex; align-items:center; gap:clamp(9px,1.8vmin,16px); background:var(--warn); color:var(--ink); border-radius:10px; padding:clamp(9px,1.8vmin,15px) clamp(12px,2.2vmin,20px); margin-top:clamp(10px,2vmin,18px)}
+.qbanner .lab{font-family:var(--font-mono); font-size:clamp(.54rem,1.3vmin,.7rem); letter-spacing:.1em; text-transform:uppercase; opacity:.75; flex:none}
+.qbanner .q{font-weight:700; font-size:clamp(.78rem,1.9vmin,1.05rem); line-height:1.3}
+
+/* ---------- synthèse interactive ---------- */
+.recap{display:flex; flex-direction:column; gap:clamp(6px,1.2vmin,11px); margin-top:1vmin}
+.recap .row{display:flex; align-items:center; gap:clamp(10px,2vmin,18px); background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:clamp(8px,1.6vmin,14px) clamp(12px,2.2vmin,20px)}
+.recap .n{font-family:var(--font-mono); font-weight:700; color:var(--brass); flex:0 0 auto}
+.recap .t{font-weight:600; font-size:clamp(.8rem,1.9vmin,1.05rem)}
+.recap .verdict{margin-left:auto; display:flex; gap:6px; flex:0 0 auto}
+.vbtn{cursor:pointer; border:1px solid var(--line); background:var(--bg); color:var(--faint); border-radius:8px; padding:.42em .8em; font-family:var(--font-mono); font-size:clamp(.56rem,1.35vmin,.74rem); font-weight:700; letter-spacing:.03em}
+.vbtn:hover{border-color:var(--muted)}
+.vbtn.on.dec{background:var(--pos); border-color:var(--pos); color:#fff}
+.vbtn.on.creu{background:var(--warn); border-color:var(--warn); color:var(--ink)}
+.vbtn.on.rep{background:var(--neg); border-color:var(--neg); color:#fff}
+.recap-note{margin-top:1.6vmin; font-size:clamp(.66rem,1.5vmin,.86rem); color:var(--faint)}
+.next{display:flex; gap:clamp(8px,1.6vmin,14px); margin-top:2vmin; flex-wrap:wrap}
+.next .step{flex:1; min-width:180px; background:var(--surface-2); border-radius:10px; padding:clamp(9px,1.8vmin,15px) clamp(11px,2vmin,17px); font-size:clamp(.68rem,1.55vmin,.88rem)}
+.next .step b{display:block; margin-bottom:2px}
+.next .step small{color:var(--faint)}
+
+/* ---------- navigation ---------- */
+.hud{position:absolute; left:0; right:0; bottom:0; display:flex; align-items:center; gap:14px; padding:10px clamp(16px,2.6vmin,28px); z-index:5; pointer-events:none}
+.hud .count{font-family:var(--font-mono); font-size:clamp(.58rem,1.35vmin,.74rem); color:var(--faint)}
+.hud .spacer{flex:1}
+.hud button{pointer-events:auto; cursor:pointer; width:2.4em; height:2.4em; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-size:clamp(.75rem,1.8vmin,1rem); line-height:1}
+.hud button:hover{border-color:var(--brass); color:var(--brass)}
+.progress{position:absolute; top:0; left:0; right:0; height:4px; background:var(--line-2); z-index:6}
+.progress i{display:block; height:100%; width:0; background:var(--accent); transition:width .3s ease}
+.hint{position:absolute; right:clamp(16px,2.6vmin,28px); top:12px; z-index:5; font-family:var(--font-mono); font-size:clamp(.52rem,1.2vmin,.66rem); color:var(--faint); letter-spacing:.05em; opacity:.8}
+
+@media (prefers-reduced-motion:reduce){
+  .slide{transition:none}
+  .cover .arch path{animation:none; stroke-dashoffset:0}
+  .cover .arch circle{animation:none; opacity:1}
+  .livebar .dot{animation:none}
+}
+@media print{
+  body{overflow:visible} .stage{position:static}
+  .deck{width:100%; height:auto; box-shadow:none}
+  .slide{position:static; opacity:1; visibility:visible; transform:none; page-break-after:always; min-height:95vh}
+  .hud,.progress,.hint{display:none}
+}
+</style>
+</head>
+<body>
+<div class="stage"><div class="deck" id="deck">
+  <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+  <div class="hint" aria-hidden="true">← → pour naviguer</div>
+
+  <!-- 1 · COUVERTURE -->
+  <section class="slide cover on" aria-label="Couverture">
+    <svg class="bigarch" viewBox="0 0 40 34" aria-hidden="true">
+      <path d="M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31" fill="none" stroke-width="1.1" stroke-linecap="round"/>
+      <circle cx="20" cy="9" r="1.6"/>
+    </svg>
+    <svg class="arch" viewBox="0 0 40 40" aria-hidden="true">
+      <path d="M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31" fill="none" stroke="#1A6E47" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="20" cy="9" r="2.7" fill="#A9802F"/>
+    </svg>
+    <div class="eyebrow">Corda · Écofiscalité · Remue-méninges d'équipe</div>
+    <h1>L'Orchestrateur existe.<br><em>Où va-t-on, ensemble&nbsp;?</em></h1>
+    <p class="sub">Cinq questions pour aligner la vision à moyen terme de l'application née de la grille d'analyse multicritère de <b>Fanny et Jérôme</b> — plateforme, sécurité, fonctionnalités, modèle d'affaires, expansion.</p>
+    <div class="meta"><span><b>ecofisc.corda.consulting</b></span><span>Juillet 2026</span><span>MRC Thérèse-De Blainville · ENAP/CERGO</span></div>
+  </section>
+
+  <!-- 2 · ORDRE DU JOUR -->
+  <section class="slide" aria-label="Ordre du jour">
+    <div class="eyebrow">Ordre du jour — la méthode de la maison</div>
+    <h2>On soumet le projet à sa propre grille</h2>
+    <p class="lede">Cinq « mesures » à coter aujourd'hui. Chacune arrive avec ses options et sa boussole ; toutes partent <span class="rpill etude">É</span> <b>à l'étude</b> — l'objectif de la rencontre est d'en faire passer le maximum au vert.</p>
+    <div class="agenda">
+      <div class="item"><span class="n">Q1</span><div><div class="t">Plateforme</div><div class="d">application web centralisée, fichier autonome, ou hybride ?</div></div><span class="rpill etude">É</span></div>
+      <div class="item"><span class="n">Q2</span><div><div class="t">Sécurité &amp; lois applicables</div><div class="d">jusqu'où va-t-on ? Loi 25 comme plancher ou comme argument de vente ?</div></div><span class="rpill etude">É</span></div>
+      <div class="item"><span class="n">Q3</span><div><div class="t">Fonctionnalités</div><div class="d">orchestrateur de compromis (Delphi/Polis) · calculateur d'impact fiscal</div></div><span class="rpill etude">É</span></div>
+      <div class="item"><span class="n">Q4</span><div><div class="t">Modèle d'affaires</div><div class="d">comment l'outil vit-il au-delà du mandat de recherche ?</div></div><span class="rpill etude">É</span></div>
+      <div class="item"><span class="n">Q5</span><div><div class="t">Expansion hors-Québec</div><div class="d">si oui, ça change l'architecture — autant le savoir maintenant</div></div><span class="rpill etude">É</span></div>
+    </div>
+    <div class="grow"></div>
+    <p class="agenda-note">La dernière diapositive sert de tableau de bord : on y consigne les verdicts en direct.</p>
+  </section>
+
+  <!-- 3 · ÉTAT DES LIEUX -->
+  <section class="slide" aria-label="État des lieux" style="justify-content:center">
+    <div class="eyebrow">État des lieux — ce qui existe déjà</div>
+    <h2>Un produit vivant, pas une maquette</h2>
+    <div class="livebar">
+      <span class="dot" aria-hidden="true"></span>
+      <span class="url">ecofisc.corda.consulting</span>
+      <span class="note">démo en données 100 % fictives —<br>aucune donnée réelle avant le cadrage Loi 25</span>
+    </div>
+    <div class="statgrid">
+      <div class="stat"><div class="n">37 × 22</div><div class="l">mesures écofiscales × critères de la grille, en 4 dimensions</div></div>
+      <div class="stat"><div class="n">7</div><div class="l">villes de la MRC, chacune avec ses répondants et codes d'accès</div></div>
+      <div class="stat"><div class="n">29</div><div class="l">tests automatiques verrouillent le moteur de calcul</div></div>
+      <div class="stat"><div class="n">1</div><div class="l">source unique des règles — un changement validé s'applique partout</div></div>
+    </div>
+    <div class="done-strip">
+      <span class="chip">cotation guidée avec boussole +/−</span>
+      <span class="chip">portrait MRC en temps réel</span>
+      <span class="chip">export Excel formaté</span>
+      <span class="chip">consentement à la 1re connexion (art. 8)</span>
+      <span class="chip">multi-projets (MRC ou ville seule)</span>
+      <span class="chip">accessibilité AA</span>
+    </div>
+    <p class="lede" style="margin-top:2.6vmin">En circulation : le <span class="k">dossier de validation</span> (règles de calcul, descriptions des mesures, décisions Loi 25) — une rencontre suffit à tout trancher.</p>
+  </section>
+
+  <!-- 4 · LA GRILLE AU CENTRE -->
+  <section class="slide" aria-label="La grille au centre">
+    <div class="eyebrow">Le cœur scientifique</div>
+    <h2>La grille de Fanny et Jérôme, servie par le logiciel</h2>
+    <p class="lede">L'application n'invente rien sur le fond : elle fait respecter la grille — mêmes questions, mêmes seuils, même règle de recommandation — et automatise ce qui était manuel dans Excel.</p>
+    <div class="dims">
+      <div class="dim"><div class="t">Potentiel fiscal</div><div class="c">3 critères</div></div>
+      <div class="dim"><div class="t">Saine gestion administrative</div><div class="c">6 critères</div></div>
+      <div class="dim"><div class="t">Acceptabilité et équité</div><div class="c">7 critères</div></div>
+      <div class="dim"><div class="t">Efficacité environnementale</div><div class="c">6 critères</div></div>
+    </div>
+    <div class="gridflow">
+      <div class="step">Cotation<br><small>22 réponses par mesure, par répondant</small></div>
+      <span class="arr">→</span>
+      <div class="step">Appréciation<br><small>par dimension (très favorable → pas du tout)</small></div>
+      <span class="arr">→</span>
+      <div class="step">Recommandation<br><small><span class="rpill rec">R</span> <span class="rpill etude">É</span> <span class="rpill non">N</span> par mesure et par ville</small></div>
+      <span class="arr">→</span>
+      <div class="step">Synthèse MRC<br><small>majorité des villes, matrice complète</small></div>
+    </div>
+    <div class="grow"></div>
+    <p class="lede">Chaque cas limite (arrondis, égalités, dimensions muettes) est documenté et soumis à la direction scientifique — <span class="k">rien n'est décidé par la machine en cachette</span>.</p>
+  </section>
+
+  <!-- 5 · Q1 PLATEFORME -->
+  <section class="slide" aria-label="Question 1 — Plateforme">
+    <div class="eyebrow"><span class="qn">Q1 / 5</span> · Plateforme</div>
+    <h2>Standalone ou application web ?</h2>
+    <div class="mcard">
+      <div class="mdesc">Le prototype fonctionne déjà des deux façons : le même fichier s'ouvre par double-clic (autonome) et s'héberge sur le web. La vraie question est celle des <b>données</b> : éparpillées sur chaque appareil, ou centralisées et protégées ?</div>
+      <div class="opts c3">
+        <div class="opt"><div class="h"><span class="t">A · Fichier autonome</span><span class="tag">statu quo</span></div>
+          <p>On envoie le fichier aux répondants ; chacun travaille sur son appareil.</p>
+          <div class="bous"><span class="g p"><b>＋</b><span>zéro serveur, zéro coût, zéro donnée en ligne</span></span><span class="g m"><b>−</b><span>pas de portrait en temps réel ; collecte des réponses à la main ; versions qui divergent</span></span></div>
+        </div>
+        <div class="opt"><div class="h"><span class="t">B · Application web</span><span class="tag">proposé</span></div>
+          <p>Frontend sur le domaine Corda ; données et codes d'accès dans une base canadienne verrouillée.</p>
+          <div class="bous"><span class="g p"><b>＋</b><span>portrait MRC vivant, multi-appareils, mises à jour instantanées</span></span><span class="g m"><b>−</b><span>exige le cadrage Loi 25 et une base au Canada (déjà en chantier)</span></span></div>
+        </div>
+        <div class="opt"><div class="h"><span class="t">C · Hybride</span><span class="tag">construit</span></div>
+          <p>Web d'abord, avec repli local automatique si le serveur est injoignable.</p>
+          <div class="bous"><span class="g p"><b>＋</b><span>le meilleur des deux ; la démo ne peut pas échouer</span></span><span class="g m"><b>−</b><span>deux chemins à entretenir (déjà cousus dans le code)</span></span></div>
+        </div>
+      </div>
+      <div class="qbanner"><span class="lab">À trancher</span><span class="q">Valide-t-on l'architecture web + repli local comme fondation du produit ?</span></div>
+    </div>
+  </section>
+
+  <!-- 6 · Q2 SÉCURITÉ -->
+  <section class="slide" aria-label="Question 2 — Sécurité et lois">
+    <div class="eyebrow"><span class="qn">Q2 / 5</span> · Sécurité &amp; lois applicables</div>
+    <h2>Le droit comme plancher — ou comme argument ?</h2>
+    <div class="mcard">
+      <div class="mdesc">On recueille des <b>renseignements personnels</b> de représentants municipaux (nom, fonction, opinions en commentaires). Au Québec, la <b>Loi 25</b> s'applique pleinement : consentement, finalité, EFVP, destruction réelle, résidence des données.</div>
+      <div class="opts c3">
+        <div class="opt"><div class="h"><span class="t">Déjà en place</span></div>
+          <p>Consentement horodaté à la 1re connexion · données prévues au <b>Canada</b> · base verrouillée par défaut · journal des accès · interdiction par défaut d'analyse des commentaires par IA.</p>
+        </div>
+        <div class="opt"><div class="h"><span class="t">En rédaction</span></div>
+          <p>Politique de confidentialité · EFVP courte (incluant la communication hors Québec — le « Canada Central » est en Ontario) · entente d'encadrement Corda ↔ MRC/CERGO · procédure d'accès et de rectification.</p>
+        </div>
+        <div class="opt hold"><div class="h"><span class="t">Le choix stratégique</span></div>
+          <p>Conformité minimale (répondre à la loi) <b>ou</b> conformité exemplaire, vitrine pour vendre à des organismes publics — les municipalités achètent la confiance autant que l'outil.</p>
+        </div>
+      </div>
+      <div class="qbanner"><span class="lab">À trancher</span><span class="q">Quel niveau vise-t-on — et qui signe comme responsable des renseignements personnels ?</span></div>
+    </div>
+  </section>
+
+  <!-- 7 · Q3 FONCTIONNALITÉS -->
+  <section class="slide" aria-label="Question 3 — Fonctionnalités">
+    <div class="eyebrow"><span class="qn">Q3 / 5</span> · Fonctionnalités</div>
+    <h2>Après la cotation : converger, puis chiffrer</h2>
+    <div class="mcard">
+      <div class="mdesc">La cotation révèle les <b>divergences</b> entre villes — c'est sa force, mais la MRC doit ensuite atterrir sur une position commune. Deux chantiers candidats pour la suite :</div>
+      <div class="opts c2">
+        <div class="opt"><div class="h"><span class="t">Orchestrateur de compromis</span><span class="tag">style Delphi / Polis</span></div>
+          <p><b>Delphi</b> : rondes anonymes où chaque répondant revoit sa cote à la lumière des arguments des autres, jusqu'à convergence. <b>Polis</b> : cartographie des opinions qui révèle les zones de consensus cachées entre villes.</p>
+          <div class="bous"><span class="g p"><b>＋</b><span>transforme l'outil de mesure en outil de médiation — personne d'autre n'offre ça au municipal</span></span><span class="g m"><b>−</b><span>gros chantier ; exige un cadre méthodologique validé par la recherche</span></span></div>
+        </div>
+        <div class="opt"><div class="h"><span class="t">Calculateur d'impact fiscal</span><span class="tag">déjà en teaser dans le menu</span></div>
+          <p>Pour une mesure retenue : assiette estimée × taux envisagé = <b>revenus simulés</b> pour la ville, avec scénarios comparables (prudent / médian / ambitieux).</p>
+          <div class="bous"><span class="g p"><b>＋</b><span>répond à LA question des élus : « combien ça rapporte ? » ; complète le cycle décision → action</span></span><span class="g m"><b>−</b><span>exige des données d'assiette par ville (rôle d'évaluation, données ouvertes)</span></span></div>
+        </div>
+      </div>
+      <div class="qbanner"><span class="lab">À trancher</span><span class="q">Lequel des deux crée le plus de valeur pour le mandat actuel — et lequel définit le produit à long terme ?</span></div>
+    </div>
+  </section>
+
+  <!-- 8 · Q4 MODÈLE D'AFFAIRES -->
+  <section class="slide" aria-label="Question 4 — Modèle d'affaires">
+    <div class="eyebrow"><span class="qn">Q4 / 5</span> · Modèle d'affaires</div>
+    <h2>Comment l'outil vit-il après le mandat ?</h2>
+    <div class="mcard">
+      <div class="mdesc">Acquis : la <b>propriété intellectuelle de l'outil est chez Corda</b> ; la grille scientifique reste celle de l'équipe de recherche, dûment créditée. Le mandat MRC finance la V1 — la suite, elle, se choisit.</div>
+      <div class="opts c3">
+        <div class="opt"><div class="h"><span class="t">A · Licence par mandat</span></div>
+          <p>Chaque nouvelle MRC ou ville = un projet facturé, clé en main, avec accompagnement.</p>
+          <div class="bous"><span class="g p"><b>＋</b><span>simple, colle au rythme de la recherche</span></span><span class="g m"><b>−</b><span>revenus ponctuels, dépend du réseau</span></span></div>
+        </div>
+        <div class="opt"><div class="h"><span class="t">B · Abonnement</span></div>
+          <p>La MRC garde l'outil à l'année : suivi des mesures, nouvelles rondes de cotation, mises à jour.</p>
+          <div class="bous"><span class="g p"><b>＋</b><span>récurrent, fidélise, finance l'évolution</span></span><span class="g m"><b>−</b><span>exige du support et une vraie feuille de route</span></span></div>
+        </div>
+        <div class="opt"><div class="h"><span class="t">C · Service-conseil augmenté</span></div>
+          <p>L'outil n'est pas vendu : il est l'avantage concurrentiel des mandats-conseil Corda en écofiscalité.</p>
+          <div class="bous"><span class="g p"><b>＋</b><span>marges du conseil, différenciation forte</span></span><span class="g m"><b>−</b><span>croissance limitée par les heures disponibles</span></span></div>
+        </div>
+      </div>
+      <div class="qbanner"><span class="lab">À trancher</span><span class="q">Quel modèle (ou quel mélange) — et comment s'articule-t-il avec l'ENAP/CERGO ?</span></div>
+    </div>
+  </section>
+
+  <!-- 9 · Q5 HORS-QUÉBEC -->
+  <section class="slide" aria-label="Question 5 — Expansion hors-Québec">
+    <div class="eyebrow"><span class="qn">Q5 / 5</span> · Expansion hors-Québec</div>
+    <h2>Rêver plus grand change les plans dès maintenant</h2>
+    <div class="mcard">
+      <div class="mdesc">Les 37 mesures actuelles sont ancrées dans le <b>droit municipal québécois</b>. Sortir du Québec, ce n'est pas traduire l'interface : c'est décider que le catalogue de mesures, les lois de protection des données et la langue deviennent des <b>variables par juridiction</b>.</div>
+      <div class="opts c3">
+        <div class="opt"><div class="h"><span class="t">Catalogue juridique</span></div>
+          <p>Un catalogue de mesures par province ou pays (pouvoirs municipaux différents), la grille de cotation restant commune.</p>
+        </div>
+        <div class="opt"><div class="h"><span class="t">Cadres de données</span></div>
+          <p>Loi 25 au Québec · LPRPDE ailleurs au Canada · RGPD en Europe — la résidence des données et les gabarits juridiques suivent le client.</p>
+        </div>
+        <div class="opt"><div class="h"><span class="t">Langues</span></div>
+          <p>Interface bilingue FR/EN au minimum pour le reste du Canada ; l'architecture actuelle (textes centralisés) le permet sans refonte.</p>
+        </div>
+      </div>
+      <div class="qbanner"><span class="lab">À trancher</span><span class="q">Horizon : Québec d'abord, Canada ensuite, ou d'emblée bilingue ? La réponse dicte des choix d'architecture dès la V1.</span></div>
+    </div>
+  </section>
+
+  <!-- 10 · SYNTHÈSE INTERACTIVE -->
+  <section class="slide" aria-label="Synthèse et verdicts" style="justify-content:center">
+    <div class="eyebrow">Synthèse — le tableau de bord de la rencontre</div>
+    <h2>Nos verdicts du jour</h2>
+    <p class="lede">Cliquez le verdict de chaque question au fil de la discussion — comme dans l'app.</p>
+    <div class="recap" id="recap">
+      <div class="row" data-q="q1"><span class="n">Q1</span><span class="t">Plateforme — web + repli local ?</span><span class="verdict"></span></div>
+      <div class="row" data-q="q2"><span class="n">Q2</span><span class="t">Sécurité — niveau visé et responsable RP</span><span class="verdict"></span></div>
+      <div class="row" data-q="q3"><span class="n">Q3</span><span class="t">Fonctionnalités — compromis vs calculateur</span><span class="verdict"></span></div>
+      <div class="row" data-q="q4"><span class="n">Q4</span><span class="t">Modèle d'affaires — licence / abonnement / conseil</span><span class="verdict"></span></div>
+      <div class="row" data-q="q5"><span class="n">Q5</span><span class="t">Hors-Québec — horizon et bilinguisme</span><span class="verdict"></span></div>
+    </div>
+    <div class="next">
+      <div class="step"><b>Dossier de validation</b><small>règles de calcul + descriptions + décisions Loi 25 — cases à cocher, une rencontre</small></div>
+      <div class="step"><b>Cercle fermé ~1 mois</b><small>accès par codes seulement, walkthrough guidé, 1 ville pilote avant les 7</small></div>
+      <div class="step"><b>Retours en continu</b><small>Ctrl+Alt+A dans l'app : chaque idée devient une annotation traçée</small></div>
+    </div>
+    <p class="recap-note">Les verdicts restent enregistrés dans ce navigateur — rouvrez la présentation pour les retrouver.</p>
+  </section>
+
+  <div class="hud">
+    <span class="count" id="count">1 / 10</span>
+    <span class="spacer"></span>
+    <button type="button" id="prev" aria-label="Diapositive précédente">←</button>
+    <button type="button" id="next" aria-label="Diapositive suivante">→</button>
+  </div>
+</div></div>
+
+<script>
+"use strict";
+(function(){
+  const slides=[...document.querySelectorAll('.slide')];
+  let cur=0;
+  const count=document.getElementById('count'), prog=document.getElementById('prog');
+  function show(i){
+    i=Math.max(0, Math.min(slides.length-1, i));
+    slides.forEach((s,j)=>{ s.classList.toggle('on', j===i); s.classList.toggle('prev', j<i); });
+    cur=i;
+    count.textContent=(i+1)+' / '+slides.length;
+    prog.style.width=((i+1)/slides.length*100)+'%';
+  }
+  document.getElementById('next').onclick=()=>show(cur+1);
+  document.getElementById('prev').onclick=()=>show(cur-1);
+  document.addEventListener('keydown',e=>{
+    if(e.target.closest('button')) { if(e.key==='ArrowRight'||e.key==='ArrowLeft'){} else return; }
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){ e.preventDefault(); show(cur+1); }
+    if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); show(cur-1); }
+    if(e.key==='Home'){ show(0); } if(e.key==='End'){ show(slides.length-1); }
+  });
+
+  /* verdicts interactifs (persistés localement) */
+  const KEY='presentation-vision-verdicts';
+  let verdicts={}; try{ verdicts=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){}
+  const LABELS=[['dec','Décidé ✓'],['creu','À creuser'],['rep','Reporté']];
+  document.querySelectorAll('#recap .row').forEach(row=>{
+    const q=row.dataset.q, host=row.querySelector('.verdict');
+    LABELS.forEach(([k,l])=>{
+      const b=document.createElement('button'); b.type='button'; b.className='vbtn '+k; b.textContent=l;
+      b.setAttribute('aria-pressed', String(verdicts[q]===k));
+      if(verdicts[q]===k) b.classList.add('on');
+      b.onclick=()=>{
+        verdicts[q]=(verdicts[q]===k)?null:k;
+        host.querySelectorAll('.vbtn').forEach(x=>{ x.classList.remove('on'); x.setAttribute('aria-pressed','false'); });
+        if(verdicts[q]){ b.classList.add('on'); b.setAttribute('aria-pressed','true'); }
+        try{ localStorage.setItem(KEY, JSON.stringify(verdicts)); }catch(e){}
+      };
+      host.appendChild(b);
+    });
+  });
+  show(0);
+})();
+</script>
+</body>
+</html>
