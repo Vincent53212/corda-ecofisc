@@ -460,7 +460,8 @@ const remote = {
     let r=await call();
     if(r.status===401 && this.session){ await this.refresh(); r=await call(); }
     if(!r.ok) throw new Error('REST '+r.status+' — '+(await r.text()).slice(0,200));
-    return r.status===204 ? null : r.json(); },
+    const txt=await r.text(); /* les écritures return=minimal renvoient un corps VIDE */
+    return txt ? JSON.parse(txt) : null; },
   /* ---- Edge Functions (canal des villes) ---- */
   async fn(name, body){
     const r=await fetch(SUPABASE_URL+'/functions/v1/'+name, {method:'POST',
@@ -496,11 +497,15 @@ const remote = {
   _mapCode(r){ return {code:r.code, ville:r.ville, project:r.project_id,
     person:r.prenom?{prenom:r.prenom, nom:r.nom, fonction:r.fonction}:null,
     createdAt:r.created_at, claimedAt:r.claimed_at, consentAt:r.consent_at}; },
+  async restAll(pathBase){ /* PostgREST plafonne à 1000 lignes/requête → pagination par offset (ordre stable requis) */
+    const out=[]; const PAGE=1000; let off=0;
+    for(;;){ const rows=await this.rest(pathBase+'&limit='+PAGE+'&offset='+off);
+      out.push(...rows); if(rows.length<PAGE) return out; off+=PAGE; } },
   async loadAll(){
     const [projs, codes, resps]=await Promise.all([
       this.rest('projects?select=*&deleted_at=is.null&order=created_at'),
-      this.rest('access_codes?select=*&order=created_at'),
-      this.rest('responses?select=code,measure_id,criterion_id,cote,comment,updated_at'),
+      this.restAll('access_codes?select=*&order=code'),
+      this.restAll('responses?select=code,measure_id,criterion_id,cote,comment,updated_at&order=code,measure_id,criterion_id'),
     ]);
     const d={projects:projs.map(p=>({id:p.id, title:p.title, type:p.type, villes:p.villes, createdAt:p.created_at})),
       codes:codes.map(r=>this._mapCode(r)), responses:{}, archived:[]};
@@ -514,12 +519,14 @@ const remote = {
       if(op.t==='response.set') await this.fn('ville-set', {code:op.code, measureId:op.measureId, critId:op.critId, cote:op.cote, comment:op.comment});
       return; /* code.claim déjà traité par ville-claim au login */
     }
+    /* la file sync rejoue les opérations en cas d'échec réseau → chaque écriture doit être
+       IDEMPOTENTE : les POST deviennent des upserts (merge-duplicates), DELETE/PATCH le sont déjà */
     switch(op.t){
-      case 'project.create': await this.rest('projects',{method:'POST', prefer:'return=minimal',
+      case 'project.create': await this.rest('projects?on_conflict=id',{method:'POST', prefer:'resolution=merge-duplicates,return=minimal',
         body:JSON.stringify({id:op.project.id, title:op.project.title, type:op.project.type, villes:op.project.villes, created_at:op.project.createdAt})}); break;
       case 'project.delete': await this.rest('projects?id=eq.'+encodeURIComponent(op.id),{method:'PATCH', prefer:'return=minimal',
         body:JSON.stringify({deleted_at:new Date().toISOString()})}); break; /* archivage doux — destruction réelle à l'échéance (schema.sql) */
-      case 'code.create': await this.rest('access_codes',{method:'POST', prefer:'return=minimal',
+      case 'code.create': await this.rest('access_codes?on_conflict=code',{method:'POST', prefer:'resolution=merge-duplicates,return=minimal',
         body:JSON.stringify({code:op.code.code, project_id:op.code.project, ville:op.code.ville, created_at:op.code.createdAt})}); break;
       case 'code.delete': await this.rest('access_codes?code=eq.'+encodeURIComponent(op.code),{method:'DELETE', prefer:'return=minimal'}); break;
       default: /* code.claim côté admin : sans objet */ break;
