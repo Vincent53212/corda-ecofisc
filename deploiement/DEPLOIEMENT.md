@@ -80,14 +80,22 @@ Juste **Project URL** + **anon public key** (les deux publiques). Avec ça je br
 
 ---
 
-## PARTIE C — Brancher les deux (le code — c'est MOI)
-> Je le construis et te donne, pour chaque morceau, les étapes exactes (boutons cPanel / Supabase, ou commandes à copier-coller).
+## PARTIE C — Brancher les deux (code fait ✅ — reste 2 collages)
 
-- **C1. Edge Functions « villes »** (`ville-claim`, `ville-get`, `ville-set`) : la porte serveur qui valide un code et lit/écrit seulement **ses** réponses (clé `service_role` côté serveur, jamais exposée).
-- **C2. Brancher `index.html`** sur ta base : mode « en ligne » (lit/écrit dans Supabase) avec **repli localStorage** si pas de config. L'admin parle à la base (auth Supabase) ; les villes passent par les Edge Functions.
-- **C3. Autoriser ton domaine (CORS)** : déclarer `https://ecofisc.corda.consulting` comme origine permise côté Supabase, pour que la page hébergée sur cPanel ait le droit d'appeler la base.
-- **C4. Re-téléverser** les fichiers finaux sur cPanel (re-upload via File Manager) — le contenu regénéré de `deploiement/dist/`, comme en Partie A.
-- **C5. Test de bout en bout** : admin génère un code → une « ville » se connecte depuis un **autre appareil** sur `ecofisc.corda.consulting` → code → ses réponses atterrissent dans Supabase → l'admin les voit dans le Portrait.
+**C1. Déployer les 2 Edge Functions (~10 min, 🧑)** — la porte serveur des villes : valide un code, applique le rate-limit, n'écrit que **ses** réponses (clé `service_role` côté serveur, jamais exposée). Pour **chacun** des deux fichiers du dossier `deploiement/edge/` :
+1. **Supabase → Edge Functions → Deploy a new function → Via Editor.**
+2. Nomme la fonction **exactement** : `ville-claim` (pour `ville-claim.ts`), puis `ville-set` (pour `ville-set.ts`).
+3. Efface le code d'exemple, **colle tout le contenu** du fichier `.ts`, clique **Deploy**.
+4. ⚠ Dans les détails de la fonction : **désactive « Enforce JWT verification »** (nos clés *publishable* ne sont pas des JWT — la vraie clé d'entrée est le code d'accès, validé DANS la fonction, avec anti force-brute).
+- *(Rien d'autre à configurer : la `service_role` est déjà injectée automatiquement dans l'environnement des fonctions.)*
+
+**C2. Frontend branché ✅** : `index.html` (dist) contient l'URL du projet + la clé publishable. Mode « en ligne » automatique, **repli localStorage** si le serveur est injoignable. Admin = auth Supabase (courriel + mot de passe) ; villes = Edge Functions ; le placeholder `Corda$2026` ne fonctionne plus qu'en mode local.
+
+**C3. CORS ✅** : géré dans les fonctions elles-mêmes (origines admises : `https://ecofisc.corda.consulting` + local de test). REST/Auth Supabase acceptent le domaine par défaut.
+
+**C4. Re-téléverser `deploiement/dist/`** sur cPanel (File Manager, comme en Partie A) après chaque regénération.
+
+**C5. Test de bout en bout** : admin (courriel) génère un code → une « ville » se connecte depuis un **autre appareil** sur `ecofisc.corda.consulting` → code → consentement → cotation → les réponses atterrissent dans Supabase → l'admin les voit dans le Portrait. Codes de démo serveur : ceux de `seed-demo.sql` (dont `LOR-DEMO02`, volontairement non réclamé).
 
 ---
 

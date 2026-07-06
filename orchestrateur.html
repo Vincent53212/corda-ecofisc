@@ -294,11 +294,15 @@ body.anno-on .anno-hint{display:block}
         </svg>
         <h2>Orchestrateur</h2>
         <div class="lede">Analyse multicritère des mesures fiscales. Entrez votre code d'accès.</div>
-        <label class="sr-only" for="codeInput">Code d'accès</label>
-        <input type="text" id="codeInput" placeholder="Code d'accès" autocomplete="off" spellcheck="false">
+        <label class="sr-only" for="codeInput">Code d'accès ou courriel administrateur</label>
+        <input type="text" id="codeInput" placeholder="Code d'accès (ou courriel admin)" autocomplete="off" spellcheck="false">
+        <div id="pwWrap" hidden>
+          <label class="sr-only" for="pwInput">Mot de passe administrateur</label>
+          <input type="password" id="pwInput" placeholder="Mot de passe" autocomplete="current-password" style="margin-top:10px">
+        </div>
         <div class="btnrow" style="margin-top:14px"><button class="btn primary" id="loginBtn" style="flex:1">Entrer</button></div>
         <div class="err" id="loginErr"></div>
-        <div class="login-hint"><b>Accès réservé.</b> Admins : identifiants fournis par l'équipe MRC/CERGO. Villes : votre code personnel.</div>
+        <div class="login-hint"><b>Accès réservé.</b> Admins : courriel + mot de passe fournis par l'équipe. Villes : votre code personnel.</div>
       </div></div>
     </section>
 
@@ -429,13 +433,107 @@ if(!window.Rules){
 }
 const {DIMENSIONS, ALLCRIT, NCRIT, CATS, MEASURES, DESCRIPTIONS, APPREC, RECO, apprec, reco, villeMoyenne, mrcSynthese} = window.Rules;
 
+/* ===================== CONFIG EN LIGNE (Supabase — Bloc 4) =====================
+   Ces deux valeurs sont PUBLIQUES par conception (elles vivent dans la page) :
+   la sécurité repose sur la RLS (base verrouillée) + les Edge Functions.
+   La clé service_role, elle, ne se trouve QUE dans Supabase. */
+const SUPABASE_URL='https://sxshynpgiaeievdurjbk.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_cfWjA1GjG8TEwCRa2AORXQ_k0_pEE57';
+const ADMIN_SESSION_KEY='orchestrateur-admin-session-v1';
+
+/* Adaptateur Supabase — se branche sur la couture sync (Bloc 3.5).
+   Trois canaux : Auth (admin, courriel+mdp) · REST/RLS (lectures-écritures admin)
+   · Edge Functions (villes : le code d'accès est la seule clé, validée serveur). */
+const remote = {
+  ok:false, session:null,
+  _hdrs(){ const h={apikey:SUPABASE_ANON_KEY, 'Content-Type':'application/json'};
+    h.Authorization='Bearer '+((this.session&&this.session.access_token)||SUPABASE_ANON_KEY); return h; },
+  async ping(){ if(!SUPABASE_URL) return false;
+    try{ const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),5000);
+      const r=await fetch(SUPABASE_URL+'/auth/v1/health',{headers:{apikey:SUPABASE_ANON_KEY}, signal:ctl.signal});
+      clearTimeout(t); return r.ok;
+    }catch(e){ return false; } },
+  /* ---- REST (PostgREST) avec re-essai après refresh si session expirée ---- */
+  async rest(path, opt){ opt=opt||{};
+    const call=async()=>{ const h=Object.assign(this._hdrs(), opt.prefer?{Prefer:opt.prefer}:{});
+      return fetch(SUPABASE_URL+'/rest/v1/'+path, {method:opt.method||'GET', headers:h, body:opt.body}); };
+    let r=await call();
+    if(r.status===401 && this.session){ await this.refresh(); r=await call(); }
+    if(!r.ok) throw new Error('REST '+r.status+' — '+(await r.text()).slice(0,200));
+    return r.status===204 ? null : r.json(); },
+  /* ---- Edge Functions (canal des villes) ---- */
+  async fn(name, body){
+    const r=await fetch(SUPABASE_URL+'/functions/v1/'+name, {method:'POST',
+      headers:{apikey:SUPABASE_ANON_KEY, Authorization:'Bearer '+SUPABASE_ANON_KEY, 'Content-Type':'application/json'},
+      body:JSON.stringify(body)});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok) throw Object.assign(new Error(j.error||('Erreur serveur ('+r.status+')')),{status:r.status});
+    return j; },
+  /* ---- Auth admin ---- */
+  async signIn(email, pw){
+    const r=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password',{method:'POST',
+      headers:{apikey:SUPABASE_ANON_KEY,'Content-Type':'application/json'}, body:JSON.stringify({email, password:pw})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(j.error_description||j.msg||'Authentification refusée');
+    this.session={access_token:j.access_token, refresh_token:j.refresh_token, email:(j.user&&j.user.email)||email};
+    this._saveSession(); },
+  async refresh(){
+    const s=this.session; if(!s||!s.refresh_token) throw new Error('aucune session');
+    const r=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',
+      headers:{apikey:SUPABASE_ANON_KEY,'Content-Type':'application/json'}, body:JSON.stringify({refresh_token:s.refresh_token})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok){ this.clearSession(); throw new Error('session expirée'); }
+    this.session={access_token:j.access_token, refresh_token:j.refresh_token, email:s.email};
+    this._saveSession(); },
+  _saveSession(){ try{ localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(this.session)); }catch(e){} },
+  loadSession(){ try{ this.session=JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY)); }catch(e){ this.session=null; } return !!this.session; },
+  clearSession(){ this.session=null; try{ localStorage.removeItem(ADMIN_SESSION_KEY); }catch(e){} },
+  /* ---- journal d'audit (Loi 25) — meilleur effort, jamais bloquant ---- */
+  audit(action, detail){ if(!this.session) return;
+    this.rest('audit_log',{method:'POST', prefer:'return=minimal',
+      body:JSON.stringify({actor:'admin:'+this.session.email, action, detail:detail||{}})}).catch(()=>{}); },
+  /* ---- chargement complet (admin) → forme du store local ---- */
+  _mapCode(r){ return {code:r.code, ville:r.ville, project:r.project_id,
+    person:r.prenom?{prenom:r.prenom, nom:r.nom, fonction:r.fonction}:null,
+    createdAt:r.created_at, claimedAt:r.claimed_at, consentAt:r.consent_at}; },
+  async loadAll(){
+    const [projs, codes, resps]=await Promise.all([
+      this.rest('projects?select=*&deleted_at=is.null&order=created_at'),
+      this.rest('access_codes?select=*&order=created_at'),
+      this.rest('responses?select=code,measure_id,criterion_id,cote,comment,updated_at'),
+    ]);
+    const d={projects:projs.map(p=>({id:p.id, title:p.title, type:p.type, villes:p.villes, createdAt:p.created_at})),
+      codes:codes.map(r=>this._mapCode(r)), responses:{}, archived:[]};
+    resps.forEach(r=>{ d.responses[r.code+'|'+r.measure_id+'|'+r.criterion_id]={cote:r.cote, comment:r.comment||'', updatedAt:r.updated_at}; });
+    const prev=store._d && store._d.activeProject;
+    d.activeProject = d.projects.some(p=>p.id===prev) ? prev : (d.projects[0]&&d.projects[0].id) || null;
+    return d; },
+  /* ---- exécution des opérations émises par le store (couture sync) ---- */
+  async push(op){
+    if(state.role==='ville'){ /* les villes ne passent QUE par les Edge Functions */
+      if(op.t==='response.set') await this.fn('ville-set', {code:op.code, measureId:op.measureId, critId:op.critId, cote:op.cote, comment:op.comment});
+      return; /* code.claim déjà traité par ville-claim au login */
+    }
+    switch(op.t){
+      case 'project.create': await this.rest('projects',{method:'POST', prefer:'return=minimal',
+        body:JSON.stringify({id:op.project.id, title:op.project.title, type:op.project.type, villes:op.project.villes, created_at:op.project.createdAt})}); break;
+      case 'project.delete': await this.rest('projects?id=eq.'+encodeURIComponent(op.id),{method:'PATCH', prefer:'return=minimal',
+        body:JSON.stringify({deleted_at:new Date().toISOString()})}); break; /* archivage doux — destruction réelle à l'échéance (schema.sql) */
+      case 'code.create': await this.rest('access_codes',{method:'POST', prefer:'return=minimal',
+        body:JSON.stringify({code:op.code.code, project_id:op.code.project, ville:op.code.ville, created_at:op.code.createdAt})}); break;
+      case 'code.delete': await this.rest('access_codes?code=eq.'+encodeURIComponent(op.code),{method:'DELETE', prefer:'return=minimal'}); break;
+      default: /* code.claim côté admin : sans objet */ break;
+    }
+  },
+};
+
 /* ===================== SYNC (couture backend — Bloc 3.5) =====================
    Façade de synchronisation : aujourd'hui backend=null (mode 100 % local), au
    Bloc 4 on y branche l'adaptateur Supabase {load(), push(op)} SANS toucher à
    l'UI ni au store. Chaque mutation du store émet une opération ; si le réseau
    flanche, la file persiste et repart à la prochaine écriture (repli local). */
 const sync = {
-  backend:null, queue:[], _flushing:false,
+  backend:null, online:false, queue:[], _flushing:false,
   push(op){ if(!this.backend) return; this.queue.push(op); this._flush(); },
   async _flush(){
     if(this._flushing || !this.backend) return; this._flushing=true;
@@ -492,6 +590,7 @@ const store = {
     this._d.codes.forEach(c=>{ if(!c.project) c.project=this._d.projects[0].id; }); /* migration codes pré-projets */
   },
   _save(){ /* retourne true/false — ne plus avaler l'échec (quota plein, stockage bloqué) */
+    if(sync.online) return true; /* en ligne : la vérité vit dans Supabase (via sync) — on ne clobbe PAS le cache local */
     try{ localStorage.setItem(STORE_KEY, JSON.stringify(this._d)); return true; }
     catch(e){ console.error('Échec de sauvegarde locale', e); toast('⚠ Sauvegarde impossible — vos dernières modifications ne sont PAS enregistrées.','err'); return false; } },
   /* ---- projets ---- */
@@ -534,8 +633,8 @@ function syncVilles(){ const p=store.activeProj(); VILLES = p ? p.villes.slice()
 
 /* ===================== ÉTAT (session UI) ===================== */
 const UI_KEY='orchestrateur-ui-v1';
-let state = { role:null, ville:null, person:null, respondentId:null, screen:'Connexion', measure:null, annos:[], anno:false, pendingCode:null };
-(function loadUI(){ try{ const s=JSON.parse(localStorage.getItem(UI_KEY)); if(s) Object.assign(state, s, {anno:false, pendingCode:null}); }catch(e){} })();
+let state = { role:null, ville:null, person:null, respondentId:null, screen:'Connexion', measure:null, annos:[], anno:false, pendingCode:null, pendingOnline:false };
+(function loadUI(){ try{ const s=JSON.parse(localStorage.getItem(UI_KEY)); if(s) Object.assign(state, s, {anno:false, pendingCode:null, pendingOnline:false}); }catch(e){} })();
 function saveUI(){ try{ localStorage.setItem(UI_KEY, JSON.stringify({role:state.role, ville:state.ville, person:state.person, respondentId:state.respondentId, measure:state.measure, annos:state.annos})); }catch(e){} }
 
 /* ===================== HELPERS ===================== */
@@ -613,7 +712,26 @@ function showShell(roleLabel){
 }
 function enterAdmin(){
   state.role='admin'; state.ville=null; state.person=null; state.respondentId=null;
-  syncVilles(); showShell('Admin'); renderProjPill(); renderSide(); go('portrait'); saveUI();
+  syncVilles(); showShell('Admin'+(sync.online?' · en ligne':(remote.ok?'':' · local'))); renderProjPill(); renderSide(); go('portrait'); saveUI();
+}
+/* bascule en mode admin EN LIGNE : session Supabase active → la vérité vient du serveur */
+async function goOnlineAdmin(){
+  const d=await remote.loadAll();
+  sync.online=true; sync.backend=remote;
+  store._d=d; store._normalize();
+  remote.audit('login',{});
+  enterAdmin();
+}
+/* bascule en mode ville EN LIGNE : les données arrivent de ville-claim (jamais de REST direct) */
+function enterVilleOnline(data){
+  sync.online=true; sync.backend=remote;
+  const c=remote._mapCode(data.code);
+  const d={projects:[{id:data.project.id, title:data.project.title, type:data.project.type, villes:data.project.villes, createdAt:data.project.created_at||nowISO()}],
+    codes:[c], responses:{}, archived:[], activeProject:data.project.id};
+  (data.responses||[]).forEach(r=>{ d.responses[c.code+'|'+r.measure_id+'|'+r.criterion_id]={cote:r.cote, comment:r.comment||'', updatedAt:r.updated_at}; });
+  store._d=d; store._normalize();
+  enterVille(c);
+  $('#roleBadge').textContent=$('#roleBadge').textContent+' · en ligne';
 }
 function enterVille(c){
   if(state.anno) toggleAnno(false); /* le mode annotation ne doit jamais suivre dans l'espace ville */
@@ -624,24 +742,68 @@ function enterVille(c){
   go('orchestrateur'); saveUI();
 }
 function logout(){
-  state.role=null; state.ville=null; state.person=null; state.respondentId=null; state.measure=null; state.screen='Connexion';
+  if(sync.online){ /* retour au cache local : la copie mémoire venait du serveur */
+    sync.online=false; sync.backend=null; sync.queue.length=0;
+    remote.clearSession(); store._d=null; store._load(); syncVilles();
+  }
+  state.role=null; state.ville=null; state.person=null; state.respondentId=null; state.measure=null; state.screen='Connexion'; state.pendingCode=null; state.pendingOnline=false;
   $('#shell').classList.add('solo'); $('#side').hidden=true;
   ['projPill','roleBadge'].forEach(i=>$('#'+i).hidden=true);
   if(state.anno) toggleAnno(false);
   $$('.screen').forEach(s=>s.classList.remove('on')); $('#s-login').classList.add('on');
-  $('#codeInput').value=''; $('#loginErr').textContent=''; saveUI();
+  $('#codeInput').value=''; $('#pwInput').value=''; $('#pwWrap').hidden=true; $('#loginErr').textContent=''; saveUI();
 }
-$('#loginBtn').onclick=()=>{
+$('#loginBtn').onclick=async ()=>{
+  const err=m=>{ $('#loginErr').textContent=m||''; };
   const v=$('#codeInput').value.trim();
-  if(!v){ $('#loginErr').textContent='Entrez un code.'; return; }
-  if(v===ADMIN_CODE){ $('#loginErr').textContent=''; enterAdmin(); return; }
+  if(!v){ err('Entrez un code ou votre courriel.'); return; }
+
+  /* ---- admin EN LIGNE : courriel + mot de passe (auth Supabase) ---- */
+  if(v.includes('@')){
+    if(!remote.ok){ err('Serveur injoignable — l\'accès admin par courriel exige la connexion.'); return; }
+    if($('#pwWrap').hidden){ $('#pwWrap').hidden=false; err(''); $('#pwInput').focus(); return; }
+    const pw=$('#pwInput').value;
+    if(!pw){ err('Entrez votre mot de passe.'); return; }
+    err(''); $('#loginBtn').disabled=true;
+    try{ await remote.signIn(v, pw); await goOnlineAdmin(); }
+    catch(e){ err('Courriel ou mot de passe refusé.'); console.error(e); }
+    finally{ $('#loginBtn').disabled=false; }
+    return;
+  }
+
+  /* ---- placeholder admin : UNIQUEMENT en repli local (aucune valeur en ligne) ---- */
+  if(v===ADMIN_CODE){
+    if(remote.ok){ err('En ligne, l\'accès admin passe par votre courriel + mot de passe.'); return; }
+    err(''); enterAdmin(); return;
+  }
+
+  /* ---- ville EN LIGNE : le code est validé par l'Edge Function (rate-limit serveur) ---- */
+  if(remote.ok){
+    err(''); $('#loginBtn').disabled=true;
+    try{
+      const data=await remote.fn('ville-claim',{code:v});
+      $('#loginBtn').disabled=false;
+      if(!data.code.prenom){ state.pendingCode=data.code.code; state.pendingOnline=true; showFirstConnOnline(data); }
+      else enterVilleOnline(data);
+      return;
+    }catch(e){
+      $('#loginBtn').disabled=false;
+      if(e.status===401){ err('Code inconnu. Vérifiez la saisie.'); return; }
+      if(e.status===429){ err('Trop de tentatives — réessayez dans une quinzaine de minutes.'); return; }
+      if(e.status===410){ err('Ce projet est archivé.'); return; }
+      console.error('Edge Function injoignable — repli local.', e); /* réseau/CORS → on tente le cache local */
+    }
+  }
+
+  /* ---- repli local (hors ligne ou serveur injoignable) ---- */
   const c=store.findCode(v);
-  if(!c){ $('#loginErr').textContent='Code inconnu. Vérifiez la saisie.'; return; }
-  $('#loginErr').textContent='';
-  if(!c.person){ state.pendingCode=c.code; showFirstConn(c); }
+  if(!c){ err('Code inconnu. Vérifiez la saisie.'); return; }
+  err('');
+  if(!c.person){ state.pendingCode=c.code; state.pendingOnline=false; showFirstConn(c); }
   else { enterVille(c); }
 };
 $('#codeInput').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
+$('#pwInput').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
 function showFirstConn(c){
   const v=VILLES.find(x=>x.id===c.ville);
   $('#fcVille').textContent=v?v.nom:'—';
@@ -650,10 +812,25 @@ function showFirstConn(c){
   $('#fcErr').textContent=''; $('#fcPrenom').value=''; $('#fcNom').value=''; $('#fcFonction').value=''; $('#fcConsent').checked=false;
   $$('.screen').forEach(s=>s.classList.remove('on')); $('#s-firstconn').classList.add('on');
 }
-$('#fcBtn').onclick=()=>{
+function showFirstConnOnline(data){ /* variante en ligne : les noms viennent de ville-claim, pas du cache local */
+  const v=(data.project.villes||[]).find(x=>x.id===data.code.ville);
+  $('#fcVille').textContent=v?v.nom:'—';
+  $('#fcProjet').textContent=data.project.title||'—';
+  $('#fcErr').textContent=''; $('#fcPrenom').value=''; $('#fcNom').value=''; $('#fcFonction').value=''; $('#fcConsent').checked=false;
+  $$('.screen').forEach(s=>s.classList.remove('on')); $('#s-firstconn').classList.add('on');
+}
+$('#fcBtn').onclick=async ()=>{
   const prenom=$('#fcPrenom').value.trim(), nom=$('#fcNom').value.trim(), fonction=$('#fcFonction').value.trim();
   if(!prenom||!nom||!fonction){ $('#fcErr').textContent='Remplissez les trois champs.'; return; }
   if(!$('#fcConsent').checked){ $('#fcErr').textContent="Veuillez lire l'avis et cocher la case de consentement."; return; }
+  if(state.pendingOnline){ /* réclamation côté serveur : identité + consentement horodatés par l'Edge Function */
+    $('#fcBtn').disabled=true;
+    try{ const data=await remote.fn('ville-claim',{code:state.pendingCode, person:{prenom, nom, fonction}, consent:true});
+      state.pendingCode=null; state.pendingOnline=false; enterVilleOnline(data); }
+    catch(e){ $('#fcErr').textContent=e.message||'Erreur serveur — réessayez.'; }
+    finally{ $('#fcBtn').disabled=false; }
+    return;
+  }
   const c=store.claimCode(state.pendingCode, {prenom, nom, fonction}); /* claimCode horodate le consentement (consentAt) */
   state.pendingCode=null;
   if(c) enterVille(c);
@@ -963,6 +1140,7 @@ async function exportExcel(){
     ws.columns.forEach((col,i)=>{ col.width = i===0?22 : i===1?38 : (i>=2 && i<2+ALLCRIT.length)?7 : 16; });
   });
 
+  if(sync.online) remote.audit('export',{project:store.activeId()}); /* journal Loi 25 : export nominatif */
   const buf=await wb.xlsx.writeBuffer();
   const blob=new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='Portrait-orchestrateur-MRC.xlsx';
@@ -1105,6 +1283,7 @@ function renderProjets(){
    Volontairement LOCAL seulement (pas de sync.push) : en ligne, le même jeu de
    données s'installe côté Supabase via deploiement/seed-demo.sql. */
 function resetDemoProject(){
+  if(sync.online){ toast('En ligne, le projet Démo se réinitialise côté serveur : rejouer seed-demo.sql dans Supabase.','err'); return; }
   if(!window.DemoData){ toast('Fichier demo-data.js introuvable — à téléverser avec l\'app.','err'); return; }
   const ds=window.DemoData.build();
   const d=store._load();
@@ -1117,11 +1296,28 @@ function resetDemoProject(){
   if(store._save()){ syncVilles(); renderProjPill(); toast('Projet Démo prêt — données fictives chargées'); go('portrait'); }
 }
 
-/* ===================== BOOT (async — couture Bloc 3.5) ===================== */
+/* ===================== BOOT (async — couture Bloc 3.5 · en ligne Bloc 4) ===================== */
 (async function boot(){
   await store.init(); syncVilles();
   renderAnnoList();
-  if(state.role==='admin'){ enterAdmin(); }
+  remote.ok = await remote.ping();
+
+  /* session admin Supabase encore valide ? → reprise en ligne */
+  if(remote.ok && remote.loadSession()){
+    try{ await remote.refresh(); await goOnlineAdmin(); return; }
+    catch(e){ remote.clearSession(); console.error('Session admin expirée.', e); }
+  }
+  /* session ville en cours ? → revalider le code auprès du serveur */
+  if(remote.ok && state.role==='ville' && state.respondentId){
+    try{ const data=await remote.fn('ville-claim',{code:state.respondentId});
+      if(data.code.prenom){ enterVilleOnline(data); return; } }
+    catch(e){ console.error('Reprise en ligne impossible — repli local.', e); }
+  }
+
+  if(state.role==='admin'){
+    if(remote.ok){ logout(); } /* en ligne, le placeholder local ne se restaure pas : vrai login requis */
+    else enterAdmin();
+  }
   else if(state.role==='ville' && state.ville && state.respondentId){ const c=store.findCode(state.respondentId); if(c&&c.project) store.setActive(c.project); syncVilles(); const v=VILLES.find(x=>x.id===state.ville); showShell('Ville · '+(v?v.nom:'—')); renderSide(); go('orchestrateur'); }
   else { logout(); }
 })();
