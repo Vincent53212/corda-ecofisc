@@ -4,6 +4,8 @@
 >
 > **v2 du 2026-07-01** — révision autonome du plan v1 (approuvée par Vincent), après achèvement des Blocs 0-2. Source d'origine : `déploiement_révision_1.md` (3 réviseurs : normes admin publique · sécurité · dev). Changement majeur : **le goulot n'est pas le code, c'est la latence de validation (Fanny)** → toutes les validations sont **batchées** dans un dossier unique, et le travail technique se poursuit en parallèle de l'attente.
 
+> **Intermède « coffre-fort » (2026-07-05 soir, décision Vincent)** : DevTools exposait tout le savoir-faire (grille, règles, descriptions). Ré-architecture : **contenu servi après authentification + moteur compilé dans les Edge Functions** — la page publique est une coquille minifiée sans contenu métier ; les recommandations arrivent calculées du serveur ; le mode local et `Corda$2026` sont retirés (app en ligne seulement). `rules.js` reste la source unique testée, compilée côté serveur par `tools/gen-edge-functions.js`.
+
 ## 🏃 Sprint 4 jours (avant la rencontre)
 - **J1 (2026-07-05) ✅ 🤖** : `schema.sql` v2 (`017de7c`) · Bloc 3.5 complet + consentement art. 8 + projet Démo + paquet `dist/` + correctif mobile (`3732695`) · README non-initié · présentation d'équipe.
 - **J1 🧑 (~40 min de clics, peut se faire dès maintenant)** : Partie A cPanel (sous-domaine + téléverser `dist/` + AutoSSL) · Partie B Supabase (projet **région Canada**, rouler `schema.sql` v2 puis `seed-demo.sql`, désactiver les inscriptions, comptes admin, m'envoyer **Project URL + anon key** seulement).

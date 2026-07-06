@@ -1,0 +1,9 @@
+{
+  // Config de VALIDATION locale (deno check) des fonctions générées.
+  // Le moteur inliné vient de rules.js (JS pur) → pas de typage strict.
+  // Le dashboard Supabase n'utilise pas ce fichier (déploiement inchangé).
+  "compilerOptions": {
+    "strict": false,
+    "noImplicitAny": false
+  }
+}

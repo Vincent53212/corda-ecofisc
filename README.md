@@ -38,42 +38,44 @@ chacune dans son projet étanche. La propriété intellectuelle de l'outil est c
 
 ## 2. Comment les morceaux s'emboîtent
 
-Trois couches, du plus visible au plus caché :
+Le principe directeur : **la page publique est une coquille — tout ce qui a de la
+valeur vit au serveur** (architecture « coffre-fort »). Un curieux qui inspecte le site
+ne voit ni les questions, ni les mesures, ni les règles de calcul : ce contenu n'arrive
+qu'après authentification, et les recommandations sont calculées côté serveur.
 
 ```
-┌─ Ce que les gens voient ──────────────────────────────────────────┐
-│  orchestrateur.html    l'application entière (écrans, boutons)    │
-│    │ utilise                                                      │
-│  rules.js              LE CERVEAU : les 22 questions, les règles  │
-│    │                   de calcul, le catalogue des 37 mesures     │
-│  demo-data.js          un projet « Démo » en données fictives     │
+┌─ Le site public (cPanel · ecofisc.corda.consulting) ──────────────┐
+│  dist/index.html      coquille minifiée : écrans vides + login    │
+│                       (généré depuis orchestrateur.html)          │
+└──────────────────────────────┬────────────────────────────────────┘
+                     authentification (code ville ou compte admin)
+┌─ Le serveur (Supabase · région Canada) ─────────▼─────────────────┐
+│  Edge Functions       LE CERVEAU : questions, catalogue,          │
+│  (générées depuis     descriptions, règles de calcul — livre le   │
+│   rules.js)           contenu et retourne des RÉSULTATS calculés  │
+│  Base Postgres        codes d'accès, réponses, consentements,     │
+│  (verrouillée, RLS)   journal d'audit — rien n'en sort sans droit │
 └───────────────────────────────────────────────────────────────────┘
-┌─ Ce qui garantit la qualité ──────────────────────────────────────┐
-│  tests/                29 tests automatiques du cerveau : toute   │
-│                        modification des règles doit les passer    │
-│  docs/methodologie.md  les règles réécrites en français clair     │
-│                        (c'est ce que Fanny valide)                │
-└───────────────────────────────────────────────────────────────────┘
-┌─ Ce qui prépare la mise en ligne ─────────────────────────────────┐
-│  deploiement/          le mode d'emploi pas-à-pas (DEPLOIEMENT.md),│
-│                        le plan de travail, la base de données      │
-│                        (schema.sql), le paquet prêt à téléverser   │
-│                        (dist/), la révision de sécurité            │
+┌─ L'atelier (ce dépôt) ────────────────────────────────────────────┐
+│  rules.js             la SOURCE UNIQUE du cerveau (compilée vers  │
+│                       le serveur par tools/gen-edge-functions.js) │
+│  tests/               29 tests automatiques : toute modification  │
+│                       des règles doit les passer                  │
+│  docs/methodologie.md les règles en français clair (validation)   │
+│  deploiement/         mode d'emploi, schéma SQL, paquet dist/,    │
+│                       fonctions serveur générées (edge/)          │
 └───────────────────────────────────────────────────────────────────┘
 ```
 
-**Pourquoi `rules.js` est séparé ?** Pour qu'il n'existe qu'**une seule** version de la
-vérité. La même règle de calcul sert à l'écran du répondant, au Portrait, à l'export
-Excel — et demain au serveur. Si Fanny décide de changer une règle (ex. l'arrondi des
-moyennes), on modifie **quelques lignes à un seul endroit**, les 29 tests confirment que
-rien d'autre n'a bougé, et tout l'écosystème suit.
+**Pourquoi `rules.js` reste séparé ?** Pour qu'il n'existe qu'**une seule** version de
+la vérité. Si Fanny décide de changer une règle (ex. l'arrondi des moyennes), on modifie
+**quelques lignes à un seul endroit**, les 29 tests confirment que rien d'autre n'a
+bougé, on regénère les fonctions serveur, et tout l'écosystème suit.
 
-**Où vivent les données ?** Aujourd'hui, dans le navigateur de chaque personne
-(« localStorage » : un carnet privé que le navigateur garde sur l'appareil). C'est
-parfait pour prototyper, mais rien n'est partagé entre appareils. La **Phase B** branche
-une base de données centralisée (**Supabase**, hébergée au **Canada** — exigence de la
-Loi 25 puisqu'on recueille des noms de représentants municipaux). L'app est déjà cousue
-pour cette bascule : le jour venu, on branche l'adaptateur sans réécrire l'interface.
+**Où vivent les données ?** Dans **Supabase, région Canada** (exigence de la Loi 25
+puisqu'on recueille des noms de représentants municipaux) : base verrouillée par défaut,
+consentements horodatés, journal des accès, anti force-brute sur les codes. L'app est
+**en ligne seulement** — aucun contenu ni donnée n'est entreposé dans les navigateurs.
 
 ## 3. Où en est le chantier
 
@@ -85,8 +87,9 @@ pour cette bascule : le jour venu, on branche l'adaptateur sans réécrire l'int
 | Dossier de validation chez Fanny (règles + descriptions + Loi 25) | 📨 en circulation |
 | Consentement à la 1re connexion (Loi 25, art. 8) | ✅ |
 | Projet « Démo » (données fictives) pour les présentations | ✅ |
-| Mise en ligne sur `ecofisc.corda.consulting` (mode local d'abord) | 🔜 sprint en cours |
-| Backend centralisé (Supabase Canada) + vraie authentification admin | 🔜 sprint en cours |
+| Mise en ligne sur `ecofisc.corda.consulting` (HTTPS + en-têtes de sécurité) | ✅ |
+| Backend centralisé (Supabase Canada) + vraie authentification admin | ✅ |
+| Architecture « coffre-fort » (contenu et calculs servis après authentification) | ✅ |
 | Cadrage Loi 25 complet (politique, EFVP, entente) — **avant toute vraie donnée** | 🔜 |
 | Go-live en cercle fermé (~1 mois), ville pilote, puis les 7 villes | à venir |
 
@@ -94,16 +97,14 @@ Le détail vit dans `deploiement/plan-de-travail.md`.
 
 ## 4. Essayer l'outil en 2 minutes
 
-1. Ouvrir `orchestrateur.html` (double-clic — aucune installation).
-2. Entrer le code admin (voir note ci-dessous) → écran **Projets** → bouton
-   **« Créer / réinitialiser le projet Démo »** : 7 villes et 9 répondants fictifs
-   apparaissent, le Portrait s'anime.
+1. Ouvrir **https://ecofisc.corda.consulting** (l'app est en ligne seulement — le
+   contenu vit au serveur).
+2. **Admin** : courriel + mot de passe (comptes créés à la main dans Supabase) →
+   menu déroulant en haut → projet **« Démo — MRC (données fictives) »** : le Portrait
+   s'anime (7 villes, 9 répondants fictifs).
 3. Pour vivre l'expérience d'un répondant : **Déconnexion**, puis entrer le code
-   `LOR-DEMO02` → première connexion, avis de consentement, cotation.
-
-> Le code admin visible dans le code source est un **placeholder de démonstration**
-> (aucune sécurité réelle) — il sera remplacé par de vrais comptes (courriel + mot de
-> passe) au branchement du backend.
+   `LOR-DEMO02` → première connexion, avis de consentement, cotation. (Le projet Démo
+   se remet à neuf en rejouant `seed-demo.sql` dans Supabase.)
 
 ## 5. Petit glossaire
 
@@ -111,7 +112,7 @@ Le détail vit dans `deploiement/plan-de-travail.md`.
 |---|---|
 | **Frontend** | La partie visible : la page web dans le navigateur |
 | **Backend** | La partie cachée : le serveur qui garde et protège les données |
-| **localStorage** | Carnet privé du navigateur — les données restent sur l'appareil |
+| **Minification** | Compression du code servi au navigateur — plus léger, et illisible d'un coup d'œil |
 | **Supabase** | Service de base de données clé en main (on choisit la région Canada) |
 | **Edge Function** | Petit programme côté serveur qui vérifie chaque demande (ex. « ce code d'accès a-t-il le droit d'écrire ceci ? ») |
 | **RLS** | Verrou de la base : par défaut, personne ne peut rien lire ni écrire |

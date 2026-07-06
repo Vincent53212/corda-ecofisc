@@ -264,13 +264,13 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
           <p>On envoie le fichier aux répondants ; chacun travaille sur son appareil.</p>
           <div class="bous"><span class="g p"><b>＋</b><span>zéro serveur, zéro coût, zéro donnée en ligne</span></span><span class="g m"><b>−</b><span>pas de portrait en temps réel ; collecte des réponses à la main ; versions qui divergent</span></span></div>
         </div>
-        <div class="opt"><div class="h"><span class="t">B · Application web</span><span class="tag">proposé</span></div>
-          <p>Frontend sur le domaine Corda ; données et codes d'accès dans une base canadienne verrouillée.</p>
-          <div class="bous"><span class="g p"><b>＋</b><span>portrait MRC vivant, multi-appareils, mises à jour instantanées</span></span><span class="g m"><b>−</b><span>exige le cadrage Loi 25 et une base au Canada (déjà en chantier)</span></span></div>
+        <div class="opt"><div class="h"><span class="t">B · Application web « coffre-fort »</span><span class="tag">construit ✓</span></div>
+          <p>La page publique est une coquille : contenu, catalogue et <b>calculs</b> vivent au serveur (Canada) et n'arrivent qu'après authentification.</p>
+          <div class="bous"><span class="g p"><b>＋</b><span>portrait vivant, multi-appareils — et le savoir-faire n'est pas copiable dans le navigateur</span></span><span class="g m"><b>−</b><span>exige le cadrage Loi 25 (en chantier) et une connexion Internet</span></span></div>
         </div>
-        <div class="opt"><div class="h"><span class="t">C · Hybride</span><span class="tag">construit</span></div>
-          <p>Web d'abord, avec repli local automatique si le serveur est injoignable.</p>
-          <div class="bous"><span class="g p"><b>＋</b><span>le meilleur des deux ; la démo ne peut pas échouer</span></span><span class="g m"><b>−</b><span>deux chemins à entretenir (déjà cousus dans le code)</span></span></div>
+        <div class="opt"><div class="h"><span class="t">C · Hybride (repli local)</span><span class="tag">écarté</span></div>
+          <p>Web avec copie locale de secours dans chaque navigateur.</p>
+          <div class="bous"><span class="g p"><b>＋</b><span>fonctionne sans réseau</span></span><span class="g m"><b>−</b><span>le repli embarquait la grille et les règles dans la page — incompatible avec la protection du savoir-faire</span></span></div>
         </div>
       </div>
       <div class="qbanner"><span class="lab">À trancher</span><span class="q">Valide-t-on l'architecture web + repli local comme fondation du produit ?</span></div>
@@ -285,7 +285,7 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
       <div class="mdesc">On recueille des <b>renseignements personnels</b> de représentants municipaux (nom, fonction, opinions en commentaires). Au Québec, la <b>Loi 25</b> s'applique pleinement : consentement, finalité, EFVP, destruction réelle, résidence des données.</div>
       <div class="opts c3">
         <div class="opt"><div class="h"><span class="t">Déjà en place</span></div>
-          <p>Consentement horodaté à la 1re connexion · données prévues au <b>Canada</b> · base verrouillée par défaut · journal des accès · interdiction par défaut d'analyse des commentaires par IA.</p>
+          <p>Consentement horodaté à la 1re connexion · données au <b>Canada</b> · base verrouillée par défaut · journal des accès · anti force-brute · contenu et calculs servis <b>après authentification</b> (rien à copier dans la page publique) · interdiction par défaut d'analyse des commentaires par IA.</p>
         </div>
         <div class="opt"><div class="h"><span class="t">En rédaction</span></div>
           <p>Politique de confidentialité · EFVP courte (incluant la communication hors Québec — le « Canada Central » est en Ontario) · entente d'encadrement Corda ↔ MRC/CERGO · procédure d'accès et de rectification.</p>

@@ -4,7 +4,7 @@
 
 ## L'idée en une phrase (l'architecture retenue)
 **cPanel sert la page ; Supabase garde les données.** Deux morceaux qui vivent à deux endroits :
-- **Le frontend** = le paquet **`deploiement/dist/`** (`index.html` + `rules.js` + `demo-data.js` + `.htaccess`), généré par `node tools/build-dist.js` → hébergé sur **cPanel** à `ecofisc.corda.consulting`.
+- **Le frontend** = le paquet **`deploiement/dist/`** (`index.html` minifié + `.htaccess` + `robots.txt`), généré par `node tools/build-dist.js` → hébergé sur **cPanel** à `ecofisc.corda.consulting`. **« Coffre-fort »** : la page publique ne contient NI la grille, NI les règles de calcul, NI les descriptions — tout le contenu métier est livré par Supabase APRÈS authentification, et les recommandations sont calculées côté serveur.
 - **Les données + l'auth** (codes, identités, réponses, commentaires) = **Supabase**, **région Canada**.
 
 ```
@@ -19,7 +19,7 @@ Tu as **déjà verrouillé** « région Canada exigée par la Loi 25 » (on stoc
 
 ## Décisions verrouillées (mise à jour 2026-06-30)
 - **Adresse publique : `ecofisc.corda.consulting`** (sous-domaine de `corda.consulting`, domaine Namecheap, hébergement **cPanel**). On part **de zéro** sur ce domaine.
-- **Frontend : hébergé sur cPanel** (paquet `deploiement/dist/` : `index.html` + `rules.js` + `demo-data.js` + `.htaccess`). **Backend : Supabase**, **région Canada (Central)**.
+- **Frontend : hébergé sur cPanel** (paquet `deploiement/dist/` : `index.html` minifié + `.htaccess` + `robots.txt` — aucun contenu métier). **Backend : Supabase**, **région Canada (Central)** — données, catalogue ET moteur de calcul (Edge Functions).
 - **Multi-projets** : l'app pilote plusieurs projets, chacun **« ville unique »** ou **« multi-villes »** (ex. une MRC). Le schéma inclut donc une table `projects` + un `project_id` sur les codes ; le projet « MRC Thérèse-De Blainville » est **amorcé d'office**. La suppression d'un projet est **douce** (champ `deleted_at` = archive, on ne détruit jamais).
 - **Connexion des villes : par code**, validé **côté serveur** (Edge Functions). **Admin = vrai compte** (courriel + mot de passe Supabase).
 - **Pas de dev pour l'instant** → ce guide flagge chaque point de sécurité à valider avant une vraie utilisation.
@@ -41,7 +41,8 @@ Tu as **déjà verrouillé** « région Canada exigée par la Loi 25 » (on stoc
 
 ### A3. Téléverser l'app
 1. **cPanel → File Manager** → entre dans le **dossier racine** du sous-domaine (celui noté en A2).
-2. **Upload** les **4 fichiers** du dossier `Appli/deploiement/dist/` : `index.html`, `rules.js`, `demo-data.js` et `.htaccess` (déjà nommés correctement — rien à renommer). ⚠ `.htaccess` commence par un point : dans File Manager, active « **Show Hidden Files** » (Settings, coin supérieur droit) pour le voir après le téléversement.
+2. **Upload** les **3 fichiers** du dossier `Appli/deploiement/dist/` : `index.html`, `.htaccess` et `robots.txt`. ⚠ `.htaccess` commence par un point : dans File Manager, active « **Show Hidden Files** » (Settings, coin supérieur droit) pour le voir.
+3. ⚠ **Supprime** du serveur les anciens fichiers `rules.js` et `demo-data.js` s'ils s'y trouvent (versions pré-coffre-fort : ils exposaient le contenu métier en clair).
    - *Alternative :* via **FTP** (identifiants dans cPanel → FTP Accounts) si tu préfères glisser-déposer depuis l'explorateur.
 
 ### A4. Activer le HTTPS (cadenas)
@@ -82,12 +83,12 @@ Juste **Project URL** + **anon public key** (les deux publiques). Avec ça je br
 
 ## PARTIE C — Brancher les deux (code fait ✅ — reste 2 collages)
 
-**C1. Déployer les 2 Edge Functions (~10 min, 🧑)** — la porte serveur des villes : valide un code, applique le rate-limit, n'écrit que **ses** réponses (clé `service_role` côté serveur, jamais exposée). Pour **chacun** des deux fichiers du dossier `deploiement/edge/` :
+**C1. Déployer les 3 Edge Functions (~12 min, 🧑)** — le serveur au complet : validation des codes (rate-limit), catalogue livré après authentification, **moteur de calcul** (le client ne reçoit que des résultats). Pour **chacun** des trois fichiers du dossier `deploiement/edge/` :
 1. **Supabase → Edge Functions → Deploy a new function → Via Editor.**
-2. Nomme la fonction **exactement** : `ville-claim` (pour `ville-claim.ts`), puis `ville-set` (pour `ville-set.ts`).
+2. Nomme la fonction **exactement** : `ville-claim`, `ville-set`, `admin-data` (selon le fichier `.ts` collé).
 3. Efface le code d'exemple, **colle tout le contenu** du fichier `.ts`, clique **Deploy**.
-4. ⚠ Dans les détails de la fonction : **désactive « Enforce JWT verification »** (nos clés *publishable* ne sont pas des JWT — la vraie clé d'entrée est le code d'accès, validé DANS la fonction, avec anti force-brute).
-- *(Rien d'autre à configurer : la `service_role` est déjà injectée automatiquement dans l'environnement des fonctions.)*
+4. ⚠ Dans les détails de chaque fonction : **désactive « Enforce JWT verification »** (nos clés *publishable* ne sont pas des JWT ; `admin-data` valide lui-même le jeton de session admin, les fonctions villes valident le code d'accès avec anti force-brute).
+- *(Rien d'autre à configurer : la `service_role` est déjà injectée automatiquement dans l'environnement des fonctions. Les fichiers `.ts` sont GÉNÉRÉS depuis `rules.js` par `node tools/gen-edge-functions.js` — après toute modification des règles : regénérer, re-coller.)*
 
 **C2. Frontend branché ✅** : `index.html` (dist) contient l'URL du projet + la clé publishable. Mode « en ligne » automatique, **repli localStorage** si le serveur est injoignable. Admin = auth Supabase (courriel + mot de passe) ; villes = Edge Functions ; le placeholder `Corda$2026` ne fonctionne plus qu'en mode local.
 
