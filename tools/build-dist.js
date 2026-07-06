@@ -37,7 +37,9 @@ const tmpOut = path.join(os.tmpdir(), 'orch-inline.min.js');
 fs.writeFileSync(tmpIn, m[1], 'utf8');
 execFileSync('npx', ['-y', 'esbuild', tmpIn, '--minify', '--charset=utf8', '--target=es2019', '--legal-comments=none', `--outfile=${tmpOut}`], { stdio: 'pipe', shell: process.platform === 'win32' });
 const minJS = fs.readFileSync(tmpOut, 'utf8').trim();
-html = html.replace(m[0], '<script>/*! © 2026 Corda — corda.consulting — tous droits réservés */' + minJS + '</script></body>');
+/* ⚠ remplacement par FONCTION : dans String.replace, les $ du texte de remplacement
+   sont des motifs spéciaux ($&, $', $$…) — du code minifié en contient et serait corrompu */
+html = html.replace(m[0], () => '<script>/*! © 2026 Corda — corda.consulting — tous droits réservés */' + minJS + '</script></body>');
 
 /* ---- retirer les commentaires HTML/CSS/JS restants (rien à lire pour un curieux) ---- */
 html = html.replace(/<!--[\s\S]*?-->/g, '');
@@ -56,6 +58,15 @@ html = `<!DOCTYPE html>
 ` + html;
 
 fs.writeFileSync(path.join(DIST, 'index.html'), html, 'utf8');
+
+/* ---- auto-vérification : le script minifié du paquet doit compiler ---- */
+const built = fs.readFileSync(path.join(DIST, 'index.html'), 'utf8');
+const mm = built.match(/<script>([\s\S]*?)<\/script>\s*<\/body>/);
+if (!mm) throw new Error('AUTO-VÉRIF ÉCHOUÉE : script inline absent du paquet');
+const tmpChk = path.join(os.tmpdir(), 'orch-dist-check.js');
+fs.writeFileSync(tmpChk, mm[1].replace(/^\/\*![\s\S]*?\*\//, ''), 'utf8');
+execFileSync(process.execPath, ['--check', tmpChk], { stdio: 'pipe' });
+console.log('Auto-vérification : script minifié valide ✓');
 
 /* ---- .htaccess — en-têtes de sécurité (révision B : CSP + en-têtes) ---- */
 const htaccess = `# ecofisc.corda.consulting — en-têtes de sécurité (générés par tools/build-dist.js)
