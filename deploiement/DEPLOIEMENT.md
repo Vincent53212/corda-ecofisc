@@ -84,9 +84,9 @@ Juste **Project URL** + **anon public key** (les deux publiques). Avec ça je br
 
 ## PARTIE C — Brancher les deux (code fait ✅ — reste 2 collages)
 
-**C1. Déployer les 3 Edge Functions (~12 min, 🧑)** — le serveur au complet : validation des codes (rate-limit), catalogue livré après authentification, **moteur de calcul** (le client ne reçoit que des résultats). Pour **chacun** des trois fichiers du dossier `deploiement/edge/` :
+**C1. Déployer les 4 Edge Functions (~15 min, 🧑)** — le serveur au complet : validation des codes (rate-limit), catalogue livré après authentification, **moteur de calcul** (le client ne reçoit que des résultats), et l'**import des rôles** (assistant nouveau projet). Pour **chacun** des quatre fichiers du dossier `deploiement/edge/` :
 1. **Supabase → Edge Functions → Deploy a new function → Via Editor.**
-2. Nomme la fonction **exactement** : `ville-claim`, `ville-set`, `admin-data` (selon le fichier `.ts` collé).
+2. Nomme la fonction **exactement** : `ville-claim`, `ville-set`, `admin-data`, `role-import` (selon le fichier `.ts` collé). *(`role-import` embarque la liste des 1011 municipalités et télécharge le rôle officiel MAMH par municipalité — regénérée par `node tools/gen-role-import.js`.)*
 3. Efface le code d'exemple, **colle tout le contenu** du fichier `.ts`, clique **Deploy**.
 4. ⚠ Dans les détails de chaque fonction : **désactive « Enforce JWT verification »** (nos clés *publishable* ne sont pas des JWT ; `admin-data` valide lui-même le jeton de session admin, les fonctions villes valident le code d'accès avec anti force-brute).
 - *(Rien d'autre à configurer : la `service_role` est déjà injectée automatiquement dans l'environnement des fonctions. Les fichiers `.ts` sont GÉNÉRÉS depuis `rules.js` par `node tools/gen-edge-functions.js` — après toute modification des règles : regénérer, re-coller.)*

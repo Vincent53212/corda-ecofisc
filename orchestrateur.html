@@ -251,6 +251,21 @@ svg.viz .seuil{stroke:var(--brass); stroke-width:1.5; stroke-dasharray:3 3}
 .upprog{font-family:var(--font-mono); font-size:.74rem; color:var(--brass); margin-top:8px; min-height:1.2em}
 .gearbtn{cursor:pointer; border:1px solid var(--line); background:transparent; border-radius:7px; width:34px; height:34px; font-size:16px; color:var(--muted)}
 .gearbtn:hover{border-color:var(--brass); color:var(--brass)}
+/* Sélecteur de municipalités (nouveau projet) */
+.mpick{position:relative}
+.mpick .search{width:100%}
+.mpick .drop{position:absolute; z-index:40; left:0; right:0; top:calc(100% + 3px); background:var(--surface); border:1px solid var(--line); border-radius:9px; box-shadow:var(--shadow); max-height:240px; overflow:auto}
+.mpick .opt{display:flex; align-items:center; gap:8px; padding:8px 11px; cursor:pointer; font-size:.86rem; border-bottom:1px solid var(--line-2)}
+.mpick .opt:hover,.mpick .opt.hi{background:var(--surface-2)}
+.mpick .opt .code{font-family:var(--font-mono); font-size:.72rem; color:var(--faint); margin-left:auto}
+.mpick .empty{padding:10px 11px; color:var(--faint); font-size:.84rem}
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
+.chip{display:inline-flex; align-items:center; gap:7px; background:color-mix(in srgb,var(--accent) 10%, transparent); border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line)); border-radius:20px; padding:4px 6px 4px 11px; font-size:.83rem}
+.chip .code{font-family:var(--font-mono); font-size:.68rem; color:var(--faint)}
+.chip .x{cursor:pointer; border:none; background:transparent; color:var(--faint); font-size:15px; line-height:1; padding:0 2px}
+.chip .x:hover{color:var(--fav-neg)}
+.impbar{background:var(--surface-2); border-radius:9px; padding:11px 14px; margin-top:10px; font-size:.84rem; line-height:1.5}
+.impbar .l{font-family:var(--font-mono); font-size:.72rem; color:var(--brass)}
 
 /* Annotation layer */
 body.anno-on{cursor:crosshair}
@@ -1247,6 +1262,13 @@ $('#annoClear').onclick=()=>{ if(!state.annos.length) return; if(!confirm('Vider
 document.addEventListener('keydown',e=>{ if(e.key==='Escape' && state.anno){ $('#annoPop').hidden=true; } });
 
 /* ===================== PROJET (sélecteur + gestionnaire) ===================== */
+let MUNIS=null; /* liste des municipalités du Québec (code+nom), servie par role-import */
+async function ensureMunis(){
+  if(MUNIS) return MUNIS;
+  const r=await remote.fn('role-import', {action:'municipalites'});
+  MUNIS=r.municipalites||[];
+  return MUNIS;
+}
 function fmtDate(iso){ try{ return new Date(iso).toLocaleDateString('fr-CA'); }catch(e){ return ''; } }
 function renderProjPill(){
   const sel=$('#projPill'); if(!sel) return; const act=store.activeId();
@@ -1280,41 +1302,75 @@ function renderProjets(){
     </div>
     <div class="card" data-anno="Projets — nouveau projet">
       <h3>Nouveau projet</h3>
-      <div class="field"><label for="npTitle">Titre du projet</label><input id="npTitle" type="text" placeholder="ex. Ville de Saint-Jérôme" autocomplete="off"></div>
-      <div class="field"><label>Portée</label>
-        <div class="btnrow" id="npType" style="margin:0">
-          <button type="button" class="btn primary" data-type="single">Ville unique</button>
-          <button type="button" class="btn ghost" data-type="multi">Multi-villes</button>
-        </div>
+      <div class="field"><label for="npTitle">Titre du projet</label><input id="npTitle" type="text" placeholder="ex. MRC des Laurentides, ou Ville de Saint-Jérôme" autocomplete="off"></div>
+      <div class="field"><label>Villes du projet — cherchez dans la liste officielle du Québec</label>
+        <div class="mpick"><input type="text" class="search" id="npSearch" placeholder="Taper le nom d'une municipalité…" autocomplete="off" spellcheck="false"><div class="drop" id="npDrop" hidden></div></div>
+        <div class="chips" id="npChips"></div>
+        <div class="faint mono" style="font-size:.72rem; margin-top:6px">Le code officiel s'attache automatiquement · le rôle d'évaluation se chargera à la création.</div>
       </div>
-      <div class="field" id="npSingleWrap"><label>Ville</label><div class="faint mono" style="font-size:.82rem">Le titre du projet sert de nom à la ville unique.</div></div>
-      <div class="field" id="npMultiWrap" hidden><label>Villes</label><div id="npVilles"></div><button type="button" class="btn ghost" id="npAddVille" style="margin-top:6px">＋ Ajouter une ville</button></div>
-      <div class="btnrow" style="margin-top:6px"><button class="btn primary" id="npCreate">Créer le projet</button></div>
+      <div class="btnrow" style="margin-top:6px"><button class="btn primary" id="npCreate">Créer le projet + charger les rôles</button></div>
       <div class="err" id="npErr"></div>
+      <div class="impbar" id="npImp" hidden></div>
     </div>`;
   $$('#projetsHost .projact').forEach(b=>b.onclick=()=>{ if(state.anno) return; store.setActive(b.dataset.act); syncVilles(); renderProjPill(); computedStale=true; toast('Projet activé'); go('portrait'); });
   $$('#projetsHost .projdel').forEach(b=>b.onclick=()=>{ if(state.anno) return; const id=b.dataset.del; const p=store.projects().find(x=>x.id===id);
     if(store.projects().length<=1){ toast('Impossible de supprimer le dernier projet.'); return; }
     if(!confirm('Supprimer le projet « '+(p?p.title:id)+' » et toutes ses cotations ?\n\nLe projet est archivé côté serveur (destruction réelle à l\'échéance de conservation).')) return;
     store.deleteProject(id); syncVilles(); renderProjPill(); computedStale=true; toast('Projet supprimé (archivé)'); renderProjets(); });
-  let npType='single';
-  const setType=t=>{ npType=t; $$('#npType button').forEach(x=>{ x.classList.toggle('primary', x.dataset.type===t); x.classList.toggle('ghost', x.dataset.type!==t); }); $('#npSingleWrap').hidden=(t!=='single'); $('#npMultiWrap').hidden=(t!=='multi'); };
-  $$('#npType button').forEach(b=>b.onclick=()=>setType(b.dataset.type));
-  const villesHost=$('#npVilles');
-  const addVilleRow=val=>{ const row=document.createElement('div'); row.className='btnrow npvrow'; row.style.margin='0 0 6px';
-    row.innerHTML='<input type="text" class="npv" aria-label="Nom de la ville" placeholder="Nom de la ville" value="'+esc(val||'')+'" style="flex:1"><button type="button" class="btn ghost npvdel" aria-label="Retirer cette ville" style="padding:6px 10px">×</button>';
-    row.querySelector('.npvdel').onclick=()=>row.remove(); villesHost.appendChild(row); };
-  addVilleRow(''); addVilleRow('');
-  $('#npAddVille').onclick=()=>addVilleRow('');
-  setType('single');
-  $('#npCreate').onclick=()=>{ if(state.anno) return; const title=$('#npTitle').value.trim(); const err=$('#npErr'); err.textContent='';
+
+  /* --- sélecteur de municipalités (auto-associe le code officiel) --- */
+  const picked=[]; /* {code, nom, id} */
+  const search=$('#npSearch'), drop=$('#npDrop'), chips=$('#npChips'); let hi=-1, shown=[];
+  const villeId=nom=>{ let id=slugify(nom)||'ville'; while(picked.some(p=>p.id===id)) id=id+'-2'; return id; };
+  const drawChips=()=>{ chips.innerHTML=picked.map((p,i)=>'<span class="chip">'+esc(p.nom)+' <span class="code">'+esc(p.code)+'</span><button type="button" class="x" data-i="'+i+'" aria-label="Retirer">×</button></span>').join('');
+    $$('#npChips .x').forEach(b=>b.onclick=()=>{ picked.splice(+b.dataset.i,1); drawChips(); }); };
+  const closeDrop=()=>{ drop.hidden=true; hi=-1; };
+  const runSearch=async()=>{ const q=search.value.trim(); if(q.length<2){ closeDrop(); return; }
+    let list; try{ list=await ensureMunis(); }catch(e){ drop.hidden=false; drop.innerHTML='<div class="empty">Liste des municipalités indisponible (serveur).</div>'; return; }
+    const nq=q.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+    shown=list.filter(m=>m.nom.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().includes(nq) && !picked.some(p=>p.code===m.code)).slice(0,60);
+    hi=-1;
+    drop.hidden=false;
+    drop.innerHTML=shown.length?shown.map((m,i)=>'<div class="opt" data-i="'+i+'"><span>'+esc(m.nom)+'</span><span class="code">'+esc(m.code)+'</span></div>').join(''):'<div class="empty">Aucune municipalité trouvée.</div>';
+    $$('#npDrop .opt').forEach(o=>o.onclick=()=>addPick(shown[+o.dataset.i])); };
+  const addPick=m=>{ if(!m||picked.some(p=>p.code===m.code)) return; picked.push({code:m.code, nom:m.nom, id:villeId(m.nom)});
+    if(!$('#npTitle').value.trim() && picked.length===1) $('#npTitle').value=m.nom;
+    search.value=''; closeDrop(); drawChips(); search.focus(); };
+  search.oninput=runSearch;
+  search.onkeydown=e=>{ if(drop.hidden) return;
+    if(e.key==='ArrowDown'){ e.preventDefault(); hi=Math.min(hi+1,shown.length-1); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); hi=Math.max(hi-1,0); }
+    else if(e.key==='Enter'){ e.preventDefault(); if(hi>=0&&shown[hi]) addPick(shown[hi]); return; }
+    else if(e.key==='Escape'){ closeDrop(); return; } else return;
+    $$('#npDrop .opt').forEach((o,i)=>o.classList.toggle('hi',i===hi)); };
+  document.addEventListener('click',e=>{ if(!e.target.closest('.mpick')) closeDrop(); });
+
+  $('#npCreate').onclick=async ()=>{ if(state.anno) return; const err=$('#npErr'); err.textContent='';
+    const title=$('#npTitle').value.trim();
     if(!title){ err.textContent='Donnez un titre au projet.'; return; }
-    let villes=[];
-    if(npType==='single'){ villes=[{id:slugify(title)||'ville', nom:title}]; }
-    else { const names=$$('#npVilles .npv').map(i=>i.value.trim()).filter(Boolean);
-      if(!names.length){ err.textContent='Ajoutez au moins une ville.'; return; }
-      const seen={}; villes=names.map(n=>{ let id=slugify(n)||'ville'; while(seen[id]) id=id+'-2'; seen[id]=1; return {id, nom:n}; }); }
-    const p=store.createProject({title, type:npType, villes}); syncVilles(); renderProjPill(); computedStale=true; toast('Projet « '+p.title+' » créé'); go('acces'); };
+    if(!picked.length){ err.textContent='Ajoutez au moins une municipalité.'; return; }
+    const type=picked.length>1?'multi':'single';
+    const villes=picked.map(p=>({id:p.id, nom:p.nom, code:p.code}));
+    const btn=$('#npCreate'); btn.disabled=true;
+    const p=store.createProject({title, type, villes}); syncVilles(); renderProjPill();
+    const imp=$('#npImp'); imp.hidden=false;
+    await sync.settle(); /* laisser le projet se créer côté serveur avant d'y importer */
+    /* import UNE ville à la fois : progression vivante + aucun risque de dépassement de temps serveur */
+    let tot=0; const echecs=[];
+    for(let i=0;i<villes.length;i++){ const v=villes[i];
+      imp.innerHTML='<span class="l">Chargement des rôles… '+(i+1)+'/'+villes.length+'</span> — '+esc(v.nom)+'…';
+      try{ const res=await remote.fn('role-import', {projectId:p.id, villes:[{code:v.code, ville_id:v.id}]});
+        const r=(res.resultats||[])[0]||{};
+        if(r.n!=null) tot+=r.n; else echecs.push(v.nom+' ('+(r.erreur||'échec')+')');
+      }catch(e){ console.error(v.code,e); echecs.push(v.nom+' (serveur)'); }
+    }
+    imp.innerHTML='<span class="l">✓ Projet prêt.</span> '+tot.toLocaleString('fr-CA')+' unités chargées'
+      +(echecs.length?' · <span style="color:var(--fav-neg)">échecs : '+esc(echecs.join(', '))+' — chargeables via l\'ETL (Réglages)</span>':'')
+      +' · <button type="button" class="btn primary" id="npGo" style="padding:5px 11px; margin-left:8px">Ouvrir le calculateur</button>';
+    computedStale=true; agg=null;
+    const go2=$('#npGo'); if(go2) go2.onclick=()=>{ store.setActive(p.id); syncVilles(); renderProjPill(); go('calculateur'); };
+    btn.disabled=false;
+  };
 }
 
 /* ===================== CALCULATEUR & RÉGLAGES (admin) =====================
