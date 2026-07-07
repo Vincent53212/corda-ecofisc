@@ -33,8 +33,7 @@ L'**Orchestrateur** transforme cette grille (jusqu'ici un fichier Excel) en appl
 
 Premier client : la **MRC Thérèse-De Blainville** (7 villes). L'outil est conçu
 **multi-projets** dès le départ : d'autres MRC ou des villes seules pourront suivre,
-chacune dans son projet étanche. La propriété intellectuelle de l'outil est chez
-**Corda** ; la grille scientifique reste celle de l'équipe de recherche.
+chacune dans son projet étanche. 
 
 ## 2. Comment les morceaux s'emboîtent
 
