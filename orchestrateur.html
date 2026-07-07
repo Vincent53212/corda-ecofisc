@@ -1338,8 +1338,14 @@ const fmtM$=v=> (Math.abs(v)>=1e6? (v/1e6).toLocaleString('fr-CA',{maximumFracti
 async function ensureAgg(){
   const pid=store.activeId();
   if(agg && agg.pid===pid) return agg;
-  const rows=await remote.rest('rpc/calc_aggregats',{method:'POST', body:JSON.stringify({pid})});
-  agg={pid, rows:rows||[]};
+  const rows=await remote.rest('rpc/calc_aggregats',{method:'POST', body:JSON.stringify({pid})})||[];
+  /* garde-fou d'intégrité : l'exactitude de simM04 exige que chaque tranche_lo
+     serveur soit une borne connue du client (AGG_EDGES). Si ce n'est pas le cas,
+     les deux tableaux de bornes ont divergé — on le signale plutôt que de fausser. */
+  const edges=new Set(AGG_EDGES);
+  const orphelines=[...new Set(rows.map(r=>+r.tranche_lo))].filter(b=>!edges.has(b));
+  if(orphelines.length) throw new Error('Bornes d\'agrégats désynchronisées (SQL vs client) : '+orphelines.join(', ')+' — regénérer.');
+  agg={pid, rows};
   return agg;
 }
 function aggRows(scope){ return agg.rows.filter(r=> scope==='all' || r.ville_id===scope); }
@@ -1394,7 +1400,7 @@ function vizTip(on, x, y, txt){
   _tipEl.hidden=!on; if(on){ _tipEl.textContent=txt; _tipEl.style.left=Math.min(x+12, innerWidth-180)+'px'; _tipEl.style.top=(y+14)+'px'; }
 }
 function barsVilles(perVille){ /* recette additionnelle par ville — barres horizontales */
-  const vs=villesDuProjet().map(v=>({nom:v.nom, val:perVille[v.id]||0})).filter(x=>x.val!==0||true);
+  const vs=villesDuProjet().map(v=>({nom:v.nom, val:perVille[v.id]||0}));
   const max=Math.max(1,...vs.map(x=>Math.abs(x.val)));
   const H=vs.length*24+6;
   let s=`<svg class="viz" viewBox="0 0 320 ${H}" role="img" aria-label="Recette additionnelle par ville">`;
@@ -1493,12 +1499,15 @@ function renderCalcParams(){
         </div>`).join('')}</div>
       <button type="button" class="btn ghost" id="m04add" style="padding:6px 10px">＋ Ajouter une tranche</button>
       <div class="rate-hint" id="m04hint"></div>`;
-    const sync=()=>{ p.base=parseFloat($('#m04base').value)||0;
-      p.tranches=$$('#m04rows .tr-row').map(r=>({lo:+r.querySelector('.trlo').value, taux:parseFloat(r.querySelector('.trtx').value)||0}));
+    const sync=()=>{ p.base=Math.max(0, parseFloat($('#m04base').value)||0);
+      const seen=new Set(); let dup=false;
+      p.tranches=$$('#m04rows .tr-row').map(r=>({lo:+r.querySelector('.trlo').value, taux:Math.max(0, parseFloat(r.querySelector('.trtx').value)||0)}))
+        .filter(t=>{ if(seen.has(t.lo)){ dup=true; return false; } seen.add(t.lo); return true; }); /* un seul taux par seuil */
       const maxT=Math.max(...p.tranches.map(t=>t.taux), p.base);
       const h=$('#m04hint'); const depasse=p.base>0 && maxT>p.base*4/3+1e-9;
-      h.textContent=depasse?'⚠ un taux dépasse 133,3 % du taux de base (plafond LFM pour un 2e taux non résidentiel)':'plafond usuel : 133,3 % du taux de base (LFM)';
-      h.classList.toggle('warn', depasse);
+      h.textContent=dup?'⚠ deux tranches au même seuil — seule la première est retenue'
+        :depasse?'⚠ un taux dépasse 133,3 % du taux de base (plafond LFM pour un 2e taux non résidentiel)':'plafond usuel : 133,3 % du taux de base (LFM)';
+      h.classList.toggle('warn', depasse||dup);
       refreshCalc(); };
     host.oninput=sync; host.onchange=sync;
     $('#m04add').onclick=()=>{ p.tranches.push({lo:2000000, taux:p.base+0.2}); renderCalcParams(); refreshCalc(); };
@@ -1555,6 +1564,13 @@ function refreshCalc(){
     return v*((p.rates[cls]||p.base)-p.base)/100; };
   else if(m==='m02') loadSample._charge=(v,row)=>{ const p=calcState.m02; const f=(row.cubf||'').slice(0,1);
     return p.fams.includes(f)? v*(p.taux-p.base)/100 : 0; };
+  paintSampleCharges(); /* recolore la colonne « charge » de l'échantillon SANS re-fetch (sinon elle reste périmée au coup de curseur) */
+}
+function paintSampleCharges(){
+  const tb=$('#calcSample tbody'); if(!tb || !loadSample._rows) return;
+  [...tb.rows].forEach((tr,i)=>{ const row=loadSample._rows[i]; if(!row) return;
+    const ch=loadSample._charge?loadSample._charge(+row.valeur_totale, row):null;
+    tr.cells[4].textContent = ch===null?'—':fmt$(ch); });
 }
 function chargeM04(v){ /* charge additionnelle d'UNE unité de valeur v (pour l'échantillon) */
   const p=calcState.m04; let add=0;
@@ -1570,6 +1586,7 @@ async function loadSample(){
     const filtre = m==='m01' ? '&cubf=gte.1000&cubf=lt.2000' : '&or=(cubf.lt.1000,cubf.gte.2000)';
     const scope = calcState.scope==='all' ? '' : '&ville_id=eq.'+encodeURIComponent(calcState.scope);
     const rows=await remote.rest('role_unites?select=matricule,ville_id,cubf,valeur_totale,nb_logements&project_id=eq.'+encodeURIComponent(store.activeId())+filtre+scope+'&order=valeur_totale.desc&limit=8');
+    loadSample._rows=rows; /* mémorisées pour le recalcul en direct (paintSampleCharges) */
     const vn=id=>{ const v=VILLES.find(x=>x.id===id); return v?abbrVille(v.nom):id; };
     host.innerHTML='<table class="pmatrix"><thead><tr><th style="text-align:left">Matricule</th><th>Ville</th><th>CUBF</th><th>Valeur</th><th>Charge add. /an</th></tr></thead><tbody>'+
       rows.map(r=>{ const ch=loadSample._charge?loadSample._charge(+r.valeur_totale, r):null;
@@ -1589,7 +1606,9 @@ function renderPont(){
 }
 
 /* ---- écran Réglages (sources de données + chargement) ---- */
-function csvParse(text){ /* CSV robuste : virgule OU point-virgule, champs entre guillemets, CRLF */
+function csvParse(text){ /* CSV robuste : virgule OU point-virgule, champs entre guillemets */
+  if(text.charCodeAt(0)===0xFEFF) text=text.slice(1); /* BOM UTF-8 (fréquent sur les exports Excel) — sinon colle à la 1re en-tête */
+  text=text.replace(/\r\n?/g,'\n'); /* normalise CRLF (Windows) et CR seul (Mac classique) → matricules propres */
   const firstLine=text.slice(0, text.indexOf('\n')+1||200);
   const sep=(firstLine.match(/;/g)||[]).length>(firstLine.match(/,/g)||[]).length?';':',';
   const rows=[]; let row=[], cur='', inQ=false;
@@ -1597,9 +1616,9 @@ function csvParse(text){ /* CSV robuste : virgule OU point-virgule, champs entre
     if(inQ){ if(ch==='"'){ if(text[i+1]==='"'){ cur+='"'; i++; } else inQ=false; } else cur+=ch; }
     else if(ch==='"') inQ=true;
     else if(ch===sep){ row.push(cur); cur=''; }
-    else if(ch==='\n'){ row.push(cur.replace(/\r$/,'')); if(row.some(c=>c!=='')) rows.push(row); row=[]; cur=''; }
+    else if(ch==='\n'){ row.push(cur); if(row.some(c=>c!=='')) rows.push(row); row=[]; cur=''; }
     else cur+=ch; }
-  if(cur!==''||row.length){ row.push(cur.replace(/\r$/,'')); if(row.some(c=>c!=='')) rows.push(row); }
+  if(cur!==''||row.length){ row.push(cur); if(row.some(c=>c!=='')) rows.push(row); }
   return rows;
 }
 async function upsertBatches(path, objets, prog){
@@ -1609,55 +1628,75 @@ async function upsertBatches(path, objets, prog){
     prog(Math.min(i+LOT,objets.length), objets.length);
   }
 }
+/* nombre robuste : « 1 234 567,89 » (fr) comme « 1,234,567.89 » (en) → 1234567.89.
+   Règle : le DERNIER séparateur (, ou .) est décimal, les autres sont des milliers. */
+function numFR(x){
+  let s=String(x==null?'':x).trim().replace(/\s/g,''); if(s==='') return null;
+  const lastC=s.lastIndexOf(','), lastD=s.lastIndexOf('.');
+  const dec=Math.max(lastC,lastD);
+  if(dec>=0){ s=s.slice(0,dec).replace(/[.,]/g,'')+'.'+s.slice(dec+1).replace(/[.,]/g,''); }
+  const v=parseFloat(s); return isNaN(v)?null:v;
+}
+/* le rôle produit par l'ETL a CETTE signature exacte — on l'exige pour éviter
+   qu'un intrant de ville contenant « valeur_totale » soit pris pour un rôle */
+const ROLE_COLS=['ville_id','matricule','cubf','valeur_terrain','valeur_batiment','valeur_totale'];
 async function chargerFichier(file){
-  const p=$('#upProg'); const pid=store.activeId();
-  const texte=await file.text();
-  const rows=csvParse(texte);
-  if(rows.length<2){ p.textContent='⚠ Fichier vide ou illisible.'; return; }
-  const head=rows[0].map(h=>h.trim().toLowerCase());
-  const idx=n=>head.indexOf(n);
-  const num=x=>{ const v=parseFloat(String(x).replace(/\s/g,'').replace(',','.')); return isNaN(v)?null:v; };
+  const p=$('#upProg'); const zone=$('#reglagesHost .upzone'); const pid=store.activeId();
+  if(zone && zone.dataset.busy){ p.textContent='⏳ Un chargement est déjà en cours…'; return; }
+  if(zone) zone.dataset.busy='1';
   try{
-    if(idx('valeur_totale')>=0 && idx('ville_id')>=0){ /* ---- rôle d'évaluation (produit par l'ETL) ---- */
-      const objets=rows.slice(1).map(r=>({ project_id:pid, matricule:r[idx('matricule')], ville_id:r[idx('ville_id')],
-        cubf:r[idx('cubf')]||'', valeur_terrain:num(r[idx('valeur_terrain')])||0, valeur_batiment:num(r[idx('valeur_batiment')])||0,
-        valeur_totale:num(r[idx('valeur_totale')])||0, superficie_terrain:num(r[idx('superficie_terrain')]),
-        nb_logements:(x=>x===null?null:Math.round(x))(num(r[idx('nb_logements')])),
-        terrain_vague_desservi:idx('terrain_vague_desservi')>=0?(r[idx('terrain_vague_desservi')]||null):null,
-        zonage_agricole:idx('zonage_agricole')>=0?(r[idx('zonage_agricole')]||null):null })).filter(o=>o.matricule);
-      await upsertBatches('role_unites?on_conflict=project_id,matricule', objets, (a,b)=>{ p.textContent='Rôle : '+a+' / '+b+' unités…'; });
-      p.textContent='✓ Rôle chargé — '+objets.length+' unités.'; remote.audit('write',{table:'role_unites', n:objets.length, source:file.name});
+    let texte=await file.text();
+    const rows=csvParse(texte);
+    if(rows.length<2){ p.textContent='⚠ Fichier vide ou illisible.'; return; }
+    const head=rows[0].map(h=>h.trim().toLowerCase());
+    const idx=n=>head.indexOf(n);
+    const estRole=ROLE_COLS.every(c=>idx(c)>=0); /* signature COMPLÈTE de l'ETL */
+    if(estRole){ /* ---- rôle d'évaluation ---- */
+      const vu=new Set(); const objets=[];
+      rows.slice(1).forEach(r=>{ const mat=(r[idx('matricule')]||'').trim(); const vid=(r[idx('ville_id')]||'').trim();
+        if(!mat||!vid) return; const cle=vid+'|'+mat; if(vu.has(cle)) return; vu.add(cle); /* dédup intra-fichier (évite l'échec ON CONFLICT du lot) */
+        const cubf=(r[idx('cubf')]||'').trim().replace(/\D/g,'').padStart(4,'0').slice(0,4); /* CUBF normalisé à 4 chiffres */
+        objets.push({ project_id:pid, ville_id:vid, matricule:mat, cubf,
+          valeur_terrain:numFR(r[idx('valeur_terrain')])||0, valeur_batiment:numFR(r[idx('valeur_batiment')])||0,
+          valeur_totale:numFR(r[idx('valeur_totale')])||0, superficie_terrain:numFR(r[idx('superficie_terrain')]),
+          nb_logements:(x=>x===null?null:Math.round(x))(numFR(r[idx('nb_logements')])),
+          terrain_vague_desservi:idx('terrain_vague_desservi')>=0?(r[idx('terrain_vague_desservi')]||null):null,
+          zonage_agricole:idx('zonage_agricole')>=0?(r[idx('zonage_agricole')]||null):null }); });
+      if(!objets.length){ p.textContent='⚠ Aucune unité valide (matricule/ville manquants ?).'; return; }
+      await upsertBatches('role_unites?on_conflict=project_id,ville_id,matricule', objets, (a,b)=>{ p.textContent='Rôle : '+a+' / '+b+' unités…'; });
+      p.textContent='✓ Rôle chargé — '+objets.length.toLocaleString('fr-CA')+' unités.'; remote.audit('write',{table:'role_unites', n:objets.length, source:file.name});
     } else if(idx('matricule')>=0){ /* ---- intrant de ville (format universel) : large → long ---- */
-      const villeParMat=null; /* la ville est déduite du rôle au moment de l'usage ; on stocke ce qu'on sait */
       const attrs=head.filter(h=>h!=='matricule' && h!=='ville_id');
-      const objets=[];
-      rows.slice(1).forEach(r=>{ const mat=r[idx('matricule')]; if(!mat) return;
-        const vid=idx('ville_id')>=0?(r[idx('ville_id')]||''):'';
-        attrs.forEach(a=>{ const v=r[idx(a)]; if(v!==undefined && String(v).trim()!=='') objets.push({project_id:pid, ville_id:vid, matricule:mat, attribut:a, valeur:String(v).trim(), source:file.name}); });
-      });
+      if(!attrs.length){ p.textContent='⚠ Aucune colonne d\'attribut : il faut « matricule » + au moins une de vos colonnes (voir docs/format-intrants.md).'; return; }
+      const vu=new Set(); const objets=[];
+      rows.slice(1).forEach(r=>{ const mat=(r[idx('matricule')]||'').trim(); if(!mat) return;
+        const vid=idx('ville_id')>=0?(r[idx('ville_id')]||'').trim():'';
+        attrs.forEach(a=>{ const v=r[idx(a)]; if(v===undefined||String(v).trim()==='') return;
+          const cle=mat+'|'+a; if(vu.has(cle)) return; vu.add(cle);
+          objets.push({project_id:pid, ville_id:vid, matricule:mat, attribut:a, valeur:String(v).trim(), source:file.name}); }); });
       if(!objets.length){ p.textContent='⚠ Aucune valeur à charger (colonnes vides ?).'; return; }
       await upsertBatches('intrants?on_conflict=project_id,matricule,attribut', objets, (a,b)=>{ p.textContent='Intrant : '+a+' / '+b+' valeurs…'; });
-      p.textContent='✓ Intrant « '+file.name+' » chargé — '+objets.length+' valeurs ('+attrs.join(', ')+').';
+      p.textContent='✓ Intrant « '+file.name+' » chargé — '+objets.length.toLocaleString('fr-CA')+' valeurs ('+attrs.join(', ')+').';
       remote.audit('write',{table:'intrants', n:objets.length, source:file.name});
     } else { p.textContent='⚠ Format non reconnu : il faut au minimum une colonne « matricule » (voir docs/format-intrants.md).'; return; }
-    agg=null; renderReglages(p.textContent); /* invalider le cache — et GARDER le message de succès */
   }catch(e){ console.error(e); p.textContent='⚠ Échec du chargement : '+(e.message||'erreur serveur')+' — reprendre le fichier.'; }
+  finally{ agg=null; if(zone) delete zone.dataset.busy; renderReglages($('#upProg').textContent); } /* invalider le cache MÊME en cas d'échec partiel */
 }
 async function renderReglages(message){
   const host=$('#reglagesHost');
   host.innerHTML='<div class="card"><div class="stub"><div class="glyph">⚙</div><div>Inventaire des sources…</div></div></div>';
-  let parVille={}, totalUnites=0;
+  let parVille={}, totalUnites=0, panne=false;
   try{ await ensureAgg();
     agg.rows.forEach(r=>{ parVille[r.ville_id]=(parVille[r.ville_id]||0)+(+r.n); totalUnites+=+r.n; });
-  }catch(e){ console.error(e); }
+  }catch(e){ console.error(e); panne=true; } /* serveur injoignable ≠ rôle absent — ne pas inciter à recharger pour rien */
   const roleOk=totalUnites>0;
   const villesTxt=VILLES.map(v=>abbrVille(v.nom)+' '+(parVille[v.id]||0)).join(' · ');
   host.innerHTML=`
     <div class="card" data-anno="Réglages — sources">
       <h3>Sources de données — projet « ${esc((store.activeProj()||{}).title||'')} »</h3>
       <div class="src"><div class="ic">🗺</div><div class="bd"><div class="t">Rôle d'évaluation foncière</div>
-        <div class="d">Données Québec / MAMH (CC-BY 4.0) · extrait par ville via <span class="mono">tools/etl-role.py</span> · ${roleOk?('<b>'+totalUnites.toLocaleString('fr-CA')+' unités</b> — '+esc(villesTxt)):'aucune unité chargée pour ce projet'}</div></div>
-        <span class="st2 ${roleOk?'ok':'no'}">${roleOk?'Chargé ✓':'Non chargé'}</span></div>
+        <div class="d">Données Québec / MAMH (CC-BY 4.0) · extrait par ville via <span class="mono">tools/etl-role.py</span> · ${panne?'inventaire indisponible (serveur injoignable)':roleOk?('<b>'+totalUnites.toLocaleString('fr-CA')+' unités</b> — '+esc(villesTxt)):'aucune unité chargée pour ce projet'}</div></div>
+        <span class="st2 ${panne?'no':roleOk?'ok':'no'}">${panne?'—':roleOk?'Chargé ✓':'Non chargé'}</span></div>
       <div class="src"><div class="ic">🏙</div><div class="bd"><div class="t">Intrants des villes (format universel)</div>
         <div class="d">Une ligne par matricule, leurs colonnes (canopée, desserte, vacance…) — voir <span class="mono">docs/format-intrants.md</span>. Se greffent au rôle par le matricule.</div></div>
         <span class="st2 no">Au fil de l'eau</span></div>

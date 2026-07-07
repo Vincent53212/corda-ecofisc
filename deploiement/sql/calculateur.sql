@@ -12,15 +12,24 @@
 --  Une fonction :
 --   · calc_aggregats(pid) : histogrammes par ville × secteur × classe × tranche
 --     de valeur. Le client simule les mesures sur CES AGRÉGATS (curseurs
---     instantanés) — aucune donnée parcellaire ne voyage vers le navigateur.
+--     instantanés) — la simulation ne tire aucune donnée parcellaire en vrac
+--     (seul un échantillon des 8 plus grandes unités est lu, sous RLS admin).
 --
+--  ⚠ Le rôle est une donnée OUVERTE (CC-BY MAMH) → agrégats à n=1 sans enjeu
+--     ici. Mais dès qu'on joindra des attributs d'`intrants` (NON ouverts) aux
+--     agrégats, il faudra un seuil de suppression (n < 5) contre la ré-identif.
 --  ⚠ Aucun renseignement personnel ici : matricules et attributs physiques.
 -- ============================================================================
 
+-- ⚠ La clé primaire inclut ville_id : le matricule (18 pos.) n'est garanti unique
+-- que DANS une municipalité. Sans ville_id, deux villes partageant un matricule
+-- s'écraseraient (perte silencieuse dans un projet multi-villes). Si une version
+-- antérieure de cette table existe (PK sans ville_id), la remplacer :
+drop table if exists public.role_unites cascade;
 create table if not exists public.role_unites (
   project_id   text not null references public.projects(id) on delete cascade,
-  matricule    text not null,
   ville_id     text not null,
+  matricule    text not null,
   cubf         text not null default '',      -- utilisation prédominante (RL0105A)
   valeur_terrain   numeric not null default 0, -- RL0402A
   valeur_batiment  numeric not null default 0, -- RL0403A
@@ -30,7 +39,7 @@ create table if not exists public.role_unites (
   terrain_vague_desservi text,                 -- RL0501A (à confirmer au répertoire)
   zonage_agricole  text,                       -- RL0303A (à confirmer)
   charge_at    timestamptz not null default now(),
-  primary key (project_id, matricule)
+  primary key (project_id, ville_id, matricule)
 );
 create index if not exists role_unites_ville_idx on public.role_unites (project_id, ville_id);
 create index if not exists role_unites_cubf_idx  on public.role_unites (project_id, cubf);
@@ -59,6 +68,11 @@ create policy "admin_all_role_unites" on public.role_unites
 create policy "admin_all_intrants" on public.intrants
   for all to authenticated using (true) with check (true);
 -- (aucune policy anon : la page publique ne voit rien)
+-- ⚠ MODÈLE ASSUMÉ (identique à projects/access_codes/responses) : « authentifié »
+--    = admin, car les INSCRIPTIONS PUBLIQUES SONT DÉSACTIVÉES (Auth → Providers).
+--    Si un jour on ouvre le signup, il FAUDRA restreindre ces policies à une
+--    table d'admins (using (auth.uid() in (select id from admins))). Les intrants
+--    des villes ne sont PAS des données ouvertes — cette frontière compte.
 
 -- ============================================================================
 --  AGRÉGATS — histogrammes pour la simulation côté client

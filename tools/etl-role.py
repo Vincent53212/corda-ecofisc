@@ -101,33 +101,40 @@ def main():
     print(f"Table : {table}")
     for lab, f in [("municipalité", f_mun), ("matricule", f_mat), ("CUBF", f_cubf),
                    ("superficie", f_sup), ("logements", f_log),
-                   ("val. terrain", f_vt), ("val. bâtiment", f_vb), ("val. immeuble", f_vi)]:
-        print(f"  {lab:14s} → {f}")
-        if f is None:
+                   ("val. terrain", f_vt), ("val. bâtiment", f_vb), ("val. immeuble", f_vi),
+                   ("terrain vague", f_tvd), ("zonage agricole", f_zag)]:
+        print(f"  {lab:16s} -> {f if f else '(absent — NULL)'}")
+        if f is None and lab not in ("terrain vague", "zonage agricole"):  # bonus optionnels
             raise SystemExit(f"Champ « {lab} » introuvable — inspecter PRAGMA table_info('{table}')")
 
-    # millésime depuis le nom de fichier (ROLE2026…)
-    annee = "".join(ch for ch in os.path.basename(gpkg) if ch.isdigit())[:4] or "2026"
+    # millésime : première année plausible dans le nom de fichier (évite « 22026 »)
+    import re
+    mo = re.search(r"(20\d{2})", os.path.basename(gpkg))
+    annee = mo.group(1) if mo else "0000"
     out = os.path.join(outdir, f"role-{projet}-{annee}.csv")
 
-    codes = ", ".join(f"'{k}'" for k in villes)
-    q = (f"SELECT {f_mun}, {f_mat}, {f_cubf}, {f_vt}, {f_vb}, {f_vi}, {f_sup}, {f_log}, {f_tvd}, {f_zag} "
-         f"FROM '{table}' WHERE CAST({f_mun} AS TEXT) IN ({codes})")
+    # champs bonus optionnels : NULL si le millésime ne les porte pas (sinon SQL « no such column: None »)
+    sel_tvd = f_tvd if f_tvd else "NULL"
+    sel_zag = f_zag if f_zag else "NULL"
+    codes = ", ".join("?" for _ in villes)  # placeholders liés (pas d'interpolation)
+    q = (f"SELECT {f_mun}, {f_mat}, {f_cubf}, {f_vt}, {f_vb}, {f_vi}, {f_sup}, {f_log}, {sel_tvd}, {sel_zag} "
+         f'FROM "{table}" WHERE CAST({f_mun} AS TEXT) IN ({codes})')
 
     stats = {v: [0, 0.0] for v in villes.values()}
     n = 0
+    numv = lambda x: float(x) if x not in (None, "") else 0.0  # tolère REAL/TEXT/None
     with io.open(out, "w", encoding="utf-8", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(["ville_id", "matricule", "cubf", "valeur_terrain",
                     "valeur_batiment", "valeur_totale", "superficie_terrain", "nb_logements",
                     "terrain_vague_desservi", "zonage_agricole"])
-        for mun, mat, cubf, vt, vb, vi, sup, log, tvd, zag in cx.execute(q):
+        for mun, mat, cubf, vt, vb, vi, sup, log, tvd, zag in cx.execute(q, list(villes)):
             ville = villes[str(mun).strip()]
-            vi_n = float(vi or 0)
+            vi_n = numv(vi)
             w.writerow([ville, str(mat).strip(), str(cubf or "").strip(),
-                        int(vt or 0), int(vb or 0), int(vi_n),
-                        (round(float(sup), 1) if sup not in (None, "") else ""),
-                        (int(log) if log not in (None, "") else ""),
+                        int(numv(vt)), int(numv(vb)), int(vi_n),
+                        (round(numv(sup), 1) if sup not in (None, "") else ""),
+                        (int(numv(log)) if log not in (None, "") else ""),
                         (str(tvd).strip() if tvd not in (None, "") else ""),
                         (str(zag).strip() if zag not in (None, "") else "")])
             stats[ville][0] += 1
