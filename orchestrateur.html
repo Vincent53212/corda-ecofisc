@@ -1640,10 +1640,10 @@ async function chargerFichier(file){
       p.textContent='✓ Intrant « '+file.name+' » chargé — '+objets.length+' valeurs ('+attrs.join(', ')+').';
       remote.audit('write',{table:'intrants', n:objets.length, source:file.name});
     } else { p.textContent='⚠ Format non reconnu : il faut au minimum une colonne « matricule » (voir docs/format-intrants.md).'; return; }
-    agg=null; renderReglages(); /* invalider le cache d'agrégats */
+    agg=null; renderReglages(p.textContent); /* invalider le cache — et GARDER le message de succès */
   }catch(e){ console.error(e); p.textContent='⚠ Échec du chargement : '+(e.message||'erreur serveur')+' — reprendre le fichier.'; }
 }
-async function renderReglages(){
+async function renderReglages(message){
   const host=$('#reglagesHost');
   host.innerHTML='<div class="card"><div class="stub"><div class="glyph">⚙</div><div>Inventaire des sources…</div></div></div>';
   let parVille={}, totalUnites=0;
@@ -1666,7 +1666,7 @@ async function renderReglages(){
         <span class="st2 no">À venir</span></div>
       <div class="upzone"><div>Déposer un fichier CSV — rôle (produit de l'ETL) ou intrant de ville</div>
         <label for="upFile">choisir un fichier…</label><input type="file" id="upFile" accept=".csv,text/csv">
-        <div class="upprog" id="upProg"></div></div>
+        <div class="upprog" id="upProg">${esc(typeof message==='string'?message:'')}</div></div>
     </div>`;
   const inp=$('#upFile'); inp.onchange=()=>{ if(inp.files[0]) chargerFichier(inp.files[0]); };
   const zone=$('#reglagesHost .upzone');

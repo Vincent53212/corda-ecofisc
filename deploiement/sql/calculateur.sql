@@ -68,34 +68,37 @@ create policy "admin_all_intrants" on public.intrants
 --  tranche : bornes fixes fines (les tranches de l'usager s'y accrochent →
 --            arithmétique EXACTE sur agrégats, y compris en taux marginal)
 -- ============================================================================
+-- Retourne UN document JSON (jsonb) plutôt qu'un ensemble de lignes :
+-- PostgREST plafonne les fonctions « à lignes » à 1000 lignes — un JSON, non.
+drop function if exists public.calc_aggregats(text); -- le type de retour a changé (table → jsonb)
 create or replace function public.calc_aggregats(pid text)
-returns table (
-  ville_id text, secteur text, classe text,
-  tranche_lo numeric, n bigint, somme_valeur numeric, somme_terrain numeric
-)
+returns jsonb
 language sql stable
 as $$
   with bornes as (
     select array[100000,200000,300000,400000,500000,600000,700000,800000,900000,
                  1000000,1250000,1500000,2000000,3000000,5000000,10000000,
                  25000000,50000000]::numeric[] as b
+  ),
+  agg as (
+    select
+      r.ville_id,
+      case when r.cubf >= '1000' and r.cubf < '2000' then 'res' else 'nonres' end as secteur,
+      case when r.cubf >= '1000' and r.cubf < '2000' then
+        case when coalesce(r.nb_logements,1) >= 50 then '50plus'
+             when r.nb_logements >= 10 then '10-49'
+             when r.nb_logements >= 6  then '6-9'
+             when r.nb_logements >= 3  then '3-5'
+             when r.nb_logements =  2  then '2'
+             else '1' end
+        else coalesce(nullif(substr(r.cubf,1,2),''),'00') end as classe,
+      (array_prepend(0::numeric, b))[width_bucket(r.valeur_totale, b) + 1] as tranche_lo,
+      count(*) as n, sum(r.valeur_totale) as somme_valeur, sum(r.valeur_terrain) as somme_terrain
+    from public.role_unites r, bornes
+    where r.project_id = pid
+    group by 1, 2, 3, 4
   )
-  select
-    r.ville_id,
-    case when r.cubf >= '1000' and r.cubf < '2000' then 'res' else 'nonres' end,
-    case when r.cubf >= '1000' and r.cubf < '2000' then
-      case when coalesce(r.nb_logements,1) >= 50 then '50plus'
-           when r.nb_logements >= 10 then '10-49'
-           when r.nb_logements >= 6  then '6-9'
-           when r.nb_logements >= 3  then '3-5'
-           when r.nb_logements =  2  then '2'
-           else '1' end
-      else coalesce(nullif(substr(r.cubf,1,2),''),'00') end,
-    (array_prepend(0::numeric, b))[width_bucket(r.valeur_totale, b) + 1],
-    count(*), sum(r.valeur_totale), sum(r.valeur_terrain)
-  from public.role_unites r, bornes
-  where r.project_id = pid
-  group by 1, 2, 3, 4
+  select coalesce(jsonb_agg(to_jsonb(agg)), '[]'::jsonb) from agg
 $$;
 -- exécution réservée aux admins authentifiés (la RLS de role_unites s'applique
 -- aussi DANS la fonction : security invoker par défaut)
