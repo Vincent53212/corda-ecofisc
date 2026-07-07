@@ -13,7 +13,7 @@
 | `{{MANDANT}}` | MRC Thérèse-De Blainville | ✔ à confirmer (signataire exact) |
 | `{{FOURNISSEUR}}` | Corda (Vincent Duguay) — conception, exploitation et propriété de l'outil | ✔ |
 | `{{RESPONSABLE_RP}}` | Vincent Duguay (Corda) — **proposition** (décision D2) | ⏳ D2 |
-| `{{COURRIEL_RP}}` | vincent@corda.consulting — **à créer** dans cPanel (Email Accounts) | ⏳ |
+| `{{COURRIEL_RP}}` | vincent.duguay@enap.ca | ✔ |
 | `{{DUREE_CONSERVATION}}` | Durée du mandat + 3 ans — **proposition** (décision D1) | ⏳ D1 |
 | `{{HEBERGEUR_DONNEES}}` | Supabase (région Canada Central — Ontario, infrastructure AWS ca-central-1) | ✔ |
 | `{{HEBERGEUR_PAGE}}` | Namecheap / cPanel (sert la page publique — aucune donnée personnelle) | ✔ |

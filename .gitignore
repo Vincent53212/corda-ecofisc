@@ -31,3 +31,6 @@ corda-levered-all-weather-factsheet.html
 
 # ===== Documents sources confidentiels (fiches ENAP/CERGO — « ne pas diffuser ») =====
 Document complémentaire*.docx
+
+# ===== Intrants générés (regénérables par tools/etl-role.py — données ouvertes) =====
+intrants/
