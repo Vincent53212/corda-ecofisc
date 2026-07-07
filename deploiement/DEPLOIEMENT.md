@@ -66,6 +66,7 @@ Ouvre **`https://ecofisc.corda.consulting`** → l'écran de connexion de l'Orch
 1. **SQL Editor → New query.**
 2. Ouvre **`schema.sql`** (ce dossier, version **v2 révisée**), copie tout, colle, **Run**. Tu dois voir « Success » (Table Editor → `projects`, `access_codes`, `responses`, `audit_log`, `login_attempts`).
 3. *(Optionnel mais recommandé pour la démo)* Même manœuvre avec **`seed-demo.sql`** : installe le projet « Démo — MRC (données fictives) » (7 villes, 9 répondants fictifs) — le même jeu de données que le bouton « Projet Démo » de l'app. Rejouable à volonté (il remplace le projet demo).
+4. **`sql/calculateur.sql`** (module Calculateur) : tables du rôle d'évaluation et des intrants + fonction d'agrégats. Rejouable. Le rôle se charge ensuite via l'écran **Réglages ⚙** de l'app (CSV produit par `tools/etl-role.py` — voir `docs/format-intrants.md`, runbook en annexe).
 
 ### B3. Verrouiller les inscriptions + créer les comptes admin
 1. **Authentication → Sign In / Providers** → **désactive les inscriptions publiques** (« Allow new users to sign up » → OFF).
