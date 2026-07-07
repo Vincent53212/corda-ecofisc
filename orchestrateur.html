@@ -1658,7 +1658,10 @@ async function loadSample(){
 }
 function renderPont(){
   const host=$('#calcPont'); if(!host) return;
-  const mId=calcState.measure; const entry=computed.matrix[mId];
+  const mId=calcState.measure;
+  /* ne lire la matrice de cotation que si elle correspond AU projet actif (sinon
+     un projet fraîchement créé afficherait la reco d'un autre projet) */
+  const entry=(computed.projectId===store.activeId())?computed.matrix[mId]:null;
   const mes=MEASURES.find(x=>x.id===mId);
   if(entry && entry.mrc){ const {cc,maj}=entry.mrc;
     host.innerHTML='Le Portrait dit : <span class="rpill '+maj+'">'+RECO[maj].abbr+'</span> <b>'+esc(RECO[maj].l)+'</b> <span class="faint mono" style="font-size:.72rem">(R '+cc.rec+' · É '+cc.etude+' · N '+cc.non+')</span>';
