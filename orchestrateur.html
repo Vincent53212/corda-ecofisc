@@ -203,6 +203,55 @@ button.rpill{border:none; cursor:pointer}
 .st3.claimed{background:color-mix(in srgb,var(--fav-pos) 16%,var(--bg)); color:var(--fav-pos)}
 .st3.waiting{background:color-mix(in srgb,var(--brass) 16%,var(--bg)); color:var(--brass)}
 
+/* ---------------- Calculateur & Réglages ---------------- */
+.calc-grid{display:grid; grid-template-columns:340px 1fr; gap:16px; align-items:start}
+@media (max-width:980px){ .calc-grid{grid-template-columns:1fr} }
+.bignum .v{font-family:var(--font-mono); font-size:2.1rem; font-weight:700; color:var(--accent-deep); line-height:1.05; white-space:nowrap}
+.bignum .k{font-size:.78rem; color:var(--faint); margin-top:3px}
+.cap{font-family:var(--font-mono); font-size:.66rem; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); margin-bottom:8px}
+.mchoice{display:flex; flex-direction:column; gap:6px}
+.mchoice button{display:flex; align-items:center; gap:9px; text-align:left; border:1px solid var(--line); background:var(--bg); border-radius:9px; padding:9px 11px; cursor:pointer; font-size:.86rem; font-weight:600; color:var(--ink)}
+.mchoice button.on{background:color-mix(in srgb,var(--accent) 12%, transparent); border-color:color-mix(in srgb,var(--accent) 45%, var(--line))}
+.mchoice button:disabled{cursor:not-allowed; color:var(--faint); font-weight:400}
+.mchoice .soon{margin-left:auto; font-family:var(--font-mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--brass); white-space:nowrap}
+.tr-row{display:flex; align-items:center; gap:8px; margin-bottom:7px}
+.tr-row select,.tr-row input{width:auto; flex:1; padding:7px 9px; font-size:.86rem}
+.tr-row input[type=number]{max-width:96px; font-family:var(--font-mono)}
+.tr-row .del{cursor:pointer; border:1px solid var(--line); background:transparent; border-radius:7px; width:28px; height:28px; color:var(--faint); flex:0 0 auto}
+.rate-hint{font-family:var(--font-mono); font-size:.68rem; color:var(--faint); margin-top:4px}
+.rate-hint.warn{color:var(--fav-neg)}
+.ratebl{display:grid; grid-template-columns:1fr auto auto; gap:6px 10px; align-items:center; font-size:.85rem}
+.ratebl .as{font-family:var(--font-mono); font-size:.72rem; color:var(--faint); text-align:right; white-space:nowrap}
+.ratebl input{max-width:88px; padding:6px 8px; font-family:var(--font-mono); font-size:.84rem}
+.viz-wrap{position:relative}
+.viz-tip{position:fixed; z-index:70; background:var(--ink); color:#fff; font-family:var(--font-mono); font-size:11px; padding:6px 10px; border-radius:7px; pointer-events:none; white-space:pre; box-shadow:0 8px 24px -8px rgba(0,0,0,.5)}
+svg.viz{width:100%; height:auto; display:block}
+svg.viz .bar{fill:var(--accent)}
+svg.viz .bar.hl{fill:var(--brass)}
+svg.viz .bar:hover{fill:var(--accent-deep)}
+svg.viz text{font-family:var(--font-mono); font-size:8.5px; fill:var(--muted)}
+svg.viz .vlab{font-size:8px; fill:var(--faint)}
+svg.viz .axis{stroke:var(--line); stroke-width:1}
+svg.viz .seuil{stroke:var(--brass); stroke-width:1.5; stroke-dasharray:3 3}
+.calc-note{font-size:.78rem; color:var(--faint); line-height:1.5; margin-top:8px}
+.pontbar{display:flex; align-items:center; gap:9px; background:var(--surface-2); border-radius:9px; padding:9px 12px; margin-top:12px; font-size:.82rem}
+/* Réglages — sources */
+.src{display:flex; align-items:flex-start; gap:12px; padding:12px 0; border-bottom:1px solid var(--line-2)}
+.src:last-child{border-bottom:none}
+.src .ic{font-size:19px; flex:0 0 auto; width:26px; text-align:center}
+.src .bd{flex:1; min-width:0}
+.src .t{font-weight:600; font-size:.9rem}
+.src .d{font-size:.78rem; color:var(--muted); margin-top:2px; line-height:1.45}
+.st2{font-family:var(--font-mono); font-size:.66rem; padding:4px 9px; border-radius:20px; white-space:nowrap; flex:0 0 auto}
+.st2.ok{background:color-mix(in srgb,var(--fav-pos) 15%,var(--bg)); color:var(--fav-pos)}
+.st2.no{background:var(--line-2); color:var(--faint)}
+.upzone{border:1.5px dashed var(--line); border-radius:10px; padding:18px; text-align:center; color:var(--muted); font-size:.86rem; margin-top:12px}
+.upzone input{display:none}
+.upzone label{cursor:pointer; color:var(--accent-deep); font-weight:600; text-decoration:underline}
+.upprog{font-family:var(--font-mono); font-size:.74rem; color:var(--brass); margin-top:8px; min-height:1.2em}
+.gearbtn{cursor:pointer; border:1px solid var(--line); background:transparent; border-radius:7px; width:34px; height:34px; font-size:16px; color:var(--muted)}
+.gearbtn:hover{border-color:var(--brass); color:var(--brass)}
+
 /* Annotation layer */
 body.anno-on{cursor:crosshair}
 body.anno-on .main *{cursor:crosshair}
@@ -274,6 +323,7 @@ body.anno-on .anno-hint{display:block}
     <div class="lock"><span class="wm">Corda</span><span class="sub">Écofiscalité · Orchestrateur</span></div>
   </div>
   <span class="spacer"></span>
+  <button class="gearbtn" id="gearBtn" hidden title="Réglages — sources de données" aria-label="Réglages">⚙</button>
   <select class="proj-pill" id="projPill" hidden title="Changer de projet" aria-label="Projet actif">
     <option value="tdb" selected>MRC Thérèse-De Blainville</option>
     <option value="" disabled>＋ Nouveau projet — à venir</option>
@@ -370,6 +420,26 @@ body.anno-on .anno-hint{display:block}
         <p>Chaque projet a sa propre liste de villes, ses codes d'accès et ses cotations. Le projet actif se choisit dans le menu déroulant en haut.</p>
       </div>
       <div id="projetsHost"></div>
+    </section>
+
+    <!-- ADMIN · CALCULATEUR -->
+    <section class="screen" id="s-calculateur" data-screen="Calculateur">
+      <div class="page-head">
+        <span class="eyebrow">Pilotage · admin</span>
+        <h1>Calculateur d'impact fiscal</h1>
+        <p>Simulez la recette d'une mesure sur le <b>rôle d'évaluation réel</b> du projet. Les curseurs jouent sur des agrégats calculés au serveur — aucune donnée parcellaire ne quitte la base.</p>
+      </div>
+      <div id="calcHost"></div>
+    </section>
+
+    <!-- ADMIN · RÉGLAGES (sources de données) -->
+    <section class="screen" id="s-reglages" data-screen="Réglages">
+      <div class="page-head">
+        <span class="eyebrow">Pilotage · admin</span>
+        <h1>Réglages — sources de données</h1>
+        <p>Le rôle d'évaluation (donnée ouverte MAMH) est chargé par l'équipe ; les villes transmettent leurs intrants au <b>format universel</b> (une ligne par matricule, leurs colonnes). Tout se greffe par le matricule.</p>
+      </div>
+      <div id="reglagesHost"></div>
     </section>
 
     <!-- VILLE · ORCHESTRATEUR -->
@@ -626,8 +696,9 @@ const NAV = {
     {id:'reponses', label:'Réponses', ic:'☰'},
     {id:'acces', label:'Accès', ic:'⚿'},
     {id:'projets', label:'Projets', ic:'❐'},
+    {grp:'Analyse'},
+    {id:'calculateur', label:'Calculateur', ic:'∑'},
     {grp:'À venir'},
-    {id:'calculateur', label:'Calculateur', ic:'∑', soon:true, disabled:true},
     {id:'analyse', label:'Analyse', ic:'◈', soon:true, disabled:true},
   ],
   ville:[
@@ -637,7 +708,7 @@ const NAV = {
     {id:'communications', label:'Communications', ic:'✉', soon:true, disabled:true},
   ]
 };
-const SCREEN_OF = { 'portrait':'s-portrait', 'reponses':'s-reponses', 'acces':'s-acces', 'projets':'s-projets', 'orchestrateur':'s-orch' };
+const SCREEN_OF = { 'portrait':'s-portrait', 'reponses':'s-reponses', 'acces':'s-acces', 'projets':'s-projets', 'orchestrateur':'s-orch', 'calculateur':'s-calculateur', 'reglages':'s-reglages' };
 function renderSide(){
   const side=$('#side'); side.innerHTML='';
   (NAV[state.role]||[]).forEach(item=>{
@@ -663,6 +734,8 @@ function go(target){
   if(target==='reponses') renderReponses();
   if(target==='acces') renderAcces();
   if(target==='projets') renderProjets();
+  if(target==='calculateur') renderCalc();
+  if(target==='reglages') renderReglages();
   const h=$('#'+id+' h1'); if(h){ h.setAttribute('tabindex','-1'); h.focus({preventScroll:true}); } /* WCAG 2.4.3 — focus sur le titre de l'écran cible */
   restorePins(); saveUI();
 }
@@ -672,8 +745,10 @@ function showShell(roleLabel){
   $('#shell').classList.remove('solo'); $('#side').hidden=false;
   $('#roleBadge').hidden=false;
   $('#projPill').hidden = (state.role!=='admin'); // sélecteur de projet = admin uniquement
+  $('#gearBtn').hidden = (state.role!=='admin');  // réglages (sources de données) = admin
   $('#roleBadge').textContent=roleLabel;
 }
+$('#gearBtn').onclick=()=>{ if(state.anno) return; go('reglages'); };
 function enterAdmin(){
   state.role='admin'; state.ville=null; state.person=null; state.respondentId=null;
   syncVilles(); showShell('Admin'); renderProjPill(); renderSide(); go('portrait'); saveUI();
@@ -721,7 +796,7 @@ function logout(){
   computed={projectId:null, matrix:{}, respondents:{}}; computedStale=false; synthCache={};
   state.role=null; state.ville=null; state.person=null; state.respondentId=null; state.measure=null; state.screen='Connexion'; state.pendingCode=null; state.pendingOnline=false;
   $('#shell').classList.add('solo'); $('#side').hidden=true;
-  ['projPill','roleBadge'].forEach(i=>$('#'+i).hidden=true);
+  ['projPill','roleBadge','gearBtn'].forEach(i=>$('#'+i).hidden=true);
   if(state.anno) toggleAnno(false);
   $$('.screen').forEach(s=>s.classList.remove('on')); $('#s-login').classList.add('on');
   $('#codeInput').value=''; $('#pwInput').value=''; $('#pwWrap').hidden=true; $('#loginErr').textContent=''; saveUI();
@@ -1240,6 +1315,363 @@ function renderProjets(){
       if(!names.length){ err.textContent='Ajoutez au moins une ville.'; return; }
       const seen={}; villes=names.map(n=>{ let id=slugify(n)||'ville'; while(seen[id]) id=id+'-2'; seen[id]=1; return {id, nom:n}; }); }
     const p=store.createProject({title, type:npType, villes}); syncVilles(); renderProjPill(); computedStale=true; toast('Projet « '+p.title+' » créé'); go('acces'); };
+}
+
+/* ===================== CALCULATEUR & RÉGLAGES (admin) =====================
+   Données : rôle d'évaluation (table role_unites) + intrants des villes
+   (format universel). La simulation joue sur les AGRÉGATS retournés par la
+   fonction serveur calc_aggregats — les tranches de l'usager s'accrochent aux
+   bornes des agrégats, donc l'arithmétique est EXACTE (y compris en marginal). */
+const AGG_EDGES=[0,100000,200000,300000,400000,500000,600000,700000,800000,900000,
+  1000000,1250000,1500000,2000000,3000000,5000000,10000000,25000000,50000000];
+const CLASSES_RES=[['1','1 logement'],['2','2 logements'],['3-5','3 à 5 logements'],['6-9','6 à 9 logements'],['10-49','10 à 49 logements'],['50plus','50 logements et plus']];
+const FAM_CUBF={'1':'Résidentiel','2':'Industrie manufacturière','3':'Industrie manufacturière','4':'Transport & infrastructures','5':'Commerce','6':'Services','7':'Culturel, récréatif, loisir','8':'Production agricole','9':'Immeuble non exploité'};
+let agg=null; /* {pid, rows} — cache des agrégats du projet actif */
+let calcState={ measure:'m04', scope:'all',
+  m04:{base:0.65, tranches:[{lo:1000000, taux:0.85}]},
+  m01:{base:0.65, rates:{'1':0.65,'2':0.65,'3-5':0.70,'6-9':0.70,'10-49':0.75,'50plus':0.80}},
+  m02:{base:0.65, taux:0.95, fams:['2','3']},
+};
+const fmt$=v=>{ const n=Math.round(v); return n.toLocaleString('fr-CA').replace(/ /g,' ')+' $'; };
+const fmtM$=v=> (Math.abs(v)>=1e6? (v/1e6).toLocaleString('fr-CA',{maximumFractionDigits:1})+' M$' : fmt$(v));
+
+async function ensureAgg(){
+  const pid=store.activeId();
+  if(agg && agg.pid===pid) return agg;
+  const rows=await remote.rest('rpc/calc_aggregats',{method:'POST', body:JSON.stringify({pid})});
+  agg={pid, rows:rows||[]};
+  return agg;
+}
+function aggRows(scope){ return agg.rows.filter(r=> scope==='all' || r.ville_id===scope); }
+function villesDuProjet(){ return VILLES.slice(); }
+
+/* ---- moteurs de simulation (recette ADDITIONNELLE vs taux de base, $/100 $) ---- */
+function simM04(rows, p){ /* taux variés PAR TRANCHE (marginal) sur le non-résidentiel */
+  const tr=[...p.tranches].sort((a,b)=>a.lo-b.lo);
+  const perVille={}, perBucket={};
+  rows.filter(r=>r.secteur==='nonres').forEach(r=>{
+    const lo=+r.tranche_lo, n=+r.n, s=+r.somme_valeur;
+    perBucket[lo]=(perBucket[lo]||0)+s;
+    let add=0;
+    tr.forEach((t,i)=>{
+      const hi=tr[i+1]?tr[i+1].lo:Infinity;
+      let assiette=0;
+      if(lo>=hi) assiette=n*(hi-t.lo);                    /* unités entièrement au-dessus de la tranche */
+      else if(lo>=t.lo) assiette=s-n*t.lo;                /* unités dans la tranche (bornes alignées) */
+      add+=assiette*(t.taux-p.base)/100;
+    });
+    perVille[r.ville_id]=(perVille[r.ville_id]||0)+add;
+  });
+  return {perVille, perBucket, hlFrom:tr.length?tr[0].lo:Infinity};
+}
+function simM01(rows, p){ /* modulation résidentielle par sous-catégorie de logements */
+  const perVille={}, perClasse={};
+  rows.filter(r=>r.secteur==='res').forEach(r=>{
+    const taux=p.rates[r.classe]; if(taux===undefined) return;
+    const add=(+r.somme_valeur)*(taux-p.base)/100;
+    perVille[r.ville_id]=(perVille[r.ville_id]||0)+add;
+    perClasse[r.classe]=(perClasse[r.classe]||{as:0,add:0});
+    perClasse[r.classe].as+=+r.somme_valeur; perClasse[r.classe].add+=add;
+  });
+  return {perVille, perClasse};
+}
+function simM02(rows, p){ /* taux distinct sur des familles CUBF non résidentielles */
+  const perVille={}, perFam={};
+  rows.filter(r=>r.secteur==='nonres').forEach(r=>{
+    const fam=r.classe.slice(0,1);
+    perFam[r.classe]=(perFam[r.classe]||0)+(+r.somme_valeur);
+    if(!p.fams.includes(fam) && !p.fams.includes(r.classe)) return;
+    const add=(+r.somme_valeur)*(p.taux-p.base)/100;
+    perVille[r.ville_id]=(perVille[r.ville_id]||0)+add;
+  });
+  return {perVille, perFam};
+}
+
+/* ---- graphiques SVG (une série → pas de légende ; survol = infobulle) ---- */
+let _tipEl=null;
+function vizTip(on, x, y, txt){
+  if(!_tipEl){ _tipEl=document.createElement('div'); _tipEl.className='viz-tip'; _tipEl.hidden=true; document.body.appendChild(_tipEl); }
+  _tipEl.hidden=!on; if(on){ _tipEl.textContent=txt; _tipEl.style.left=Math.min(x+12, innerWidth-180)+'px'; _tipEl.style.top=(y+14)+'px'; }
+}
+function barsVilles(perVille){ /* recette additionnelle par ville — barres horizontales */
+  const vs=villesDuProjet().map(v=>({nom:v.nom, val:perVille[v.id]||0})).filter(x=>x.val!==0||true);
+  const max=Math.max(1,...vs.map(x=>Math.abs(x.val)));
+  const H=vs.length*24+6;
+  let s=`<svg class="viz" viewBox="0 0 320 ${H}" role="img" aria-label="Recette additionnelle par ville">`;
+  vs.forEach((x,i)=>{
+    const w=Math.abs(x.val)/max*180, y=i*24+4;
+    s+=`<text x="0" y="${y+11}">${esc(abbrVille(x.nom))}</text>`;
+    s+=`<rect class="bar" data-tip="${esc(x.nom+' : '+fmt$(x.val)+' /an')}" x="86" y="${y}" width="${Math.max(1.5,w)}" height="14" rx="3" ${x.val<0?'fill="var(--fav-neg)"':''}></rect>`;
+    s+=`<text class="vlab" x="${90+Math.max(1.5,w)}" y="${y+11}">${esc(fmtM$(x.val))}</text>`;
+  });
+  return s+'</svg>';
+}
+function histoAssiette(perBucket, hlFrom){ /* assiette par tranche de valeur, seuils en laiton */
+  const buckets=AGG_EDGES.map((lo,i)=>({lo, hi:AGG_EDGES[i+1]||Infinity, v:perBucket[lo]||0}));
+  const max=Math.max(1,...buckets.map(b=>b.v));
+  const bw=320/buckets.length;
+  let s=`<svg class="viz" viewBox="0 0 320 120" role="img" aria-label="Assiette par tranche de valeur">`;
+  s+=`<line class="axis" x1="0" y1="100" x2="320" y2="100"></line>`;
+  buckets.forEach((b,i)=>{
+    const h=b.v/max*86, x=i*bw;
+    const lab=b.hi===Infinity?fmtM$(b.lo)+'+':fmtM$(b.lo)+' – '+fmtM$(b.hi);
+    s+=`<rect class="bar${b.lo>=hlFrom?' hl':''}" data-tip="${esc(lab+'\nassiette : '+fmtM$(b.v))}" x="${x+1}" y="${100-h}" width="${bw-2}" height="${Math.max(h,b.v>0?1.5:0)}" rx="2"></rect>`;
+  });
+  [1000000,5000000].forEach(v=>{ const i=AGG_EDGES.indexOf(v); if(i>0) s+=`<text class="vlab" x="${i*bw}" y="112">${v>=1e6?(v/1e6)+' M$':''}</text>`; });
+  if(hlFrom!==undefined && hlFrom!==Infinity){ const i=AGG_EDGES.indexOf(hlFrom); if(i>=0) s+=`<line class="seuil" x1="${i*bw}" y1="6" x2="${i*bw}" y2="100"></line>`; }
+  return s+'</svg>';
+}
+document.addEventListener('mousemove',e=>{ const b=e.target.closest&&e.target.closest('svg.viz [data-tip]'); if(b) vizTip(true, e.clientX, e.clientY, b.dataset.tip); else if(_tipEl&&!_tipEl.hidden) vizTip(false); });
+
+/* ---- écran Calculateur ---- */
+const CALC_READY=['m04','m01','m02'];
+async function renderCalc(){
+  const host=$('#calcHost');
+  host.innerHTML='<div class="card"><div class="stub"><div class="glyph">∑</div><div>Chargement des agrégats du rôle…</div></div></div>';
+  try{ await ensureAgg(); }
+  catch(e){ console.error(e);
+    host.innerHTML='<div class="card"><div class="stub"><div class="glyph">⚠</div><div>Agrégats indisponibles — le rôle d\'évaluation est-il chargé pour ce projet ? (Réglages ⚙)</div></div></div>'; return; }
+  if(!agg.rows.length){
+    host.innerHTML='<div class="card"><div class="stub"><div class="glyph">⚙</div><div>Aucune donnée du rôle pour ce projet.<br>Chargez le rôle d\'évaluation dans <b>Réglages</b> (bouton ⚙ en haut).</div></div></div>'; return; }
+  const m=calcState.measure;
+  const mes=MEASURES.find(x=>x.id===m);
+  const choix=[['m04','Taux varié par tranche (non-rés.)'],['m01','Sous-catégories — logements'],['m02','Taux ciblé par famille CUBF']];
+  const avenir=MEASURES.filter(x=>!CALC_READY.includes(x.id)).length;
+  host.innerHTML=`
+    <div class="calc-grid">
+      <div>
+        <div class="card" data-anno="Calculateur — designer">
+          <div class="cap">Mesure simulée</div>
+          <div class="mchoice">
+            ${choix.map(([id,l])=>'<button type="button" data-m="'+id+'" class="'+(m===id?'on':'')+'">∑ <span>'+esc(l)+'</span></button>').join('')}
+            <button type="button" disabled>· <span>${avenir} autres mesures</span><span class="soon">données à venir</span></button>
+          </div>
+          <div class="field" style="margin-top:14px"><label for="calcScope">Périmètre</label>
+            <select id="calcScope"><option value="all"${calcState.scope==='all'?' selected':''}>Toutes les villes (${VILLES.length})</option>
+            ${VILLES.map(v=>'<option value="'+esc(v.id)+'"'+(calcState.scope===v.id?' selected':'')+'>'+esc(v.nom)+'</option>').join('')}</select></div>
+          <div id="calcParams"></div>
+        </div>
+        <div class="card" data-anno="Calculateur — pont Portrait">
+          <div class="cap">Et l'analyse multicritère ?</div>
+          <div class="pontbar" id="calcPont"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card" data-anno="Calculateur — résultat">
+          <div class="row-between" style="align-items:flex-start; flex-wrap:wrap; gap:14px">
+            <div class="bignum"><div class="cap">Recette additionnelle projetée</div><div class="v" id="calcRev">—</div><div class="k" id="calcRevK"></div></div>
+            <div style="flex:1; min-width:230px"><div class="cap">Par ville</div><div class="viz-wrap" id="calcVilles"></div></div>
+          </div>
+          <div class="calc-note">Incidence mécanique à t=0 (comportement constant), taux exprimés en $ par 100 $ d'évaluation. Assiette approchée par le CUBF du rôle (donnée ouverte) — la catégorie fiscale officielle peut différer à la marge.</div>
+        </div>
+        <div class="card" data-anno="Calculateur — assiette">
+          <div class="cap" id="calcHistoCap">Assiette par tranche de valeur</div>
+          <div class="viz-wrap" id="calcHisto"></div>
+        </div>
+        <div class="card" data-anno="Calculateur — échantillon">
+          <div class="cap">Échantillon — les plus grandes unités du périmètre</div>
+          <div class="table-scroll" id="calcSample">…</div>
+        </div>
+      </div>
+    </div>`;
+  $$('#calcHost .mchoice button[data-m]').forEach(b=>b.onclick=()=>{ calcState.measure=b.dataset.m; renderCalc(); });
+  $('#calcScope').onchange=e=>{ calcState.scope=e.target.value; renderCalcParams(); refreshCalc(); loadSample(); };
+  renderCalcParams(); refreshCalc(); loadSample(); renderPont();
+}
+function renderCalcParams(){
+  const host=$('#calcParams'); const m=calcState.measure;
+  const seuils=AGG_EDGES.filter(x=>x>=300000);
+  if(m==='m04'){ const p=calcState.m04;
+    host.innerHTML=`<div class="cap" style="margin-top:14px">Taux de base (non résidentiel)</div>
+      <div class="tr-row"><input type="number" id="m04base" step="0.01" min="0" value="${p.base}"> <span class="rate-hint">$ / 100 $ — statu quo</span></div>
+      <div class="cap" style="margin-top:10px">Tranches (taux marginal au-delà du seuil)</div>
+      <div id="m04rows">${p.tranches.map((t,i)=>`
+        <div class="tr-row" data-i="${i}">
+          <select class="trlo">${seuils.map(s=>'<option value="'+s+'"'+(s===t.lo?' selected':'')+'>≥ '+fmtM$(s)+'</option>').join('')}</select>
+          <input type="number" class="trtx" step="0.01" min="0" value="${t.taux}">
+          <button type="button" class="del" aria-label="Retirer la tranche">×</button>
+        </div>`).join('')}</div>
+      <button type="button" class="btn ghost" id="m04add" style="padding:6px 10px">＋ Ajouter une tranche</button>
+      <div class="rate-hint" id="m04hint"></div>`;
+    const sync=()=>{ p.base=parseFloat($('#m04base').value)||0;
+      p.tranches=$$('#m04rows .tr-row').map(r=>({lo:+r.querySelector('.trlo').value, taux:parseFloat(r.querySelector('.trtx').value)||0}));
+      const maxT=Math.max(...p.tranches.map(t=>t.taux), p.base);
+      const h=$('#m04hint'); const depasse=p.base>0 && maxT>p.base*4/3+1e-9;
+      h.textContent=depasse?'⚠ un taux dépasse 133,3 % du taux de base (plafond LFM pour un 2e taux non résidentiel)':'plafond usuel : 133,3 % du taux de base (LFM)';
+      h.classList.toggle('warn', depasse);
+      refreshCalc(); };
+    host.oninput=sync; host.onchange=sync;
+    $('#m04add').onclick=()=>{ p.tranches.push({lo:2000000, taux:p.base+0.2}); renderCalcParams(); refreshCalc(); };
+    $$('#m04rows .del').forEach((b,i)=>b.onclick=()=>{ p.tranches.splice(i,1); renderCalcParams(); refreshCalc(); });
+    sync();
+  }
+  if(m==='m01'){ const p=calcState.m01;
+    host.innerHTML=`<div class="cap" style="margin-top:14px">Taux de base (résidentiel)</div>
+      <div class="tr-row"><input type="number" id="m01base" step="0.01" min="0" value="${p.base}"> <span class="rate-hint">$ / 100 $</span></div>
+      <div class="cap" style="margin-top:10px">Taux par sous-catégorie</div>
+      <div class="ratebl" id="m01rows">${CLASSES_RES.map(([c,l])=>`
+        <span>${esc(l)}</span><span class="as" data-as="${c}"></span><input type="number" data-c="${c}" step="0.01" min="0" value="${p.rates[c]}">`).join('')}</div>`;
+    const sync=()=>{ p.base=parseFloat($('#m01base').value)||0;
+      $$('#m01rows input').forEach(i=>{ p.rates[i.dataset.c]=parseFloat(i.value)||0; }); refreshCalc(); };
+    host.oninput=sync; sync();
+  }
+  if(m==='m02'){ const p=calcState.m02;
+    const fams=[['2','Industrie (2xxx)'],['3','Industrie (3xxx)'],['4','Transport & infra (4xxx)'],['5','Commerce (5xxx)'],['6','Services (6xxx)'],['7','Culturel & récréatif (7xxx)'],['8','Agricole (8xxx)'],['9','Non exploité (9xxx)']];
+    host.innerHTML=`<div class="cap" style="margin-top:14px">Taux de base (non résidentiel)</div>
+      <div class="tr-row"><input type="number" id="m02base" step="0.01" min="0" value="${p.base}"> <span class="rate-hint">$ / 100 $</span></div>
+      <div class="cap" style="margin-top:10px">Familles CUBF visées</div>
+      <div class="mchoice" id="m02fams">${fams.map(([f,l])=>'<button type="button" data-f="'+f+'" class="'+(p.fams.includes(f)?'on':'')+'">'+esc(l)+'<span class="soon" data-fas="'+f+'"></span></button>').join('')}</div>
+      <div class="cap" style="margin-top:10px">Taux visé</div>
+      <div class="tr-row"><input type="number" id="m02taux" step="0.01" min="0" value="${p.taux}"> <span class="rate-hint">appliqué aux familles choisies</span></div>`;
+    $$('#m02fams button').forEach(b=>b.onclick=()=>{ const f=b.dataset.f;
+      p.fams=p.fams.includes(f)?p.fams.filter(x=>x!==f):[...p.fams,f];
+      b.classList.toggle('on'); refreshCalc(); });
+    const sync=()=>{ p.base=parseFloat($('#m02base').value)||0; p.taux=parseFloat($('#m02taux').value)||0; refreshCalc(); };
+    host.oninput=sync; sync();
+  }
+}
+function refreshCalc(){
+  if(!agg) return;
+  const rows=aggRows(calcState.scope); const m=calcState.measure;
+  let res, hlFrom, perBucket={};
+  if(m==='m04'){ res=simM04(rows, calcState.m04); perBucket=res.perBucket; hlFrom=res.hlFrom; }
+  if(m==='m01'){ res=simM01(rows, calcState.m01);
+    rows.filter(r=>r.secteur==='res').forEach(r=>{ perBucket[+r.tranche_lo]=(perBucket[+r.tranche_lo]||0)+(+r.somme_valeur); }); }
+  if(m==='m02'){ res=simM02(rows, calcState.m02);
+    const p=calcState.m02;
+    rows.filter(r=>r.secteur==='nonres' && (p.fams.includes(r.classe.slice(0,1))||p.fams.includes(r.classe))).forEach(r=>{ perBucket[+r.tranche_lo]=(perBucket[+r.tranche_lo]||0)+(+r.somme_valeur); });
+    $$('#m02fams [data-fas]').forEach(sp=>{ const f=sp.dataset.fas;
+      const tot=Object.entries(res.perFam).filter(([k])=>k.slice(0,1)===f).reduce((s,[,v])=>s+v,0);
+      sp.textContent=tot?fmtM$(tot):''; }); }
+  const total=Object.values(res.perVille).reduce((s,v)=>s+v,0);
+  const rev=$('#calcRev'); if(rev){ rev.textContent=fmt$(total); rev.style.color = total<0?'var(--fav-neg)':'var(--accent-deep)'; }
+  const k=$('#calcRevK'); if(k) k.textContent='par an · '+(calcState.scope==='all'?VILLES.length+' villes':(VILLES.find(v=>v.id===calcState.scope)||{}).nom||'')+' · vs taux de base';
+  const bv=$('#calcVilles'); if(bv) bv.innerHTML=barsVilles(res.perVille);
+  const hh=$('#calcHisto'); if(hh) hh.innerHTML=histoAssiette(perBucket, hlFrom);
+  const hc=$('#calcHistoCap'); if(hc) hc.textContent='Assiette par tranche de valeur — '+(m==='m01'?'résidentiel':(m==='m02'?'familles CUBF choisies':'non résidentiel'));
+  if(m==='m04') loadSample._charge=v=>chargeM04(v);
+  else if(m==='m01') loadSample._charge=(v,row)=>{ const p=calcState.m01; const n=row.nb_logements||1;
+    const cls=n>=50?'50plus':n>=10?'10-49':n>=6?'6-9':n>=3?'3-5':n===2?'2':'1';
+    return v*((p.rates[cls]||p.base)-p.base)/100; };
+  else if(m==='m02') loadSample._charge=(v,row)=>{ const p=calcState.m02; const f=(row.cubf||'').slice(0,1);
+    return p.fams.includes(f)? v*(p.taux-p.base)/100 : 0; };
+}
+function chargeM04(v){ /* charge additionnelle d'UNE unité de valeur v (pour l'échantillon) */
+  const p=calcState.m04; let add=0;
+  const tr=[...p.tranches].sort((a,b)=>a.lo-b.lo);
+  tr.forEach((t,i)=>{ const hi=tr[i+1]?tr[i+1].lo:Infinity;
+    add+=Math.max(0, Math.min(v,hi)-t.lo)*(t.taux-p.base)/100; });
+  return add;
+}
+async function loadSample(){
+  const host=$('#calcSample'); if(!host) return;
+  try{
+    const m=calcState.measure;
+    const filtre = m==='m01' ? '&cubf=gte.1000&cubf=lt.2000' : '&or=(cubf.lt.1000,cubf.gte.2000)';
+    const scope = calcState.scope==='all' ? '' : '&ville_id=eq.'+encodeURIComponent(calcState.scope);
+    const rows=await remote.rest('role_unites?select=matricule,ville_id,cubf,valeur_totale,nb_logements&project_id=eq.'+encodeURIComponent(store.activeId())+filtre+scope+'&order=valeur_totale.desc&limit=8');
+    const vn=id=>{ const v=VILLES.find(x=>x.id===id); return v?abbrVille(v.nom):id; };
+    host.innerHTML='<table class="pmatrix"><thead><tr><th style="text-align:left">Matricule</th><th>Ville</th><th>CUBF</th><th>Valeur</th><th>Charge add. /an</th></tr></thead><tbody>'+
+      rows.map(r=>{ const ch=loadSample._charge?loadSample._charge(+r.valeur_totale, r):null;
+        return '<tr><td style="text-align:left" class="mono">'+esc(r.matricule)+'</td><td>'+esc(vn(r.ville_id))+'</td><td class="mono">'+esc(r.cubf)+'</td><td class="mono">'+esc(fmtM$(+r.valeur_totale))+'</td><td class="mono">'+(ch===null?'—':esc(fmt$(ch)))+'</td></tr>'; }).join('')+
+      '</tbody></table>';
+  }catch(e){ console.error(e); host.innerHTML='<div class="faint mono" style="font-size:.8rem">Échantillon indisponible.</div>'; }
+}
+function renderPont(){
+  const host=$('#calcPont'); if(!host) return;
+  const mId=calcState.measure; const entry=computed.matrix[mId];
+  const mes=MEASURES.find(x=>x.id===mId);
+  if(entry && entry.mrc){ const {cc,maj}=entry.mrc;
+    host.innerHTML='Le Portrait dit : <span class="rpill '+maj+'">'+RECO[maj].abbr+'</span> <b>'+esc(RECO[maj].l)+'</b> <span class="faint mono" style="font-size:.72rem">(R '+cc.rec+' · É '+cc.etude+' · N '+cc.non+')</span>';
+  } else {
+    host.innerHTML='<span class="faint">Cette mesure n\'a pas encore été cotée dans ce projet — la recette est une chose, l\'acceptabilité en est une autre.</span>';
+  }
+}
+
+/* ---- écran Réglages (sources de données + chargement) ---- */
+function csvParse(text){ /* CSV robuste : virgule OU point-virgule, champs entre guillemets, CRLF */
+  const firstLine=text.slice(0, text.indexOf('\n')+1||200);
+  const sep=(firstLine.match(/;/g)||[]).length>(firstLine.match(/,/g)||[]).length?';':',';
+  const rows=[]; let row=[], cur='', inQ=false;
+  for(let i=0;i<text.length;i++){ const ch=text[i];
+    if(inQ){ if(ch==='"'){ if(text[i+1]==='"'){ cur+='"'; i++; } else inQ=false; } else cur+=ch; }
+    else if(ch==='"') inQ=true;
+    else if(ch===sep){ row.push(cur); cur=''; }
+    else if(ch==='\n'){ row.push(cur.replace(/\r$/,'')); if(row.some(c=>c!=='')) rows.push(row); row=[]; cur=''; }
+    else cur+=ch; }
+  if(cur!==''||row.length){ row.push(cur.replace(/\r$/,'')); if(row.some(c=>c!=='')) rows.push(row); }
+  return rows;
+}
+async function upsertBatches(path, objets, prog){
+  const LOT=1000;
+  for(let i=0;i<objets.length;i+=LOT){
+    await remote.rest(path,{method:'POST', prefer:'resolution=merge-duplicates,return=minimal', body:JSON.stringify(objets.slice(i,i+LOT))});
+    prog(Math.min(i+LOT,objets.length), objets.length);
+  }
+}
+async function chargerFichier(file){
+  const p=$('#upProg'); const pid=store.activeId();
+  const texte=await file.text();
+  const rows=csvParse(texte);
+  if(rows.length<2){ p.textContent='⚠ Fichier vide ou illisible.'; return; }
+  const head=rows[0].map(h=>h.trim().toLowerCase());
+  const idx=n=>head.indexOf(n);
+  const num=x=>{ const v=parseFloat(String(x).replace(/\s/g,'').replace(',','.')); return isNaN(v)?null:v; };
+  try{
+    if(idx('valeur_totale')>=0 && idx('ville_id')>=0){ /* ---- rôle d'évaluation (produit par l'ETL) ---- */
+      const objets=rows.slice(1).map(r=>({ project_id:pid, matricule:r[idx('matricule')], ville_id:r[idx('ville_id')],
+        cubf:r[idx('cubf')]||'', valeur_terrain:num(r[idx('valeur_terrain')])||0, valeur_batiment:num(r[idx('valeur_batiment')])||0,
+        valeur_totale:num(r[idx('valeur_totale')])||0, superficie_terrain:num(r[idx('superficie_terrain')]),
+        nb_logements:(x=>x===null?null:Math.round(x))(num(r[idx('nb_logements')])),
+        terrain_vague_desservi:idx('terrain_vague_desservi')>=0?(r[idx('terrain_vague_desservi')]||null):null,
+        zonage_agricole:idx('zonage_agricole')>=0?(r[idx('zonage_agricole')]||null):null })).filter(o=>o.matricule);
+      await upsertBatches('role_unites?on_conflict=project_id,matricule', objets, (a,b)=>{ p.textContent='Rôle : '+a+' / '+b+' unités…'; });
+      p.textContent='✓ Rôle chargé — '+objets.length+' unités.'; remote.audit('write',{table:'role_unites', n:objets.length, source:file.name});
+    } else if(idx('matricule')>=0){ /* ---- intrant de ville (format universel) : large → long ---- */
+      const villeParMat=null; /* la ville est déduite du rôle au moment de l'usage ; on stocke ce qu'on sait */
+      const attrs=head.filter(h=>h!=='matricule' && h!=='ville_id');
+      const objets=[];
+      rows.slice(1).forEach(r=>{ const mat=r[idx('matricule')]; if(!mat) return;
+        const vid=idx('ville_id')>=0?(r[idx('ville_id')]||''):'';
+        attrs.forEach(a=>{ const v=r[idx(a)]; if(v!==undefined && String(v).trim()!=='') objets.push({project_id:pid, ville_id:vid, matricule:mat, attribut:a, valeur:String(v).trim(), source:file.name}); });
+      });
+      if(!objets.length){ p.textContent='⚠ Aucune valeur à charger (colonnes vides ?).'; return; }
+      await upsertBatches('intrants?on_conflict=project_id,matricule,attribut', objets, (a,b)=>{ p.textContent='Intrant : '+a+' / '+b+' valeurs…'; });
+      p.textContent='✓ Intrant « '+file.name+' » chargé — '+objets.length+' valeurs ('+attrs.join(', ')+').';
+      remote.audit('write',{table:'intrants', n:objets.length, source:file.name});
+    } else { p.textContent='⚠ Format non reconnu : il faut au minimum une colonne « matricule » (voir docs/format-intrants.md).'; return; }
+    agg=null; renderReglages(); /* invalider le cache d'agrégats */
+  }catch(e){ console.error(e); p.textContent='⚠ Échec du chargement : '+(e.message||'erreur serveur')+' — reprendre le fichier.'; }
+}
+async function renderReglages(){
+  const host=$('#reglagesHost');
+  host.innerHTML='<div class="card"><div class="stub"><div class="glyph">⚙</div><div>Inventaire des sources…</div></div></div>';
+  let parVille={}, totalUnites=0;
+  try{ await ensureAgg();
+    agg.rows.forEach(r=>{ parVille[r.ville_id]=(parVille[r.ville_id]||0)+(+r.n); totalUnites+=+r.n; });
+  }catch(e){ console.error(e); }
+  const roleOk=totalUnites>0;
+  const villesTxt=VILLES.map(v=>abbrVille(v.nom)+' '+(parVille[v.id]||0)).join(' · ');
+  host.innerHTML=`
+    <div class="card" data-anno="Réglages — sources">
+      <h3>Sources de données — projet « ${esc((store.activeProj()||{}).title||'')} »</h3>
+      <div class="src"><div class="ic">🗺</div><div class="bd"><div class="t">Rôle d'évaluation foncière</div>
+        <div class="d">Données Québec / MAMH (CC-BY 4.0) · extrait par ville via <span class="mono">tools/etl-role.py</span> · ${roleOk?('<b>'+totalUnites.toLocaleString('fr-CA')+' unités</b> — '+esc(villesTxt)):'aucune unité chargée pour ce projet'}</div></div>
+        <span class="st2 ${roleOk?'ok':'no'}">${roleOk?'Chargé ✓':'Non chargé'}</span></div>
+      <div class="src"><div class="ic">🏙</div><div class="bd"><div class="t">Intrants des villes (format universel)</div>
+        <div class="d">Une ligne par matricule, leurs colonnes (canopée, desserte, vacance…) — voir <span class="mono">docs/format-intrants.md</span>. Se greffent au rôle par le matricule.</div></div>
+        <span class="st2 no">Au fil de l'eau</span></div>
+      <div class="src"><div class="ic">📊</div><div class="bd"><div class="t">Revenus par aire de diffusion (StatCan)</div>
+        <div class="d">Contexte de quartier — sera flaggé « inférence écologique ». Prévu avec la couche géographique.</div></div>
+        <span class="st2 no">À venir</span></div>
+      <div class="upzone"><div>Déposer un fichier CSV — rôle (produit de l'ETL) ou intrant de ville</div>
+        <label for="upFile">choisir un fichier…</label><input type="file" id="upFile" accept=".csv,text/csv">
+        <div class="upprog" id="upProg"></div></div>
+    </div>`;
+  const inp=$('#upFile'); inp.onchange=()=>{ if(inp.files[0]) chargerFichier(inp.files[0]); };
+  const zone=$('#reglagesHost .upzone');
+  zone.ondragover=e=>{ e.preventDefault(); };
+  zone.ondrop=e=>{ e.preventDefault(); const f=e.dataTransfer.files[0]; if(f) chargerFichier(f); };
 }
 
 /* ===================== BOOT (en ligne seulement — le contenu arrive après authentification) ===================== */
