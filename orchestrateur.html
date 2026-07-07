@@ -1558,18 +1558,24 @@ function refreshCalc(){
   const bv=$('#calcVilles'); if(bv) bv.innerHTML=barsVilles(res.perVille);
   const hh=$('#calcHisto'); if(hh) hh.innerHTML=histoAssiette(perBucket, hlFrom);
   const hc=$('#calcHistoCap'); if(hc) hc.textContent='Assiette par tranche de valeur — '+(m==='m01'?'résidentiel':(m==='m02'?'familles CUBF choisies':'non résidentiel'));
-  if(m==='m04') loadSample._charge=v=>chargeM04(v);
-  else if(m==='m01') loadSample._charge=(v,row)=>{ const p=calcState.m01; const n=row.nb_logements||1;
-    const cls=n>=50?'50plus':n>=10?'10-49':n>=6?'6-9':n>=3?'3-5':n===2?'2':'1';
-    return v*((p.rates[cls]||p.base)-p.base)/100; };
-  else if(m==='m02') loadSample._charge=(v,row)=>{ const p=calcState.m02; const f=(row.cubf||'').slice(0,1);
-    return p.fams.includes(f)? v*(p.taux-p.base)/100 : 0; };
   paintSampleCharges(); /* recolore la colonne « charge » de l'échantillon SANS re-fetch (sinon elle reste périmée au coup de curseur) */
+}
+/* charge additionnelle d'UNE unité pour la mesure ACTIVE — lue directement de
+   calcState (aucune dépendance d'ordre : pas de « _charge » à pré-assigner) */
+function chargeUnite(v, row){
+  const m=calcState.measure;
+  if(m==='m04') return chargeM04(v);
+  if(m==='m01'){ const p=calcState.m01; const n=(row&&row.nb_logements)||1;
+    const cls=n>=50?'50plus':n>=10?'10-49':n>=6?'6-9':n>=3?'3-5':n===2?'2':'1';
+    return v*((p.rates[cls]||p.base)-p.base)/100; }
+  if(m==='m02'){ const p=calcState.m02; const f=((row&&row.cubf)||'').slice(0,1);
+    return p.fams.includes(f)? v*(p.taux-p.base)/100 : 0; }
+  return null;
 }
 function paintSampleCharges(){
   const tb=$('#calcSample tbody'); if(!tb || !loadSample._rows) return;
   [...tb.rows].forEach((tr,i)=>{ const row=loadSample._rows[i]; if(!row) return;
-    const ch=loadSample._charge?loadSample._charge(+row.valeur_totale, row):null;
+    const ch=chargeUnite(+row.valeur_totale, row);
     tr.cells[4].textContent = ch===null?'—':fmt$(ch); });
 }
 function chargeM04(v){ /* charge additionnelle d'UNE unité de valeur v (pour l'échantillon) */
@@ -1589,7 +1595,7 @@ async function loadSample(){
     loadSample._rows=rows; /* mémorisées pour le recalcul en direct (paintSampleCharges) */
     const vn=id=>{ const v=VILLES.find(x=>x.id===id); return v?abbrVille(v.nom):id; };
     host.innerHTML='<table class="pmatrix"><thead><tr><th style="text-align:left">Matricule</th><th>Ville</th><th>CUBF</th><th>Valeur</th><th>Charge add. /an</th></tr></thead><tbody>'+
-      rows.map(r=>{ const ch=loadSample._charge?loadSample._charge(+r.valeur_totale, r):null;
+      rows.map(r=>{ const ch=chargeUnite(+r.valeur_totale, r);
         return '<tr><td style="text-align:left" class="mono">'+esc(r.matricule)+'</td><td>'+esc(vn(r.ville_id))+'</td><td class="mono">'+esc(r.cubf)+'</td><td class="mono">'+esc(fmtM$(+r.valeur_totale))+'</td><td class="mono">'+(ch===null?'—':esc(fmt$(ch)))+'</td></tr>'; }).join('')+
       '</tbody></table>';
   }catch(e){ console.error(e); host.innerHTML='<div class="faint mono" style="font-size:.8rem">Échantillon indisponible.</div>'; }
