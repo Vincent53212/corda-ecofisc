@@ -35,7 +35,8 @@
 `docs/dossier-validation-fanny.docx` : A. règles de calcul (7 points) · B. boussole ae7/ae2 · C. six descriptions Gatineau à approuver + **12 mesures sans description** (source à identifier) · D. décisions Loi 25 (conservation, responsable RP, finalité/consentement, entente Corda↔MRC/CERGO + PI, interdiction IA sur commentaires).
 ⛓️ Ses réponses alimentent `rules.js` (changements = quelques lignes + tests), les gabarits du Bloc 3 et le contenu des mesures. **Le travail des Blocs 3-3.5 avance sans attendre.**
 
-## Bloc 3 — Cadrage Loi 25 : gabarits ⭐ PROCHAINE SÉANCE (🤖 rédige · 🧑/Fanny décident & signent) — GATING avant toute vraie donnée
+## Bloc 3 — Cadrage Loi 25 : gabarits — ✅ RÉDIGÉ (2026-07-06, dossier `loi25/`) · reste 🧑/Fanny : décider & signer — GATING avant toute vraie donnée
+> **Fait** : 6 gabarits à variables client (`loi25/00-06`) + `politique.html` publiée avec l'app (lien depuis le consentement et le login) + `cahier-loi25-tdb.docx` pour la rencontre. Entente = **Chercheure (Fanny T-R) ↔ Mandants**, Corda fournisseur (PI protégée) — trame à réviser par juriste. EFVP couvre la communication hors Québec (Ontario, société US, exécution distribuée des fonctions ⏳). `schema.sql` v2 déjà aligné (destruction réelle). Restent ⏳ : D1 (durée), D2 (responsable), signataires, courriel vincent@corda.consulting à créer.
 1. **Avis de collecte + consentement** à la 1re connexion (`s-firstconn`) : finalité / destinataires / durée / droits / responsable + case « je consens ». *(art. 8)*
 2. **Politique de confidentialité** liée au login. *(art. 3.2)*
 3. **EFVP** courte (système traitant des RP **+ communication hors Québec** — Supabase « Canada Central » = Ontario) ; désigner + afficher le **responsable RP**. *(art. 3.1/3.3/17)*
