@@ -23,13 +23,8 @@ node_modules/
 # ===== Paquet de déploiement (généré par tools/build-dist.js) =====
 deploiement/dist/
 
-# ===== Versionnage manuel, remplacé par l'historique Git =====
-old/
-
-# ===== Autre produit Corda (hors périmètre de ce dépôt) =====
-corda-levered-all-weather-factsheet.html
-
 # ===== Documents sources confidentiels (fiches ENAP/CERGO — « ne pas diffuser ») =====
+# Le .docx Gatineau vit dans sources/ ; le motif (sans barre oblique) le couvre à tout niveau.
 Document complémentaire*.docx
 
 # ===== Intrants générés (regénérables par tools/etl-role.py — données ouvertes) =====

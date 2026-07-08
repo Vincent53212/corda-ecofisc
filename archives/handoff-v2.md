@@ -1,7 +1,7 @@
 # MRC Thérèse-De Blainville — Handoff v2 (révision)
 ## Note de révision du handoff initial, en vue du plan d'implémentation
 
-**Statut**: révision du handoff v1 (`MRC-Therese-De-Blainville_handoff.md`) après séance de challenge avec Claude Code.
+**Statut**: révision du handoff v1 (`handoff-v1.md`) après séance de challenge avec Claude Code.
 **À utiliser comme**: pont entre le brainstorm v1 et le plan d'exécution. Les renvois pointent vers les sections de v1.
 **Tonalité**: même esprit que v1 — note à plusieurs voix.
 **Date**: 2026-06-16. **MAJ**: revampée autour du cadrage stratégique réel — **l'app = outil-conseil / moat ; publication = porte ouverte, pas moteur**.
