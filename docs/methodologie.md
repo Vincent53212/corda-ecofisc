@@ -21,13 +21,13 @@ Réponses possibles : **+1** (favorable) · **0** (neutre) · **−1** (défavor
 
 **S** = somme des réponses données dans la dimension (les questions sans réponse sont ignorées).
 
-| Condition (dans l'ordre) | Appréciation |
-|---|---|
-| S ≥ 2 **et** aucune réponse négative | Très favorable |
-| S ≥ 1 (sinon) | Favorable |
-| S = 0 (ou aucune réponse) | Neutre |
+| Condition (dans l'ordre)              | Appréciation          |
+| ------------------------------------- | --------------------- |
+| S ≥ 2 **et** aucune réponse négative  | Très favorable        |
+| S ≥ 1 (sinon)                         | Favorable             |
+| S = 0 (ou aucune réponse)             | Neutre                |
 | S ≤ −2 **et** aucune réponse positive | Pas du tout favorable |
-| Tous les autres cas (S < 0) | Peu favorable |
+| Tous les autres cas (S < 0)           | Peu favorable         |
 
 Cas limites à connaître :
 - **S ≥ 2 avec au moins un −** → Favorable seulement : le négatif bloque le « Très favorable ».
@@ -36,11 +36,12 @@ Cas limites à connaître :
 
 ## 3. Des 4 appréciations à la recommandation (`reco`)
 
-| Condition (dans l'ordre) | Recommandation |
-|---|---|
-| ≥ 1 « Pas du tout favorable » **ou** ≥ 2 « Peu favorable » | **Non recommandée** |
-| aucun « Peu / Pas du tout favorable » **et** ≥ 2 dimensions favorables (F ou TF) | **Recommandée** |
-| tout le reste | **Mise à l'étude** |
+| Condition (dans l'ordre)                                                         | Recommandation      |
+| -------------------------------------------------------------------------------- | ------------------- |
+| ≥ 1 « Pas du tout favorable » **ou** ≥ 2 « Peu favorable »                       | **Non recommandée** |
+| aucun « Peu / Pas du tout favorable » **et** ≥ 2 dimensions favorables (F ou TF) | **Recommandée**     |
+| tout le reste                                                                    | **Mise à l'étude**  |
+|                                                                                  |                     |
 
 Concrètement, la « mise à l'étude » recueille : un seul « Peu favorable » (même accompagné de 3 dimensions favorables) ; 0 ou 1 dimension favorable sans pénalité ; tout-neutre.
 

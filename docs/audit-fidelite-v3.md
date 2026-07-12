@@ -14,13 +14,13 @@
 
 Le guide (docx §3, identique à la feuille « Guide » du classeur) définit :
 
-| Appréciation | Règle du guide (prose) | Formule du classeur (fiches, col. B) | `rules.js` |
-|---|---|---|---|
-| Très favorable | aucun négatif **et somme > 1** | aucun négatif et **somme > 0** | = guide (S ≥ 2, aucun négatif) |
-| Favorable | somme ≥ 1 (négatifs permis) | somme > 0 avec ≥ 1 négatif | = guide |
-| Neutre | somme = 0 | somme = 0 | = guide |
-| Peu favorable | somme < 0 (positifs permis) | somme < 0 avec ≥ 1 positif | = guide |
-| Pas du tout favorable | aucun positif **et somme < −1** | aucun positif et **somme < 0** | = guide (S ≤ −2, aucun positif) |
+| Appréciation          | Règle du guide (prose)          | Formule du classeur (fiches, col. B) | `rules.js`                      |
+| --------------------- | ------------------------------- | ------------------------------------ | ------------------------------- |
+| Très favorable        | aucun négatif **et somme > 1**  | aucun négatif et **somme > 0**       | = guide (S ≥ 2, aucun négatif)  |
+| Favorable             | somme ≥ 1 (négatifs permis)     | somme > 0 avec ≥ 1 négatif           | = guide                         |
+| Neutre                | somme = 0                       | somme = 0                            | = guide                         |
+| Peu favorable         | somme < 0 (positifs permis)     | somme < 0 avec ≥ 1 positif           | = guide                         |
+| Pas du tout favorable | aucun positif **et somme < −1** | aucun positif et **somme < 0**       | = guide (S ≤ −2, aucun positif) |
 
 **Divergence interne n° 1 — le seuil « Très favorable ».** Une dimension à somme **+1 sans aucun négatif** est *Favorable* selon le guide (et l'app), mais *Très favorable* selon la formule Excel. Exemples réels dans le classeur V3 : « Taux variés par tranche de valeur » (Potentiel fiscal : 1,0,0) et « Taux supérieur terrain vague » y affichent *Très favorable* avec une somme de 1.
 
