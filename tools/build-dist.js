@@ -92,6 +92,9 @@ fs.writeFileSync(path.join(DIST, '.htaccess'), htaccess, 'utf8');
 fs.writeFileSync(path.join(DIST, 'robots.txt'), 'User-agent: *\nDisallow: /\n', 'utf8');
 /* politique de confidentialité — page publique par nature (Loi 25 exige sa publication) */
 fs.copyFileSync(path.join(ROOT, 'politique.html'), path.join(DIST, 'politique.html'));
+/* identité Corda — logo complet (en-têtes) + sigle caténaire (écrans de connexion) */
+for (const svg of ['corda-logo.svg', 'corda-sigle.svg'])
+  fs.copyFileSync(path.join(ROOT, svg), path.join(DIST, svg));
 
 const files = fs.readdirSync(DIST).map(f => {
   const s = fs.statSync(path.join(DIST, f));

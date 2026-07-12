@@ -57,6 +57,7 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
 .who.jer{background:color-mix(in srgb, var(--accent) 12%, transparent); color:var(--accent-deep); border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
 .who.fan{background:color-mix(in srgb, var(--brass) 14%, transparent); color:#7A5B1E; border:1px solid color-mix(in srgb, var(--brass) 34%, transparent)}
 .who.gui{background:color-mix(in srgb, var(--warn) 20%, transparent); color:#7A5410; border:1px solid color-mix(in srgb, var(--warn) 45%, transparent)}
+.who.lens{background:color-mix(in srgb, var(--brass) 14%, transparent); color:#7A5B1E; border:1px solid color-mix(in srgb, var(--brass) 34%, transparent)}
 
 /* ---------- couverture ---------- */
 .cover{justify-content:center; align-items:flex-start; background:
@@ -88,7 +89,7 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
 .agenda-note{margin-top:1.6vmin; font-size:clamp(.7rem,1.6vmin,.9rem); color:var(--muted)}
 
 /* ---------- état des lieux ---------- */
-.statgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(8px,1.6vmin,16px); margin:1.2vmin 0 2vmin}
+.statgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(8px,1.6vmin,16px); margin:1.2vmin 0 2vmin}
 .stat{background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:clamp(10px,2vmin,18px)}
 .stat .n{font-family:var(--font-mono); font-weight:700; font-size:clamp(1.15rem,3.4vmin,2rem); color:var(--accent-deep); line-height:1; white-space:nowrap}
 .stat .l{font-size:clamp(.62rem,1.45vmin,.8rem); color:var(--muted); margin-top:.5em; line-height:1.35}
@@ -120,6 +121,8 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
 .opts .opt{align-self:center; height:auto}
 .opts.c2{grid-template-columns:1fr 1fr}
 .opts.c3{grid-template-columns:1fr 1fr 1fr}
+.opts.five{display:flex; flex-wrap:wrap; justify-content:center; align-content:stretch}
+.opts.five .opt{flex:0 1 calc(33.333% - 10px); min-width:220px; align-self:stretch; justify-content:center}
 .opts.even .opt{align-self:stretch; height:auto}
 .opt{border:1px solid var(--line); border-radius:11px; padding:clamp(9px,1.8vmin,16px) clamp(11px,2vmin,18px); display:flex; flex-direction:column; gap:.45em; background:var(--bg)}
 .opt.hold{border-style:dashed}
@@ -146,8 +149,10 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
 .chap .chapnum{position:absolute; right:clamp(26px,5vmin,72px); bottom:clamp(18px,3.4vmin,44px); font-family:var(--font-display); font-style:italic; font-size:clamp(4rem,15vmin,9rem); color:color-mix(in srgb, var(--accent) 10%, transparent); line-height:1; pointer-events:none}
 
 /* ---------- synthèse interactive ---------- */
-.recap{display:flex; flex-direction:column; gap:clamp(5px,1vmin,9px); margin-top:1vmin}
-.recap .row{display:flex; align-items:center; gap:clamp(10px,2vmin,18px); background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:clamp(7px,1.4vmin,12px) clamp(12px,2.2vmin,20px)}
+.recap{display:flex; flex-direction:column; gap:clamp(3px,.7vmin,6px); margin-top:.5vmin}
+.recap .row{display:flex; flex-wrap:wrap; align-items:center; gap:clamp(3px,.6vmin,6px) clamp(10px,2vmin,18px); background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:clamp(5px,1vmin,9px) clamp(12px,2.2vmin,20px)}
+.recap .rnote{flex:1 1 100%; border:1px solid var(--line); border-radius:7px; padding:.3em .6em; font-family:var(--font-body); font-size:clamp(.64rem,1.45vmin,.82rem); color:var(--ink); background:var(--bg)}
+.recap .rnote::placeholder{color:var(--faint)}
 .recap .row .who{flex:0 0 auto; min-width:6.5em; justify-content:center}
 .recap .t{font-weight:600; font-size:clamp(.76rem,1.8vmin,1rem)}
 .recap .verdict{margin-left:auto; display:flex; gap:6px; flex:0 0 auto}
@@ -156,9 +161,9 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
 .vbtn.on.dec{background:var(--pos); border-color:var(--pos); color:#fff}
 .vbtn.on.creu{background:var(--warn); border-color:var(--warn); color:var(--ink)}
 .vbtn.on.rep{background:var(--neg); border-color:var(--neg); color:#fff}
-.recap-note{margin-top:1.4vmin; font-size:clamp(.66rem,1.5vmin,.86rem); color:var(--faint)}
-.next{display:flex; gap:clamp(8px,1.6vmin,14px); margin-top:1.8vmin; flex-wrap:wrap}
-.next .step{flex:1; min-width:180px; background:var(--surface-2); border-radius:10px; padding:clamp(9px,1.8vmin,15px) clamp(11px,2vmin,17px); font-size:clamp(.68rem,1.55vmin,.88rem)}
+.recap-note{margin-top:.8vmin; font-size:clamp(.66rem,1.5vmin,.86rem); color:var(--faint)}
+.next{display:flex; gap:clamp(8px,1.6vmin,14px); margin-top:1vmin; flex-wrap:wrap}
+.next .step{flex:1; min-width:180px; background:var(--surface-2); border-radius:10px; padding:clamp(6px,1.3vmin,11px) clamp(11px,2vmin,17px); font-size:clamp(.68rem,1.55vmin,.88rem)}
 .next .step b{display:block; margin-bottom:2px}
 .next .step small{color:var(--faint)}
 
@@ -184,6 +189,43 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
   .slide{position:static; opacity:1; visibility:visible; transform:none; page-break-after:always; min-height:95vh}
   .hud,.progress,.hint{display:none}
 }
+
+/* ---------- easter egg : carte d'architecture (Ctrl+Alt+A) ---------- */
+.archmap{position:absolute; inset:0; z-index:20; display:flex; opacity:0; transition:opacity .3s ease}
+.archmap.show{opacity:1}
+.archmap[hidden]{display:none}
+.am-backdrop{position:absolute; inset:0; background:color-mix(in srgb, var(--ink) 60%, transparent); backdrop-filter:blur(3px)}
+.am-panel{position:relative; margin:auto; width:95%; height:92%; background:var(--bg); border-radius:16px; box-shadow:0 40px 100px -30px rgba(0,0,0,.7); display:flex; flex-direction:column; overflow:hidden; transform:scale(.985) translateY(6px); transition:transform .32s cubic-bezier(.2,.7,.2,1)}
+.archmap.show .am-panel{transform:none}
+.am-head{display:flex; align-items:center; justify-content:space-between; gap:1em; padding:clamp(10px,2vmin,20px) clamp(16px,3vmin,32px); border-bottom:1px solid var(--line); flex:0 0 auto}
+.am-eyebrow{font-family:var(--font-mono); font-size:clamp(.54rem,1.3vmin,.72rem); letter-spacing:.16em; text-transform:uppercase; color:var(--accent); font-weight:700}
+.am-title{font-family:var(--font-display); font-size:clamp(1.25rem,3.2vmin,1.9rem); font-weight:600; line-height:1.05}
+.am-close{cursor:pointer; width:2.3em; height:2.3em; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-size:1rem; line-height:1; flex:0 0 auto}
+.am-close:hover{border-color:var(--brass); color:var(--brass)}
+.am-body{flex:1; display:flex; min-height:0}
+.am-graph{position:relative; flex:1 1 63%; min-width:0; overflow:hidden}
+.am-edges{position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none}
+.am-edge{fill:none; stroke:var(--line); stroke-width:1.5; stroke-linecap:round; opacity:.95; transition:stroke .25s ease, stroke-width .25s ease, opacity .25s ease}
+.am-edge.ret{stroke-dasharray:2.5 3.5}
+.am-edge.lit{stroke:var(--accent); stroke-width:2.4; opacity:1}
+.am-edge.dim{opacity:.22}
+.am-vault{position:absolute; left:36%; top:24%; width:60%; height:50%; z-index:0; border:1.5px dashed color-mix(in srgb,var(--accent) 42%, transparent); border-radius:16px; background:color-mix(in srgb,var(--accent) 5%, transparent); pointer-events:none}
+.am-vault span{position:absolute; top:-.82em; left:1.1em; background:var(--bg); padding:0 .55em; font-family:var(--font-mono); font-size:clamp(.48rem,1.12vmin,.64rem); letter-spacing:.09em; text-transform:uppercase; color:var(--accent-deep)}
+.am-hint{position:absolute; left:0; right:0; bottom:.7em; z-index:0; text-align:center; font-size:clamp(.5rem,1.12vmin,.64rem); color:var(--faint); letter-spacing:.04em; pointer-events:none}
+.am-node{position:absolute; z-index:2; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:flex-start; gap:.1em; width:max-content; max-width:170px; text-align:left; cursor:pointer; background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:.5em .7em; box-shadow:0 4px 14px -8px rgba(20,16,8,.4); transition:border-color .18s ease, box-shadow .18s ease; animation:amPop .42s calc(.12s + var(--i)*.05s) both ease}
+.am-node:hover{border-color:var(--brass)}
+.am-node.on{border-color:var(--accent); box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 32%, transparent), 0 12px 26px -12px rgba(20,16,8,.5)}
+.am-glyph{width:1.35em; height:1.35em; stroke:var(--accent-deep); fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto}
+.am-node.on .am-glyph{stroke:var(--accent)}
+.am-name{font-family:var(--font-display); font-weight:600; font-size:clamp(.72rem,1.6vmin,.94rem); line-height:1.1}
+.am-tag{font-size:clamp(.5rem,1.12vmin,.63rem); letter-spacing:.03em; color:var(--faint)}
+@keyframes amPop{from{opacity:0; transform:translate(-50%,-50%) translateY(9px) scale(.96)} to{opacity:1}}
+.am-info{flex:0 0 33%; border-left:1px solid var(--line); background:var(--surface); padding:clamp(16px,3vmin,32px); overflow:auto; display:flex; flex-direction:column; gap:.55em}
+.am-h3{font-family:var(--font-display); font-weight:600; font-size:clamp(1.05rem,2.7vmin,1.55rem); line-height:1.12; display:flex; align-items:center; gap:.4em; color:var(--ink)}
+.am-h3 .am-glyph.big{width:1.1em; height:1.1em}
+.am-desc{font-size:clamp(.78rem,1.72vmin,1rem); line-height:1.6; color:var(--muted); margin:0}
+.am-desc.am-key{color:var(--ink); background:var(--surface-2); border-radius:10px; padding:.7em .9em}
+@media (prefers-reduced-motion:reduce){ .archmap,.am-panel{transition:none} .am-node{animation:none} }
 </style>
 </head>
 <body>
@@ -201,47 +243,43 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
       <path d="M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31" fill="none" stroke="#1A6E47" stroke-width="2.4" stroke-linecap="round"/>
       <circle cx="20" cy="9" r="2.7" fill="#A9802F"/>
     </svg>
-    <div class="eyebrow">Corda · Écofiscalité · Rencontre d'équipe</div>
-    <h1>Un produit vivant.<br><em>Trois regards pour le valider.</em></h1>
-    <p class="sub">L'application née de la grille d'analyse multicritère de <b>Fanny et Jérôme</b> est en ligne — cotation multi-villes, calculateur d'impact fiscal, cadre Loi 25. Aujourd'hui, chacun de vous a son chapitre&nbsp;: les règles, les décisions, le code.</p>
+    <div class="eyebrow">Écofiscalité · Rencontre d'équipe</div>
+    <h1>Un produit vivant<br><em>à la croisée des chemins.</em></h1>
     <div class="trio">
-      <span class="who jer">Jérôme · les règles</span>
-      <span class="who fan">Fanny · les décisions</span>
-      <span class="who gui">Guillaume · le code</span>
+      <span class="who lens">Le code</span>
+      <span class="who lens">Les règles</span>
+      <span class="who lens">Les décisions</span>
     </div>
-    <div class="meta"><span><b>ecofisc.corda.consulting</b></span><span>8 juillet 2026</span><span>MRC Thérèse-De Blainville · ENAP/CERGO</span></div>
+    <div class="meta" style="margin-top:2.6vmin"><span><b>ecofisc.corda.consulting</b></span><span>8 juillet 2026</span><span>MRC Thérèse-De Blainville · ENAP/CERGO</span></div>
   </section>
 
   <!-- 2 · ORDRE DU JOUR -->
-  <section class="slide" aria-label="Ordre du jour">
-    <div class="eyebrow">Ordre du jour — la méthode de la maison</div>
+  <section class="slide" aria-label="Ordre du jour" style="justify-content:center">
+    <div class="eyebrow">Ordre du jour</div>
     <h2>On soumet le projet à sa propre grille</h2>
-    <p class="lede">Six « mesures » à coter aujourd'hui, réparties en trois chapitres — un par expertise. Chacune arrive avec ses options et sa boussole ; toutes partent <span class="rpill etude">É</span> <b>à l'étude</b> — l'objectif de la rencontre est d'en faire passer le maximum au vert.</p>
+    <p class="lede">Six « mesures » à coter aujourd'hui, réparties en trois chapitres. Toutes partent <span class="rpill etude">É</span> <b>à l'étude</b> : l'objectif de la rencontre est d'en faire passer le maximum au vert.</p>
     <div class="agenda">
-      <div class="item"><span class="n">J1</span><div><div class="t">Fidélité de la transcription</div><div class="d">la grille V3 dans un moteur testé — les cas limites que toi seul peux trancher</div></div><span class="who jer">Jérôme</span><span class="rpill etude">É</span></div>
-      <div class="item"><span class="n">J2</span><div><div class="t">Ce qu'une somme peut cacher</div><div class="d">consensus vs controverse — révéler sans recalculer</div></div><span class="who jer">Jérôme</span><span class="rpill etude">É</span></div>
-      <div class="item"><span class="n">F1</span><div><div class="t">Gouvernance Loi 25</div><div class="d">cinq décisions avant toute donnée réelle — tout est rédigé, il faut signer</div></div><span class="who fan">Fanny</span><span class="rpill etude">É</span></div>
-      <div class="item"><span class="n">F2</span><div><div class="t">Modèle d'affaires</div><div class="d">l'outil se réplique à n'importe quelle MRC — comment vit-il après le mandat ?</div></div><span class="who fan">Fanny</span><span class="rpill etude">É</span></div>
-      <div class="item"><span class="n">G1</span><div><div class="t">Architecture « coffre-fort »</div><div class="d">rien de copiable dans le navigateur — cinq décisions techniques à challenger</div></div><span class="who gui">Guillaume</span><span class="rpill etude">É</span></div>
-      <div class="item"><span class="n">G2</span><div><div class="t">Le harnais — et une invitation</div><div class="d">comment un non-dev garde le contrôle d'un code écrit avec l'IA — audit bienvenu</div></div><span class="who gui">Guillaume</span><span class="rpill etude">É</span></div>
+      <div class="item"><span class="n">G1</span><div><div class="t">Architecture « coffre-fort »</div><div class="d">comment la sécurité a été traitée + survol technique</div></div><span class="who gui">Guillaume</span><span class="rpill etude">É</span></div>
+      <div class="item"><span class="n">G2</span><div><div class="t">Le harnais et ma façon de travailler</div><div class="d">comment un non-dev garde le contrôle d'un code écrit avec l'IA</div></div><span class="who gui">Guillaume</span><span class="rpill etude">É</span></div>
+      <div class="item"><span class="n">J1</span><div><div class="t">Fidélité de la transcription</div><div class="d">la grille V3 et le moteur codé : cas limites et choix théoriques</div></div><span class="who jer">Jérôme</span><span class="rpill etude">É</span></div>
+      <div class="item"><span class="n">J2</span><div><div class="t">Ce qu'une somme peut cacher</div><div class="d">entre consensus et controverse</div></div><span class="who jer">Jérôme</span><span class="rpill etude">É</span></div>
+      <div class="item"><span class="n">F1</span><div><div class="t">Gouvernance Loi 25</div><div class="d">cinq décisions avant de recevoir les vraies données</div></div><span class="who fan">Fanny</span><span class="rpill etude">É</span></div>
+      <div class="item"><span class="n">F2</span><div><div class="t">Modèle d'affaires</div><div class="d">l'outil se réplique à n'importe quelle ville — comment vit-il après le mandat ?</div></div><span class="who fan">Fanny</span><span class="rpill etude">É</span></div>
     </div>
-    <div class="grow"></div>
-    <p class="agenda-note">La dernière diapositive sert de tableau de bord : on y consigne les verdicts en direct.</p>
   </section>
 
   <!-- 3 · ÉTAT DES LIEUX -->
   <section class="slide" aria-label="État des lieux" style="justify-content:center">
     <div class="eyebrow">État des lieux — ce qui existe déjà</div>
-    <h2>Un produit en ligne, pas une maquette</h2>
+    <h2>Un produit déjà fonctionnel, sur lequel on itère.</h2>
     <div class="livebar">
       <span class="dot" aria-hidden="true"></span>
       <span class="url">ecofisc.corda.consulting</span>
-      <span class="note">cotations de démo 100 % fictives —<br>aucune donnée personnelle réelle avant le cadrage Loi 25</span>
+      <span class="note">cotations de démo 100 % fictives<br>aucune donnée personnelle réelle avant le cadrage Loi 25</span>
     </div>
     <div class="statgrid">
       <div class="stat"><div class="n">37 × 22</div><div class="l">mesures écofiscales × critères de la grille, en 4 dimensions — cotation multi-villes en direct</div></div>
       <div class="stat"><div class="n">59 686</div><div class="l">unités d'évaluation réelles chargées (rôle officiel MAMH) — 43 G$ d'assiette pour la MRC</div></div>
-      <div class="stat"><div class="n">12,4 M$</div><div class="l">/an : première simulation du calculateur d'impact fiscal (taux varié non-résidentiel)</div></div>
       <div class="stat"><div class="n">1 011</div><div class="l">municipalités du Québec disponibles — un nouveau projet se crée en quelques clics</div></div>
     </div>
     <div class="done-strip">
@@ -253,15 +291,14 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
       <span class="chip">calculs côté serveur</span>
       <span class="chip">29 tests automatiques</span>
     </div>
-    <p class="lede" style="margin-top:2.2vmin">En circulation : le <span class="k">dossier de validation</span> (règles, descriptions, décisions Loi 25) et le <span class="k">cahier Loi 25</span> complet — une rencontre suffit à tout trancher.</p>
   </section>
 
   <!-- 4 · LE CALCULATEUR (la grande nouveauté) -->
   <section class="slide" aria-label="Le calculateur d'impact fiscal">
-    <div class="eyebrow">La grande nouveauté — de la cote au dollar</div>
+    <div class="eyebrow">La grande nouveauté : de la cote au dollar</div>
     <h2>« Combien ça rapporte ? » a maintenant une réponse</h2>
     <div class="mcard" style="justify-content:center; gap:clamp(10px,2vmin,18px)">
-      <div class="mdesc" style="margin-bottom:0">Le <b>calculateur d'impact fiscal</b> est branché sur le rôle d'évaluation foncière officiel (MAMH, données ouvertes). Pour une mesure donnée : recette projetée par ville, répartition de la charge par tranche de valeur, plafonds légaux affichés — <b>en dollars réels, curseurs instantanés</b>.</div>
+      <div class="mdesc" style="margin-bottom:0">Le <b>calculateur d'impact fiscal</b> est branché sur le rôle d'évaluation foncière officiel (MAMH, données ouvertes). Pour chacune des mesures (en fait : le plus possible), on aide les villes à estimer les recettes et les lots touchés <b>tôt</b> dans le processus de planification.</div>
       <div class="opts c3 even" style="flex:0 0 auto">
         <div class="opt"><div class="h"><span class="t">Fiable</span><span class="tag">validé au dollar près</span></div>
           <p>Deux chemins d'importation indépendants (extraction locale et fonction serveur) produisent des chiffres <b>identiques au dollar près</b>. La simulation est de l'arithmétique exacte taux × assiette — contrôle croisé, écart zéro.</p>
@@ -273,23 +310,85 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
           <p>Trois mesures simulables aujourd'hui (taux varié, sous-catégories résidentielles, ciblage par usage) — les 34 autres affichées « à venir », au rythme des données et des validations.</p>
         </div>
       </div>
-      <div class="qbanner" style="background:var(--accent-deep); color:#fff"><span class="lab" style="opacity:.85">Le pont</span><span class="q">Le calculateur affiche la recommandation du Portrait pour la mesure simulée — la décision (grille) et l'action (dollars) se répondent dans le même outil.</span></div>
+      <div class="qbanner" style="background:var(--accent-deep); color:#fff"><span class="lab" style="opacity:.85">Le pont</span><span class="q">Le calculateur affiche la recommandation du Portrait pour la mesure simulée ; le quantitatif et le qualitatif se côtoient dans le même outil.</span></div>
     </div>
   </section>
 
-  <!-- 5 · INTERCALAIRE JÉRÔME -->
-  <section class="slide chap" aria-label="Chapitre 1 — Jérôme">
-    <span class="who jer">Chapitre 1 · Jérôme</span>
-    <h2>Les règles du système</h2>
-    <p class="lede">Ta grille reste la référence scientifique — l'application en est la <b>transcription exécutable</b>. Toute divergence est un bug. Et la transcription a fait remonter des cas limites que toi seul peux trancher.</p>
+  <!-- 5 · INTERCALAIRE GUILLAUME -->
+  <section class="slide chap" aria-label="Chapitre 1 — Guillaume">
+    <span class="who gui">Chapitre 1</span>
+    <h2>Le code, le processus</h2>
+    <p class="lede">Ce chapitre ne se défend pas : il s'ouvre. Le dépôt GitHub est accessible dès aujourd'hui, l'historique des commits raconte tout, et les faiblesses connues sont nommées.</p>
     <div class="chapnum" aria-hidden="true">1</div>
   </section>
 
-  <!-- 6 · LA GRILLE AU CENTRE -->
+  <!-- 6 · G1 ARCHITECTURE -->
+  <section class="slide" aria-label="G1 — Architecture coffre-fort">
+    <div class="eyebrow"><span class="qn">G1</span> · Architecture « coffre-fort »</div>
+    <h2>Cinq décisions techniques à challenger</h2>
+    <div class="mcard">
+      <div class="opts five">
+        <div class="opt"><div class="h"><span class="t">1 · Coquille publique vide</span></div>
+          <p>La page publique est un fichier statique minifié <b>sans contenu métier</b>. Les questions, mesures et catalogue ne sont livrés qu'<b>après authentification</b>. Rien à copier dans DevTools.</p>
+        </div>
+        <div class="opt"><div class="h"><span class="t">2 · Calculs côté serveur</span></div>
+          <p>Appréciations et recommandations sont calculées dans des <b>fonctions serveur</b> (Deno) — le savoir-faire de la grille ne transite jamais par le navigateur.</p>
+        </div>
+        <div class="opt"><div class="h"><span class="t">3 · Une source de vérité</span></div>
+          <p>Les règles vivent dans <b>un seul module testé</b>, compilé dans les fonctions serveur par un générateur, ce qui empêche la divergence entre client et serveur.</p>
+        </div>
+        <div class="opt"><div class="h"><span class="t">4 · Base verrouillée par défaut</span></div>
+          <p>Postgres (Canada) avec <b>RLS deny-by-default</b> : le rôle anonyme ne lit rien ; les villes n'écrivent que via des fonctions qui dérivent ville et projet <b>du code d'accès, jamais du client</b>.</p>
+        </div>
+        <div class="opt"><div class="h"><span class="t">5 · Simulation sur agrégats</span><span class="tag">calculateur</span></div>
+          <p>Une fonction SQL retourne des <b>histogrammes agrégés</b> (ville × tranche × catégorie) ; le client fait l'arithmétique dessus — curseurs instantanés, <b>aucune donnée parcellaire ne voyage</b>, les 59 686 unités restent en base.</p>
+        </div>
+      </div>
+      <div class="qbanner"><span class="lab">À challenger</span><span class="q">Chacun de ces choix n'était pas nécessairement évident : à chaud, tu en penses quoi ?</span></div>
+    </div>
+  </section>
+
+  <!-- 7 · G2 LE HARNAIS -->
+  <section class="slide" aria-label="G2 — Le harnais de vérification">
+    <div class="eyebrow"><span class="qn">G2</span> · Le processus — code écrit avec l'IA, gouverné par des contrats</div>
+    <h2>Comment un non-dev garde le contrôle</h2>
+    <div class="mcard">
+      <div class="mdesc">Le pari assumé : ne pas relire chaque ligne, mais gouverner par des <b>contrats vérifiables</b> — tests, validations croisées, attaques, revues indépendantes. L'historique Git documente la majorité du cheminement (instauré en cours de route).</div>
+      <div class="opts c2">
+        <div class="opt"><div class="h"><span class="t">Le harnais</span><span class="tag">vérifiable dans le dépôt</span></div>
+          <ul>
+            <li><b>29 tests automatiques</b> sur le moteur de règles (zéro dépendance)</li>
+            <li>Données validées <b>au dollar près</b> par deux chemins indépendants (ETL local vs parseur serveur)</li>
+            <li><b>Revue adversariale</b> : réviseur statique indépendant (26 constats traités) + attaques dynamiques (injections, énumération, accès anonyme — tout refusé)</li>
+            <li><b>3 révisions externes</b> avant déploiement (normes publiques / sécurité / pratiques dev), consolidées et versionnées</li>
+            <li>Build auto-vérifié · fonctions serveur vérifiées par typage</li>
+          </ul>
+        </div>
+        <div class="opt hold"><div class="h"><span class="t">Les faiblesses connues</span><span class="tag">nommées avant l'audit</span></div>
+          <ul>
+            <li>Vérification JWT native <b>désactivée</b> sur les fonctions serveur — l'authentification (code ou jeton admin) est validée <b>dans</b> la fonction, choix assumé</li>
+            <li>Modèle « authentifié = admin » (défendable : inscriptions fermées, un seul admin)</li>
+            <li>Un seul fichier HTML, pas de framework ni CI — <b>proportionné</b> à un outil de mandat, pas à un produit grand public</li>
+          </ul>
+        </div>
+      </div>
+      <div class="qbanner" style="background:var(--accent-deep); color:#fff"><span class="lab" style="opacity:.85">L'invitation</span><span class="q">Et la méthode de collaboration avec Claude, elle ? Parlons-en si ça vous intéresse.</span></div>
+    </div>
+  </section>
+
+  <!-- 8 · INTERCALAIRE JÉRÔME -->
+  <section class="slide chap" aria-label="Chapitre 2 — Jérôme">
+    <span class="who jer">Chapitre 2</span>
+    <h2>Les règles du système</h2>
+    <p class="lede">L'application vise à être la transcription exécutable de l'outil de Fanny et Jérôme, qui reste la référence scientifique. Cependant, des éléments méthodologiques restent à trancher.</p>
+    <div class="chapnum" aria-hidden="true">2</div>
+  </section>
+
+  <!-- 9 · LA GRILLE AU CENTRE -->
   <section class="slide" aria-label="La grille au centre">
     <div class="eyebrow"><span class="qn">J1</span> · Fidélité de la transcription</div>
     <h2>Ta grille, servie par le logiciel</h2>
-    <p class="lede">L'application n'invente rien sur le fond : mêmes questions, mêmes seuils, même règle de recommandation — transcrits de la <b>méthodologie écrite</b> dans une <span class="k">source unique des règles</span>, verrouillée par 29 tests. Et l'audit de fidélité (hier soir) a mis au jour une chose que seule la transcription pouvait révéler : <b>le guide V3 et les formules du classeur ne disent pas la même chose sur trois cas</b> — trois recommandations changent selon la source suivie.</p>
+    <p class="lede">L'application n'invente rien sur le fond : mêmes questions, mêmes seuils, même règle de recommandation — transcrits de la <b>méthodologie écrite</b> dans une <span class="k">source unique des règles</span>, verrouillée par 29 tests. Et l'audit de fidélité (hier soir) a mis au jour une chose que seule la transcription pouvait révéler : <b>le guide V3 et les formules du classeur ne disent pas la même chose sur trois cas</b> et trois recommandations changent selon la source suivie.</p>
     <div class="dims">
       <div class="dim"><div class="t">Potentiel fiscal</div><div class="c">3 critères</div></div>
       <div class="dim"><div class="t">Saine gestion administrative</div><div class="c">6 critères</div></div>
@@ -306,12 +405,12 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
       <div class="step">Synthèse MRC<br><small>majorité des villes, matrice complète</small></div>
     </div>
     <div class="grow"></div>
-    <div class="qbanner"><span class="lab">À trancher</span><span class="q">Qui fait doctrine : la prose du guide ou les formules du classeur ? (audit remis) — plus sept cas limites et deux boussoles, sections A/B du dossier. Chaque point a une proposition par défaut.</span></div>
+    <div class="qbanner"><span class="lab">À trancher</span><span class="q">Qui fait doctrine : la prose du guide ou les formules du classeur ?</span></div>
   </section>
 
-  <!-- 7 · APARTÉ MÉTHODO — ce qu'une somme peut cacher -->
+  <!-- 10 · APARTÉ MÉTHODO — ce qu'une somme peut cacher -->
   <section class="slide" aria-label="Aparté méthodologique — compensation">
-    <div class="eyebrow"><span class="qn">J2</span> · Aparté méthodo — avant de rêver, une lucidité</div>
+    <div class="eyebrow"><span class="qn">J2</span> · Aparté méthodo</div>
     <h2>Ce qu'une somme peut cacher</h2>
     <div class="mcard" style="justify-content:center; gap:clamp(10px,2vmin,18px)">
       <div class="mdesc">Deux dimensions peuvent afficher le même « Neutre » pour des réalités opposées — la somme des cotes écrase la différence entre <b>consensus</b> et <b>controverse</b> :</div>
@@ -327,55 +426,55 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
         <div class="opt"><div class="h"><span class="t">Ce que la grille protège déjà</span></div>
           <p>Elle est <b>non compensatoire</b> là où ça compte : un seul avis négatif bloque « Très favorable » dans une dimension, et entre les 4 dimensions un « Pas du tout favorable » agit en <b>veto</b> — on ne peut pas acheter l'équité sociale avec du rendement fiscal.</p>
         </div>
-        <div class="opt"><div class="h"><span class="t">La piste — révéler, pas recalculer</span><span class="tag">→ nourrit le forum</span></div>
+        <div class="opt"><div class="h"><span class="t">La piste : rendre la tension visible</span><span class="tag">→ nourrit le forum</span></div>
           <p>Sans toucher aux règles : un <b>indicateur de polarisation</b> ⚡ qui distingue le neutre-consensus du neutre-conflit (au sein d'une dimension, et entre répondants d'une même ville). La tension détectée devient l'<b>entrée naturelle</b> du futur orchestrateur de compromis (Delphi/Polis).</p>
         </div>
       </div>
-      <div class="qbanner" style="background:var(--brass); color:#fff; margin-top:0"><span class="lab" style="opacity:.85">Balise</span><span class="q">Aucun changement aux règles de calcul sans validation scientifique — toute évolution passe par Fanny et Jérôme.</span></div>
+      <div class="qbanner" style="background:var(--brass); color:#fff; margin-top:0"><span class="lab" style="opacity:.85">Balise</span><span class="q">Les changements aux règles de calcul doivent tous avoir une justification cohérente et documentée.</span></div>
     </div>
   </section>
 
-  <!-- 8 · INTERCALAIRE FANNY -->
-  <section class="slide chap" aria-label="Chapitre 2 — Fanny">
-    <span class="who fan">Chapitre 2 · Fanny</span>
+  <!-- 11 · INTERCALAIRE FANNY -->
+  <section class="slide chap" aria-label="Chapitre 3 — Fanny">
+    <span class="who fan">Chapitre 3</span>
     <h2>Les décisions d'affaires et légales</h2>
     <p class="lede">Tout le cadre est rédigé — politique, EFVP, entente, procédures. Ce chapitre ne demande pas de travail : il demande des <b>signatures de principe</b>. Chaque point arrive avec une proposition par défaut.</p>
-    <div class="chapnum" aria-hidden="true">2</div>
+    <div class="chapnum" aria-hidden="true">3</div>
   </section>
 
-  <!-- 9 · F1 LOI 25 -->
+  <!-- 12 · F1 LOI 25 -->
   <section class="slide" aria-label="F1 — Gouvernance Loi 25">
     <div class="eyebrow"><span class="qn">F1</span> · Gouvernance &amp; Loi 25</div>
     <h2>Cinq décisions avant toute donnée réelle</h2>
     <div class="mcard">
-      <div class="mdesc">On recueillera des <b>renseignements personnels</b> de représentants municipaux (nom, fonction, commentaires). La Loi 25 s'applique pleinement — et tout le dispositif est déjà écrit : il reste à le faire trancher.</div>
+      <div class="mdesc">On recueillera des <b>renseignements personnels</b> de représentants municipaux (nom, fonction, commentaires). La Loi 25 s'applique pleinement et tout le dispositif est déjà écrit : il reste à le faire trancher.</div>
       <div class="opts c3">
         <div class="opt"><div class="h"><span class="t">Déjà en place</span><span class="tag">construit ✓</span></div>
-          <p>Consentement horodaté à la 1re connexion · données au <b>Canada</b> · base verrouillée par défaut · journal des accès · anti force-brute · destruction réelle outillée · contenu et calculs servis <b>après authentification</b> · analyse des commentaires par IA <b>interdite par défaut</b>.</p>
+          <p>Consentement horodaté à la 1re connexion · données au <b>Canada</b> · base verrouillée par défaut · journal des accès · anti force-brute · destruction réelle outillée · contenu et calculs servis <b>après authentification</b> · analyse des commentaires par IA <b>reportée par prudence</b>.</p>
         </div>
         <div class="opt"><div class="h"><span class="t">Rédigé, à réviser</span><span class="tag">cahier remis ✓</span></div>
-          <p>Politique de confidentialité (publiée) · EFVP — incluant la communication <b>hors Québec</b> (le « Canada Central » est en Ontario, documenté) · <b>entente d'encadrement Chercheure ↔ mandants</b> (Corda = fournisseur) · procédure d'accès et de rectification · registre d'incidents. <b>Révision juriste requise.</b></p>
+          <p>Politique de confidentialité (publiée) · EFVP — incluant la communication <b>hors Québec</b> (le « Canada Central » est en Ontario, documenté) · procédure d'accès et de rectification · registre d'incidents. <b>Révision juriste recommandée si grand déploiement.</b></p>
         </div>
         <div class="opt hold"><div class="h"><span class="t">Les cinq cases à cocher</span><span class="tag">section D du dossier</span></div>
           <ul>
             <li><b>D1</b> durée de conservation (prop. : mandat + 3 ans)</li>
             <li><b>D2</b> responsable des RP (prop. : Vincent, courriel ENAP)</li>
             <li><b>D3</b> texte de finalité du consentement (rédigé)</li>
-            <li><b>D4</b> signataires de l'entente + PI (logiciel = Corda ; grille = Tremblay-Racicot &amp; Couture)</li>
+            <li><b>D4</b> signataires de l'entente + PI</li>
             <li><b>D5</b> IA sur commentaires : interdit par défaut — confirmer</li>
           </ul>
         </div>
       </div>
-      <div class="qbanner"><span class="lab">À trancher</span><span class="q">Si les propositions par défaut conviennent, quinze minutes suffisent — qui signe, et quand passe-t-on chez le juriste ?</span></div>
+      <div class="qbanner"><span class="lab">À trancher</span><span class="q">Si les propositions par défaut conviennent, le gros du travail légal est complété.</span></div>
     </div>
   </section>
 
-  <!-- 10 · F2 MODÈLE D'AFFAIRES -->
+  <!-- 13 · F2 MODÈLE D'AFFAIRES -->
   <section class="slide" aria-label="F2 — Modèle d'affaires">
     <div class="eyebrow"><span class="qn">F2</span> · Modèle d'affaires</div>
     <h2>Comment l'outil vit-il après le mandat ?</h2>
     <div class="mcard">
-      <div class="mdesc">Acquis : la <b>propriété intellectuelle du logiciel est chez Corda</b> ; la grille scientifique reste celle de l'équipe de recherche, dûment créditée. Fait nouveau : l'outil se <b>réplique à n'importe quelle MRC du Québec en quelques clics</b> (1 011 municipalités, rôles officiels chargés automatiquement) — le coût marginal d'un nouveau mandat s'est effondré.</div>
+      <div class="mdesc">Qui possède la propriété intellectuelle et quel sera le modèle de revenu ? Ce qui est sûr : l'automatisation de certaines tâches et l'ajout de nouvelles fonctions fait s'effondrer le coût marginal des nouveaux mandats et modifie la nature de nos tâches.</div>
       <div class="opts c3">
         <div class="opt"><div class="h"><span class="t">A · Licence par mandat</span></div>
           <p>Chaque nouvelle MRC ou ville = un projet facturé, clé en main, avec accompagnement.</p>
@@ -390,71 +489,7 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
           <div class="bous"><span class="g p"><b>＋</b><span>marges du conseil, différenciation forte</span></span><span class="g m"><b>−</b><span>croissance limitée par les heures disponibles</span></span></div>
         </div>
       </div>
-      <div class="qbanner"><span class="lab">À trancher</span><span class="q">Quel modèle (ou quel mélange) — et comment s'articule-t-il avec l'ENAP/CERGO ? L'horizon (Québec / Canada / bilingue) peut se décider en même temps.</span></div>
-    </div>
-  </section>
-
-  <!-- 11 · INTERCALAIRE GUILLAUME -->
-  <section class="slide chap" aria-label="Chapitre 3 — Guillaume">
-    <span class="who gui">Chapitre 3 · Guillaume</span>
-    <h2>Le code — et le processus</h2>
-    <p class="lede">Ce chapitre ne se défend pas : il s'ouvre. Le dépôt GitHub t'est accessible dès aujourd'hui, l'historique des commits raconte tout, et les faiblesses connues sont nommées ici même — <b>avant que tu les trouves</b>.</p>
-    <div class="chapnum" aria-hidden="true">3</div>
-  </section>
-
-  <!-- 12 · G1 ARCHITECTURE -->
-  <section class="slide" aria-label="G1 — Architecture coffre-fort">
-    <div class="eyebrow"><span class="qn">G1</span> · Architecture « coffre-fort »</div>
-    <h2>Cinq décisions techniques à challenger</h2>
-    <div class="mcard">
-      <div class="opts c2" style="align-content:stretch">
-        <div class="opt"><div class="h"><span class="t">1 · Coquille publique vide</span></div>
-          <p>La page publique est un fichier statique minifié <b>sans contenu métier</b> — questions, mesures et catalogue ne sont livrés qu'<b>après authentification</b>. Rien à copier dans DevTools.</p>
-        </div>
-        <div class="opt"><div class="h"><span class="t">2 · Calculs côté serveur</span></div>
-          <p>Appréciations et recommandations sont calculées dans des <b>fonctions serveur</b> (Deno) — le savoir-faire de la grille ne transite jamais par le navigateur.</p>
-        </div>
-        <div class="opt"><div class="h"><span class="t">3 · Une source de vérité</span></div>
-          <p>Les règles vivent dans <b>un seul module testé</b>, compilé dans les fonctions serveur par un générateur — client et serveur ne peuvent pas diverger.</p>
-        </div>
-        <div class="opt"><div class="h"><span class="t">4 · Base verrouillée par défaut</span></div>
-          <p>Postgres (Canada) avec <b>RLS deny-by-default</b> : le rôle anonyme ne lit rien ; les villes n'écrivent que via des fonctions qui dérivent ville et projet <b>du code d'accès, jamais du client</b>.</p>
-        </div>
-        <div class="opt" style="grid-column:1/-1"><div class="h"><span class="t">5 · Simulation sur agrégats</span><span class="tag">calculateur</span></div>
-          <p>Une fonction SQL retourne des <b>histogrammes agrégés</b> (ville × tranche × catégorie) ; le client fait l'arithmétique dessus — curseurs instantanés, <b>aucune donnée parcellaire ne voyage</b>, les 59 686 unités restent en base.</p>
-        </div>
-      </div>
-      <div class="qbanner"><span class="lab">À challenger</span><span class="q">Chacun de ces choix est discutable — lesquels referais-tu autrement, et pourquoi ?</span></div>
-    </div>
-  </section>
-
-  <!-- 13 · G2 LE HARNAIS -->
-  <section class="slide" aria-label="G2 — Le harnais de vérification">
-    <div class="eyebrow"><span class="qn">G2</span> · Le processus — code écrit avec l'IA, gouverné par des contrats</div>
-    <h2>Comment un non-dev garde le contrôle</h2>
-    <div class="mcard">
-      <div class="mdesc">Le pari assumé : ne pas relire chaque ligne, mais gouverner par des <b>contrats vérifiables</b> — tests, validations croisées, attaques, revues indépendantes. L'historique Git documente tout le cheminement.</div>
-      <div class="opts c2">
-        <div class="opt"><div class="h"><span class="t">Le harnais</span><span class="tag">vérifiable dans le dépôt</span></div>
-          <ul>
-            <li><b>29 tests automatiques</b> sur le moteur de règles (zéro dépendance)</li>
-            <li>Données validées <b>au dollar près</b> par deux chemins indépendants (ETL local vs parseur serveur)</li>
-            <li><b>Revue adversariale</b> : réviseur statique indépendant (26 constats traités) + attaques dynamiques (injections, énumération, accès anonyme — tout refusé)</li>
-            <li><b>3 révisions externes</b> avant déploiement (normes publiques / sécurité / pratiques dev), consolidées et versionnées</li>
-            <li>Build auto-vérifié · fonctions serveur vérifiées par typage</li>
-          </ul>
-        </div>
-        <div class="opt hold"><div class="h"><span class="t">Les faiblesses connues</span><span class="tag">nommées avant l'audit</span></div>
-          <ul>
-            <li>Un <b>compte admin de test</b> encore actif (suppression planifiée)</li>
-            <li>Vérification JWT native <b>désactivée</b> sur les fonctions serveur — l'authentification (code ou jeton admin) est validée <b>dans</b> la fonction, choix assumé</li>
-            <li>Modèle « authentifié = admin » (défendable : inscriptions fermées, un seul admin)</li>
-            <li>Un seul fichier HTML, pas de framework ni CI — <b>proportionné</b> à un outil de mandat, pas à un produit grand public</li>
-            <li>Pas encore de réviseur dev humain…</li>
-          </ul>
-        </div>
-      </div>
-      <div class="qbanner" style="background:var(--accent-deep); color:#fff"><span class="lab" style="opacity:.85">L'invitation</span><span class="q">Le dépôt privé t'est ouvert aujourd'hui — le projet cherche son réviseur dev. C'est toi, si tu veux.</span></div>
+      <div class="qbanner"><span class="lab">À trancher</span><span class="q">Quel modèle (ou quel mélange) — et comment s'articule-t-il avec l'ENAP ? L'horizon (Québec / Canada / bilingue) peut se décider en même temps.</span></div>
     </div>
   </section>
 
@@ -462,21 +497,21 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
   <section class="slide" aria-label="Synthèse et verdicts" style="justify-content:center">
     <div class="eyebrow">Synthèse — le tableau de bord de la rencontre</div>
     <h2>Nos verdicts du jour</h2>
-    <p class="lede">Cliquez le verdict de chaque question au fil de la discussion — comme dans l'app.</p>
+    <p class="lede">Cliquez le verdict de chaque question et notez la décision au fil de la discussion — comme dans l'app.</p>
     <div class="recap" id="recap">
+      <div class="row" data-q="g1"><span class="who gui">Guillaume</span><span class="t">G1 · Architecture — les cinq choix passent-ils l'épreuve ?</span><span class="verdict"></span></div>
+      <div class="row" data-q="g2"><span class="who gui">Guillaume</span><span class="t">G2 · Rôle de réviseur dev — accès au dépôt accordé</span><span class="verdict"></span></div>
       <div class="row" data-q="j1"><span class="who jer">Jérôme</span><span class="t">J1 · Cas limites &amp; boussoles — sections A/B du dossier</span><span class="verdict"></span></div>
       <div class="row" data-q="j2"><span class="who jer">Jérôme</span><span class="t">J2 · Indicateur de polarisation — révéler sans recalculer</span><span class="verdict"></span></div>
       <div class="row" data-q="f1"><span class="who fan">Fanny</span><span class="t">F1 · Loi 25 — les cinq décisions (D1–D5) et le passage chez le juriste</span><span class="verdict"></span></div>
       <div class="row" data-q="f2"><span class="who fan">Fanny</span><span class="t">F2 · Modèle d'affaires — licence / abonnement / conseil, et l'horizon</span><span class="verdict"></span></div>
-      <div class="row" data-q="g1"><span class="who gui">Guillaume</span><span class="t">G1 · Architecture — les cinq choix passent-ils l'épreuve ?</span><span class="verdict"></span></div>
-      <div class="row" data-q="g2"><span class="who gui">Guillaume</span><span class="t">G2 · Rôle de réviseur dev — accès au dépôt accordé</span><span class="verdict"></span></div>
     </div>
     <div class="next">
       <div class="step"><b>Dossier de validation</b><small>règles + descriptions + décisions Loi 25 — cases à cocher, une rencontre</small></div>
       <div class="step"><b>Cercle fermé ~1 mois</b><small>accès par codes seulement, walkthrough guidé, 1 ville pilote avant les 7</small></div>
       <div class="step"><b>Prochaine frontière</b><small>orchestrateur de compromis (Delphi/Polis), nourri par l'indicateur de polarisation</small></div>
     </div>
-    <p class="recap-note">Les verdicts restent enregistrés dans ce navigateur — rouvrez la présentation pour les retrouver.</p>
+    <p class="recap-note">Verdicts et notes restent enregistrés dans ce navigateur — rouvrez la présentation pour les retrouver.</p>
   </section>
 
   <div class="hud">
@@ -484,6 +519,28 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
     <span class="spacer"></span>
     <button type="button" id="prev" aria-label="Diapositive précédente">←</button>
     <button type="button" id="next" aria-label="Diapositive suivante">→</button>
+  </div>
+
+  <!-- easter egg : carte d'architecture (Ctrl+Alt+A) -->
+  <div class="archmap" id="archmap" role="dialog" aria-modal="true" aria-label="Architecture — sous le capot" tabindex="-1" hidden>
+    <div class="am-backdrop" data-close></div>
+    <div class="am-panel">
+      <header class="am-head">
+        <div>
+          <div class="am-eyebrow">Architecture · Corda</div>
+          <div class="am-title">Sous le capot</div>
+        </div>
+        <button class="am-close" type="button" data-close aria-label="Fermer (Échap)">✕</button>
+      </header>
+      <div class="am-body">
+        <div class="am-graph" id="am-graph">
+          <svg class="am-edges" id="am-edges" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <div class="am-vault" aria-hidden="true"><span>Supabase · Canada — le coffre-fort</span></div>
+          <div class="am-hint mono">Clique une pièce · Ctrl + Alt + A ou Échap pour fermer</div>
+        </div>
+        <aside class="am-info" id="am-info"></aside>
+      </div>
+    </div>
   </div>
 </div></div>
 
@@ -512,6 +569,8 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
   /* verdicts interactifs (persistés localement) — clé v2 : questions par interlocuteur */
   const KEY='presentation-vision-verdicts-v2';
   let verdicts={}; try{ verdicts=JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){}
+  const NKEY='presentation-vision-notes-v1';
+  let notes={}; try{ notes=JSON.parse(localStorage.getItem(NKEY))||{}; }catch(e){}
   const LABELS=[['dec','Décidé ✓'],['creu','À creuser'],['rep','Reporté']];
   document.querySelectorAll('#recap .row').forEach(row=>{
     const q=row.dataset.q, host=row.querySelector('.verdict');
@@ -527,8 +586,131 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
       };
       host.appendChild(b);
     });
+    const inp=document.createElement('input');
+    inp.type='text'; inp.className='rnote';
+    inp.placeholder='Note / décision…';
+    inp.setAttribute('aria-label','Note pour cette question');
+    inp.value=notes[q]||'';
+    inp.addEventListener('input',()=>{ notes[q]=inp.value; try{ localStorage.setItem(NKEY, JSON.stringify(notes)); }catch(e){} });
+    row.appendChild(inp);
   });
   show(0);
+})();
+</script>
+<script>
+"use strict";
+(function(){
+  var overlay=document.getElementById('archmap');
+  if(!overlay) return;
+  var graph=document.getElementById('am-graph');
+  var edgesSvg=document.getElementById('am-edges');
+  var info=document.getElementById('am-info');
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var SVGNS='http://www.w3.org/2000/svg';
+
+  var G={
+    doc:'<path d="M7 3h6l4 4v14H7z"/><path d="M13 3v4h4"/><path d="M9 12h6M9 15.5h6M9 8.5h3"/>',
+    funnel:'<path d="M4 5h16l-6 7v6l-4 2v-8z"/>',
+    browser:'<rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M4 9h16"/><circle cx="6.5" cy="7" r=".55"/><circle cx="8.6" cy="7" r=".55"/>',
+    key:'<circle cx="8" cy="8.5" r="3.6"/><path d="M10.6 11.1 19 19.5M16.5 19l1.8-1.8M14.3 16.8l1.8-1.8"/>',
+    bolt:'<path d="M13 3 6 13h5l-1 8 8-11h-5z"/>',
+    grid:'<rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 9.3h16M4 14.6h16M9.3 4v16M14.6 4v16"/>',
+    db:'<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.6 3.1 3 7 3s7-1.4 7-3V6"/><path d="M5 12c0 1.6 3.1 3 7 3s7-1.4 7-3"/>',
+    shield:'<path d="M12 3 5 6v5c0 4.5 3 7.6 7 9 4-1.4 7-4.5 7-9V6z"/><path d="M9 12l2 2 4-4"/>'
+  };
+  var NODES=[
+    {id:'mamh',x:15,y:16,g:'doc',name:'Données ouvertes',tag:'source · MAMH',
+     desc:"La source officielle : le rôle d'évaluation foncière du gouvernement du Québec, en données ouvertes. C'est ce qui permet de chiffrer en dollars réels l'impact d'une mesure — pour n'importe laquelle des 1 011 municipalités."},
+    {id:'etl',x:52,y:13,g:'funnel',name:'Import du rôle',tag:'ETL',
+     desc:"Le « tuyau » qui charge les données officielles dans l'app. Deux chemins indépendants font le même travail et sont comparés au dollar près : si un écart apparaît, on le voit tout de suite."},
+    {id:'shell',x:13,y:50,g:'browser',name:'Coquille HTML',tag:'page publique · cPanel',
+     desc:"La page web publique — un seul fichier, volontairement « vide » : aucune donnée, aucune règle de calcul. Comme une vitrine sans marchandise : rien à copier. Le contenu n'arrive qu'après connexion, et l'hébergeur ordinaire qui la sert ne voit jamais de donnée personnelle."},
+    {id:'auth',x:45,y:42,g:'key',name:'Authentification',tag:'la porte du coffre',
+     desc:"La porte. Chaque ville reçoit un code d'accès unique, validé sur le serveur avec protection anti-essais ; l'administrateur, lui, a un vrai compte. C'est le code — jamais le navigateur — qui décide ce qu'on a le droit de lire ou d'écrire."},
+    {id:'fn',x:68,y:40,g:'bolt',name:'Fonctions serveur',tag:'Supabase Edge · Deno',
+     desc:"Les calculs se font ici, sur un serveur sécurisé — pas dans votre navigateur. Appréciations et recommandations y sont produites à l'abri : le savoir-faire de la grille ne circule jamais côté public. Le client ne reçoit que des résultats."},
+    {id:'rules',x:58,y:84,g:'grid',name:'Moteur de règles',tag:'source unique',
+     desc:"Le cœur scientifique : la grille de Fanny et Jérôme, traduite en code à un seul endroit. Toutes les parties du logiciel s'y réfèrent — impossible qu'elles se contredisent — et c'est verrouillé par des tests. Les fonctions serveur en sont générées automatiquement."},
+    {id:'pg',x:87,y:58,g:'db',name:'Base Postgres',tag:'données · Canada',
+     desc:"La base de données, hébergée au Canada — exigence de la Loi 25, car on y garde des noms et des commentaires. Par défaut elle ne laisse rien sortir : un visiteur anonyme ne lit rien, et chaque écriture passe par une fonction contrôlée."},
+    {id:'harness',x:22,y:82,g:'shield',name:'Le harnais',tag:'tests · revues · Git',
+     desc:"Le filet de sécurité. 29 tests automatiques, des révisions indépendantes, des « attaques » simulées et un historique Git qui date chaque changement. C'est ce qui permet de gouverner un code écrit avec l'IA sans relire chaque ligne."}
+  ];
+  var EDGES=[
+    {a:'mamh',b:'etl'},{a:'etl',b:'pg'},{a:'shell',b:'auth'},{a:'auth',b:'fn'},
+    {a:'fn',b:'pg'},{a:'rules',b:'fn'},{a:'harness',b:'rules'},{a:'harness',b:'fn'},
+    {a:'fn',b:'shell',k:'ret'}
+  ];
+  var byId={}; NODES.forEach(function(n){byId[n.id]=n;});
+
+  function path(a,b){
+    var mx=(a.x+b.x)/2, my=(a.y+b.y)/2, dx=b.x-a.x, dy=b.y-a.y, len=Math.hypot(dx,dy)||1;
+    var off=Math.min(13,len*0.16), nx=-dy/len, ny=dx/len;
+    return 'M '+a.x+' '+a.y+' Q '+(mx+nx*off)+' '+(my+ny*off)+' '+b.x+' '+b.y;
+  }
+  EDGES.forEach(function(e){
+    var p=document.createElementNS(SVGNS,'path');
+    p.setAttribute('d',path(byId[e.a],byId[e.b]));
+    p.setAttribute('class','am-edge'+(e.k==='ret'?' ret':''));
+    p.setAttribute('vector-effect','non-scaling-stroke');
+    p.dataset.a=e.a; p.dataset.b=e.b;
+    edgesSvg.appendChild(p);
+  });
+  NODES.forEach(function(n,i){
+    var b=document.createElement('button');
+    b.type='button'; b.className='am-node'; b.dataset.id=n.id;
+    b.style.left=n.x+'%'; b.style.top=n.y+'%'; b.style.setProperty('--i',i);
+    b.innerHTML='<svg viewBox="0 0 24 24" class="am-glyph" aria-hidden="true">'+G[n.g]+'</svg>'
+      +'<span class="am-name">'+n.name+'</span><span class="am-tag mono">'+n.tag+'</span>';
+    b.addEventListener('click',function(){ select(n.id); });
+    graph.appendChild(b);
+  });
+
+  function select(id){
+    var n=byId[id], nodes=graph.querySelectorAll('.am-node'), eds=edgesSvg.querySelectorAll('.am-edge'), i;
+    for(i=0;i<nodes.length;i++) nodes[i].classList.toggle('on', nodes[i].dataset.id===id);
+    for(i=0;i<eds.length;i++){ var rel=(eds[i].dataset.a===id||eds[i].dataset.b===id);
+      eds[i].classList.toggle('lit',rel); eds[i].classList.toggle('dim',!rel); }
+    info.innerHTML='<div class="am-eyebrow mono">'+n.tag+'</div>'
+      +'<div class="am-h3"><svg viewBox="0 0 24 24" class="am-glyph big" aria-hidden="true">'+G[n.g]+'</svg>'+n.name+'</div>'
+      +'<p class="am-desc">'+n.desc+'</p>';
+  }
+  function intro(){
+    var nodes=graph.querySelectorAll('.am-node'), eds=edgesSvg.querySelectorAll('.am-edge'), i;
+    for(i=0;i<nodes.length;i++) nodes[i].classList.remove('on');
+    for(i=0;i<eds.length;i++) eds[i].classList.remove('lit','dim');
+    info.innerHTML='<div class="am-eyebrow mono">Sous le capot</div>'
+      +'<div class="am-h3">L\'architecture, pièce par pièce</div>'
+      +'<p class="am-desc">Chaque bloc est une pièce <b>réelle</b> du logiciel. Clique une pièce pour comprendre son rôle, en clair.</p>'
+      +'<p class="am-desc am-key">La grande idée : les données personnelles vivent au Canada, dans un <b>coffre-fort</b> (Supabase). La page publique, elle, est <b>vide</b> — impossible d\'y copier le savoir-faire.</p>';
+  }
+  intro();
+
+  var open=false, lastFocus=null, tHide=null;
+  function openMap(){
+    if(open) return; open=true; lastFocus=document.activeElement;
+    if(tHide){ clearTimeout(tHide); tHide=null; }
+    overlay.hidden=false;
+    requestAnimationFrame(function(){ overlay.classList.add('show'); });
+    intro(); try{ overlay.focus(); }catch(e){}
+  }
+  function closeMap(){
+    if(!open) return; open=false; overlay.classList.remove('show');
+    if(reduce){ overlay.hidden=true; } else { tHide=setTimeout(function(){ overlay.hidden=true; },340); }
+    if(lastFocus&&lastFocus.focus){ try{ lastFocus.focus(); }catch(e){} }
+  }
+  var closers=overlay.querySelectorAll('[data-close]'), c;
+  for(c=0;c<closers.length;c++) closers[c].addEventListener('click',closeMap);
+
+  document.addEventListener('keydown',function(e){
+    if(e.ctrlKey&&e.altKey&&(e.key==='a'||e.key==='A'||e.code==='KeyA')){
+      e.preventDefault(); e.stopPropagation(); if(open){ closeMap(); } else { openMap(); } return;
+    }
+    if(open){
+      if(e.key==='Escape'){ e.preventDefault(); closeMap(); return; }
+      if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' ','PageUp','PageDown','Home','End'].indexOf(e.key)>-1){ e.stopPropagation(); }
+    }
+  }, true);
 })();
 </script>
 </body>

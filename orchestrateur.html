@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><!-- cercle fermé : non indexé tant que l'accès public n'est pas décidé -->
 <title>Orchestrateur — Analyse multicritère · Écofiscalité (Corda)</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23FBF7F0'/%3E%3Cpath d='M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31' fill='none' stroke='%231A6E47' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='20' cy='9' r='3' fill='%23A9802F'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23FBF7F0'/%3E%3Cg transform='translate(3.93,13.93) scale(0.196)'%3E%3Cpath d='M0 0C18 26 42 48 74.6 55.9M101.6 55.9C130 51 152 33 164 16' fill='none' stroke='%2315181D' stroke-width='11' stroke-linecap='round'/%3E%3Crect x='-5.5' y='-5.5' width='11' height='11' fill='%2315181D'/%3E%3Crect x='158.5' y='10.5' width='11' height='11' fill='%2315181D'/%3E%3Ccircle cx='88.14' cy='57.11' r='12' fill='%23A9802F'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -111,7 +111,7 @@ textarea{line-height:1.5}
 /* Login / first-connection */
 .login-wrap{display:flex; align-items:center; justify-content:center; width:100%; padding:0}
 .login-card{width:min(420px,100%); background:var(--surface); border-radius:14px; box-shadow:var(--shadow); padding:34px 30px; text-align:center}
-.login-card .arch{margin:0 auto 12px}
+.login-card .arch{display:block; margin:0 auto 12px}
 .login-card h2{font-size:1.5rem; font-weight:600}
 .login-card .lede{color:var(--muted); font-size:.92rem; margin:8px 0 22px}
 .login-card .err{color:var(--fav-neg); font-size:.82rem; min-height:1.1em; margin-top:8px; font-family:var(--font-mono)}
@@ -331,11 +331,8 @@ body.anno-on .anno-hint{display:block}
 <!-- ===================== APP BAR ===================== -->
 <header class="appbar" data-noanno>
   <div class="brand">
-    <svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true">
-      <path d="M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31" fill="none" stroke="#1A6E47" stroke-width="2.4" stroke-linecap="round"/>
-      <circle cx="20" cy="9" r="2.7" fill="#A9802F"/>
-    </svg>
-    <div class="lock"><span class="wm">Corda</span><span class="sub">Écofiscalité · Orchestrateur</span></div>
+    <img src="corda-logo.svg" alt="Corda — tisseuse de ponts" style="height:50px; display:block">
+    <span class="sub" style="border-left:1.5px solid var(--line); padding-left:11px">Écofiscalité · Orchestrateur</span>
   </div>
   <span class="spacer"></span>
   <button class="gearbtn" id="gearBtn" hidden title="Réglages — sources de données" aria-label="Réglages">⚙</button>
@@ -354,10 +351,7 @@ body.anno-on .anno-hint{display:block}
     <!-- LOGIN -->
     <section class="screen on" id="s-login" data-screen="Connexion">
       <div class="login-wrap"><div class="login-card">
-        <svg class="arch" width="52" height="52" viewBox="0 0 40 40" aria-hidden="true">
-          <path d="M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31" fill="none" stroke="#1A6E47" stroke-width="2.4" stroke-linecap="round"/>
-          <circle cx="20" cy="9" r="2.7" fill="#A9802F"/>
-        </svg>
+        <img class="arch" src="corda-sigle.svg" alt="" width="128" height="66">
         <h2>Orchestrateur</h2>
         <div class="lede">Analyse multicritère des mesures fiscales. Entrez votre code d'accès.</div>
         <label class="sr-only" for="codeInput">Code d'accès ou courriel administrateur</label>
@@ -375,10 +369,7 @@ body.anno-on .anno-hint{display:block}
     <!-- PREMIÈRE CONNEXION -->
     <section class="screen" id="s-firstconn" data-screen="Première connexion">
       <div class="login-wrap"><div class="login-card">
-        <svg class="arch" width="52" height="52" viewBox="0 0 40 40" aria-hidden="true">
-          <path d="M4 31 C 12 31, 14 9, 20 9 C 26 9, 28 31, 36 31" fill="none" stroke="#1A6E47" stroke-width="2.4" stroke-linecap="round"/>
-          <circle cx="20" cy="9" r="2.7" fill="#A9802F"/>
-        </svg>
+        <img class="arch" src="corda-sigle.svg" alt="" width="128" height="66">
         <h2>Première connexion</h2>
         <div class="lede">Ville de <b id="fcVille">—</b>. Présentez-vous pour démarrer.</div>
         <label class="sr-only" for="fcPrenom">Prénom</label>
