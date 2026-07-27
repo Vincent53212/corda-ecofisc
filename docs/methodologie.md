@@ -1,8 +1,11 @@
 # Méthodologie de cotation — Orchestrateur (analyse multicritère)
 
 > **Source des règles :** grille d'analyse multicritère **V3** (dir. Pre Fanny Tremblay-Racicot, ENAP/CERGO).
-> **Implémentation :** `rules.js` (source unique du moteur) · vérifiée par **25 tests** (`node --test tests/rules.test.js`).
-> **Statut :** règles transcrites fidèlement du prototype — **points de validation en §6** pour la direction de recherche.
+> **Implémentation :** `rules.js` (source unique du moteur) · vérifiée par **29 tests** (`node --test tests/rules.test.js`).
+> **Statut :** règles transcrites fidèlement du **classeur V3** — **points de validation en §6** pour la direction de recherche.
+
+> [!important] Doctrine des seuils — décision du 16 juillet 2026 (Jérôme)
+> L'audit de fidélité (`docs/audit-fidelite-v3.md`) avait révélé que le **guide en prose** et les **formules du classeur Excel** de la V3 ne définissaient pas les mêmes seuils. **La direction a tranché : les formules du classeur font foi.** Le moteur applique donc les seuils Excel — Très favorable dès **S ≥ 1** sans négatif · Pas du tout favorable dès **S ≤ −1** sans positif · Recommandée dès **1** dimension favorable. Effet : **5 recommandations de référence du classeur V3 changent** par rapport aux seuils du guide (voir audit §6). Règles vérifiées bout-à-bout contre le classeur : **112/112** appréciations et **28/28** recommandations reproduites exactement.
 
 ## 1. L'échelle de cotation
 
@@ -20,18 +23,21 @@ Réponses possibles : **+1** (favorable) · **0** (neutre) · **−1** (défavor
 ## 2. Des réponses à l'appréciation d'une dimension (`apprec`)
 
 **S** = somme des réponses données dans la dimension (les questions sans réponse sont ignorées).
+Seuils = transcription exacte des formules du classeur V3 (fiches, col. B ; cascade `IF`), doctrine du 16 juill. 2026.
 
-| Condition (dans l'ordre)              | Appréciation          |
-| ------------------------------------- | --------------------- |
-| S ≥ 2 **et** aucune réponse négative  | Très favorable        |
-| S ≥ 1 (sinon)                         | Favorable             |
-| S = 0 (ou aucune réponse)             | Neutre                |
-| S ≤ −2 **et** aucune réponse positive | Pas du tout favorable |
-| Tous les autres cas (S < 0)           | Peu favorable         |
+| Condition (dans l'ordre)                     | Appréciation          |
+| -------------------------------------------- | --------------------- |
+| S = 0 (ou aucune réponse)                    | Neutre                |
+| aucune réponse positive **et** S < 0         | Pas du tout favorable |
+| S < 0 (avec au moins une réponse positive)   | Peu favorable         |
+| S > 0 **et** au moins une réponse négative   | Favorable             |
+| S > 0 **et** aucune réponse négative         | Très favorable        |
 
 Cas limites à connaître :
-- **S ≥ 2 avec au moins un −** → Favorable seulement : le négatif bloque le « Très favorable ».
-- **S ≤ −2 avec au moins un +** → Peu favorable seulement (symétrique).
+- **S = +1 sans négatif** → Très favorable (le seuil Excel démarre à **+1**, non à +2 comme dans le guide).
+- **S = −1 sans positif** → Pas du tout favorable (le seuil démarre à **−1**, non à −2) — et un seul « Pas du tout favorable » suffit à rendre la mesure « Non recommandée » (§3).
+- **S > 0 avec au moins un −** → Favorable seulement : le négatif bloque le « Très favorable ».
+- **S < 0 avec au moins un +** → Peu favorable seulement (symétrique).
 - **Dimension entièrement sans réponse** → traitée comme Neutre dans le calcul de la recommandation (l'interface affiche « À coter »).
 
 ## 3. Des 4 appréciations à la recommandation (`reco`)
@@ -39,13 +45,12 @@ Cas limites à connaître :
 | Condition (dans l'ordre)                                                         | Recommandation      |
 | -------------------------------------------------------------------------------- | ------------------- |
 | ≥ 1 « Pas du tout favorable » **ou** ≥ 2 « Peu favorable »                       | **Non recommandée** |
-| aucun « Peu / Pas du tout favorable » **et** ≥ 2 dimensions favorables (F ou TF) | **Recommandée**     |
-| tout le reste                                                                    | **Mise à l'étude**  |
-|                                                                                  |                     |
+| aucun « Peu / Pas du tout favorable » **et** ≥ 1 dimension favorable (F ou TF)   | **Recommandée**     |
+| tout le reste (un seul « Peu favorable » ; ou tout-Neutre)                       | **Mise à l'étude**  |
 
-Concrètement, la « mise à l'étude » recueille : un seul « Peu favorable » (même accompagné de 3 dimensions favorables) ; 0 ou 1 dimension favorable sans pénalité ; tout-neutre.
+Concrètement (seuil Excel) : la « recommandée » ne demande plus qu'**une seule** dimension favorable (au lieu de deux) sans aucune pénalité. La « mise à l'étude » recueille : un seul « Peu favorable » (même accompagné de dimensions favorables) ; le cas tout-neutre (aucune favorable, aucune pénalité).
 
-> **Note de révision (constat C, révision 1) :** le code V3 énumérait « (≥ 2 favorables **et** 1 Peu favorable) **ou** tout-neutre → étude » *puis* retombait de toute façon sur « étude » pour tout le reste — une **branche morte**. Elle a été simplifiée **sans aucun changement de comportement** : la règle effective est celle du tableau ci-dessus.
+> **Traçabilité :** règle transcrite de la formule `Synthèse!F` du classeur V3 (cascade `COUNTIF`), doctrine du 16 juill. 2026. Vérifiée sur les **28 recommandations réelles** du classeur (28/28). Auparavant, le guide exigeait ≥ 2 dimensions favorables — seuil écarté.
 
 ## 4. Agrégation d'une ville = moyenne arrondie de ses répondants (`villeMoyenne`)
 
@@ -70,7 +75,7 @@ Exemples : {1 R, 1 N} → **N** · {1 R, 1 É} → **R** · {1 É, 1 N} → **N*
 | 1 | Arrondi à ±0,5 (§4) | +0,5 → +1 ; −0,5 → 0 (asymétrique) | arrondi symétrique (loin de zéro) |
 | 2 | Égalités dans la synthèse MRC (§5) | N prime, puis R prime sur É | autre priorité, ou afficher « égalité » |
 | 3 | Dimension sans aucune réponse | comptée Neutre dans la reco | exclure la dimension du calcul |
-| 4 | S ≥ 2 avec un négatif (§2) | Favorable (jamais TF) | confirmer l'intention |
+| 4 | ~~Seuils d'appréciation / recommandation (§2-§3)~~ **RÉSOLU (16 juill. 2026)** | seuils du classeur Excel | doctrine tranchée par Jérôme : le classeur fait foi (audit §6) |
 | 5 | Agrégation ville (§4) | moyenne arrondie | médiane |
 | 6 | Boussole ae7 (abordabilité) et ae2 (alternatives) | polarité proposée au Bloc boussole | confirmer le sens attendu |
 | 7 | Mesures « non applicables » à une ville | aucun statut « N/A » (0 = neutre) | introduire un vrai N/A ? (ae7 dit « lorsqu'applicable ») |

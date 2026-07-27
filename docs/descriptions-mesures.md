@@ -51,7 +51,7 @@ Il n'y a donc **rien à extraire** : il faut les écrire. Voir la question ouver
 
 **Description**
 
-Modulation du taux de taxe foncière selon le nombre de logements et la typologie, via des sous-catégories d'immeubles résidentiels (unifamilial, 2 logements, 3-5, 6-9, 10-49, 50+, habitations en commun, condominiums).
+Modulation du taux de taxe foncière de +/- 33% selon le nombre de logements et la typologie, via des sous-catégories d'immeubles résidentiels (ex: unifamilial, 2 logements, 3-5, 6-9, 10-49, 50+, habitations en commun, condominiums).
 
 ### m02 · Sous-catégorie - CUBF
 
@@ -59,7 +59,7 @@ Modulation du taux de taxe foncière selon le nombre de logements et la typologi
 
 **Description**
 
-Taux de taxe foncière distincts pour les immeubles commerciaux/industriels selon le code d'utilisation des biens-fonds (CUBF) : soit pour les industries polluantes (aliments/boissons, minéraux, pétrole, chimie, transport…), soit pour les entreprises d'économie circulaire (recyclage, récupération, vente d'occasion, compostage).
+Taux de taxe foncière modulés de +/- 33% pour certains lots selon le code d'utilisation des biens-fonds (CUBF) : par exemple, pour les industries polluantes (aliments/boissons, minéraux, pétrole, chimie, transport…), ou pour les entreprises d'économie circulaire (recyclage, récupération, vente d'occasion, compostage).
 
 ### m03 · Sous-catégorie - secteurs
 
@@ -93,7 +93,7 @@ Taxe pouvant atteindre quatre fois le taux de base (résidentiel) sur les terrai
 
 Prélèvement sur la valeur foncière des immeubles comportant un logement vacant ou sous-utilisé, avec un taux maximal progressif (p. ex. 1 % la 1re année, 2 % la 2e, 3 % la 3e).
 
-### m07 · Taxe logements vacants (non résidentiel)
+### m07 · Taxe immeubles vacants (non résidentiel)
 
 ⛔ **absente** — l'app affiche « Description à venir. » · source : *aucune fiche descriptive* · pouvoir habilitant (V3) : LFM
 
@@ -101,7 +101,7 @@ Prélèvement sur la valeur foncière des immeubles comportant un logement vacan
 
 <!-- À RÉDIGER -->
 
-*Note : Aucune fiche descriptive : Mascouche 12 et Gatineau 6 ne couvrent que le RÉSIDENTIEL. Une fiche de cotation existe au V3 sous « Taxe immeubles vacants (non résidentiel) » — le libellé V3 dit « immeubles », le catalogue TDB dit « logements » (écart relevé à l'audit de fidélité, §5).*
+*Note : Aucune fiche descriptive : Mascouche 12 et Gatineau 6 ne couvrent que le RÉSIDENTIEL. La fiche de cotation existe au V3 sous « Taxe immeubles vacants (non résidentiel) ». Écart de libellé (audit §5) RÉSOLU le 16 juill. 2026 : le catalogue reprend désormais le libellé V3 « immeubles » (décision Jérôme).*
 
 ### m08 · Taxe sur les terres à vocation agricole exploitables mais non exploitées
 
@@ -397,6 +397,6 @@ Mais c'est une décision de mandat à confirmer : **choix délibéré, ou oubli 
 1. **Les 12 sans description** — reprise de la question C2 du dossier de validation, toujours sans réponse :
    existe-t-il d'autres fiches (autres mandats) qui les couvrent, ou faut-il les rédiger à partir de la littérature ?
    Si c'est à rédiger : qui écrit, et qui valide ?
-2. **m07** — le catalogue dit « Taxe logements vacants (non résidentiel) », le V3 dit « Taxe **immeubles** vacants ».
-   Le libellé V3 semble le bon (un non-résidentiel n'a pas de « logements »).
+2. **m07 — RÉSOLU (16 juill. 2026)** : le catalogue reprend désormais le libellé V3 « Taxe **immeubles** vacants (non résidentiel) »
+   (décision Jérôme — un non-résidentiel n'a pas de « logements » ; anciennement « Taxe logements vacants »).
 3. **Les 5 mesures des sources absentes du catalogue** (tableau ci-dessus) — à ajouter, ou hors mandat ?

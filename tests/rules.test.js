@@ -9,17 +9,17 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const R = require('../rules.js');
 
-/* ---------- Règle 1 · apprec : cotes d'une dimension → appréciation ---------- */
-test('apprec — tous +1 → très favorable', () => {
+/* ---------- Règle 1 · apprec : cotes d'une dimension → appréciation ----------
+   Doctrine = formules du classeur V3 (fiches, col. B), décision Jérôme 16 juill. 2026.
+   Seuils : TF dès S≥1 sans négatif · PDF dès S≤−1 sans positif (≠ seuils ±2 du guide). */
+test('apprec — S≥1 sans négatif → très favorable (seuil Excel, dès +1)', () => {
   assert.equal(R.apprec([1,1,1]), 'tf');
-  assert.equal(R.apprec([1,1,0]), 'tf');       // S=2 sans négatif
+  assert.equal(R.apprec([1,1,0]), 'tf');
+  assert.equal(R.apprec([1,0,0]), 'tf');       // S=1 sans négatif → TF (et non « favorable »)
 });
-test("apprec — S≥2 mais présence d'un négatif → favorable (pas TF)", () => {
-  assert.equal(R.apprec([1,1,1,-1]), 'f');     // S=2, un négatif bloque le TF
-});
-test('apprec — S=1 → favorable', () => {
-  assert.equal(R.apprec([1]), 'f');
-  assert.equal(R.apprec([1,1,-1]), 'f');
+test("apprec — S>0 mais présence d'un négatif → favorable (le négatif bloque le TF)", () => {
+  assert.equal(R.apprec([1,1,1,-1]), 'f');     // S=2 avec un négatif
+  assert.equal(R.apprec([1,1,-1]), 'f');       // S=1 avec un négatif
 });
 test('apprec — S=0 → neutre', () => {
   assert.equal(R.apprec([0,0]), 'n');
@@ -28,22 +28,24 @@ test('apprec — S=0 → neutre', () => {
 test('apprec — aucune réponse → neutre (garde défensive)', () => {
   assert.equal(R.apprec([]), 'n');
 });
-test('apprec — S=−1 → peu favorable', () => {
-  assert.equal(R.apprec([-1]), 'pf');
+test('apprec — S<0 avec au moins un positif → peu favorable', () => {
   assert.equal(R.apprec([-1,-1,1]), 'pf');
+  assert.equal(R.apprec([-1,-1,-1,1]), 'pf');  // symétrique du cas favorable
 });
-test('apprec — S≤−2 sans positif → pas du tout favorable', () => {
+test('apprec — S≤−1 sans positif → pas du tout favorable (seuil Excel, dès −1)', () => {
+  assert.equal(R.apprec([-1]), 'pdf');         // un seul −1 → PDF (et non « peu favorable »)
+  assert.equal(R.apprec([-1,0,0,0,0,0]), 'pdf');
   assert.equal(R.apprec([-1,-1]), 'pdf');
-  assert.equal(R.apprec([-1,-1,-1,0]), 'pdf');
-});
-test("apprec — S≤−2 mais présence d'un positif → peu favorable (pas PDF)", () => {
-  assert.equal(R.apprec([-1,-1,-1,1]), 'pf');  // symétrique du cas TF
 });
 
-/* ---------- Règle 2 · reco : 4 appréciations → recommandation ---------- */
-test('reco — ≥2 dimensions favorables sans PF/PDF → recommandée', () => {
+/* ---------- Règle 2 · reco : 4 appréciations → recommandation ----------
+   Doctrine = formule du classeur V3 (Synthèse, col. F). Recommandée dès 1 favorable
+   sans PF/PDF ; tout-Neutre reste à l'étude ; un seul PDF ou ≥2 PF → non recommandée. */
+test('reco — ≥1 dimension favorable sans PF/PDF → recommandée (seuil Excel, dès 1 favorable)', () => {
   assert.equal(R.reco(['tf','tf','tf','tf']), 'rec');
   assert.equal(R.reco(['f','f','n','n']), 'rec');
+  assert.equal(R.reco(['f','n','n','n']), 'rec');   // une seule favorable suffit désormais
+  assert.equal(R.reco(['n','tf','n','n']), 'rec');  // « générateurs de risques » V3
 });
 test('reco — ≥1 pas-du-tout-favorable → non recommandée (véto)', () => {
   assert.equal(R.reco(['tf','tf','tf','pdf']), 'non');
@@ -54,11 +56,23 @@ test('reco — ≥2 peu-favorables → non recommandée', () => {
 test('reco — 1 seul peu-favorable bloque la recommandation → étude', () => {
   assert.equal(R.reco(['tf','f','pf','n']), 'etude');   // fav=2 mais pf=1
 });
-test('reco — tout neutre → étude', () => {
+test('reco — tout neutre → étude (aucune favorable)', () => {
   assert.equal(R.reco(['n','n','n','n']), 'etude');
 });
-test('reco — 1 seule dimension favorable → étude', () => {
-  assert.equal(R.reco(['f','n','n','n']), 'etude');
+
+/* ---------- Non-régression : les 5 recommandations V3 qui basculent vers la doctrine Excel ----------
+   Cotes brutes réelles du classeur → apprec → reco. Vérifie que le moteur reproduit
+   la colonne « Recommandation » de la Synthèse V3 (et non l'ancien résultat « guide »). */
+test('bascule — Taxe logements vacants (résid.) : SG=[−1,0…] → PDF → non recommandée', () => {
+  const sg = R.apprec([-1,0,0,0,0,0]);         // un seul −1 en Saine gestion
+  assert.equal(sg, 'pdf');
+  assert.equal(R.reco(['n', sg, 'tf', 'tf']), 'non');   // guide donnait « étude »
+});
+test('bascule — Redevance émissions industrielles : SG=[0,0,−1,…] → PDF → non recommandée', () => {
+  assert.equal(R.reco(['n', R.apprec([0,0,-1,0,0,0]), 'n', 'tf']), 'non');
+});
+test('bascule — Redevance générateurs de risques : (n,tf,n,n) → recommandée', () => {
+  assert.equal(R.reco(['n','tf','n','n']), 'rec');       // guide donnait « étude »
 });
 
 /* ---------- Règle 3 · villeMoyenne : agrégation des répondants ---------- */

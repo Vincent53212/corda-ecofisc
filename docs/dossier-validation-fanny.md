@@ -49,7 +49,7 @@ Rédigées dans le même style que celles tirées des fiches Mascouche (mécanis
 
 | id | Mesure |
 |---|---|
-| m07 | Taxe logements vacants (non résidentiel) — *la fiche Gatineau ne couvre que le résidentiel* |
+| m07 | Taxe immeubles vacants (non résidentiel) — *la fiche Gatineau ne couvre que le résidentiel* (libellé aligné sur le V3 le 16 juill. 2026) |
 | m11 | Redevance transport rémunéré de personnes |
 | m13 | Redevances de transport |
 | m16 | Redevances visant le financement de la voirie locale |

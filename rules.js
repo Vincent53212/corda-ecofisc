@@ -84,7 +84,7 @@
     {id:'m04', cat:'fonc', titre:'Taux varié par tranche de valeur (non résidentiels)'},
     {id:'m05', cat:'fonc', titre:'Taux varié terrain vague desservi'},
     {id:'m06', cat:'fonc', titre:'Taxe logements vacants (résidentiel)'},
-    {id:'m07', cat:'fonc', titre:'Taxe logements vacants (non résidentiel)'},
+    {id:'m07', cat:'fonc', titre:'Taxe immeubles vacants (non résidentiel)'},
     {id:'m08', cat:'fonc', titre:'Taxe sur les terres à vocation agricole exploitables mais non exploitées'},
     {id:'m09', cat:'transp', titre:'Tarification stationnement sur rue'},
     {id:'m10', cat:'transp', titre:'Redevance grands générateurs de déplacements'},
@@ -166,28 +166,34 @@
   };
 
   /* ---------- Règle 1 : cotes d'une dimension → appréciation ----------
-     S = somme des réponses présentes (+1/0/−1). Voir docs/methodologie.md §2. */
+     S = somme des réponses présentes (+1/0/−1). Transcription EXACTE des formules
+     du classeur V3 (fiches, col. B) : doctrine tranchée par la direction (le classeur
+     Excel fait foi — décision Jérôme, 16 juill. 2026 ; voir audit §6).
+     Seuils Excel : Très favorable dès S≥1 sans négatif · Pas du tout favorable dès
+     S≤−1 sans positif (≠ les seuils ±2 du guide, écartés). L'ordre des tests suit la
+     cascade IF du classeur. Vérifié 112/112 sur les données V3. Voir methodologie.md §2. */
   function apprec(cotes){
     const S=cotes.reduce((a,b)=>a+b,0);
     const hasNeg=cotes.some(c=>c<0), hasPos=cotes.some(c=>c>0);
-    if(S>=2 && !hasNeg) return 'tf';
-    if(S>=1) return 'f';
     if(S===0) return 'n';         /* inclut « aucune réponse » (garde défensive) */
-    if(S<=-2 && !hasPos) return 'pdf';
-    return 'pf';
+    if(!hasPos) return 'pdf';     /* aucun positif et S<0  (MIN≤0 ET MAX≤0 du classeur) */
+    if(S<0) return 'pf';          /* au moins un positif mais S<0 */
+    if(!hasNeg) return 'tf';      /* aucun négatif et S>0 */
+    return 'f';                   /* au moins un négatif mais S>0 */
   }
 
   /* ---------- Règle 2 : 4 appréciations de dimension → recommandation ----------
-     Voir docs/methodologie.md §3. NOTE : la V3 énumérait « (fav≥2 et pf=1) ou
-     tout-neutre » comme cas d'étude PUIS retombait de toute façon sur 'etude'
-     (branche morte, constat C de la révision 1). Simplifié ici SANS changement
-     de comportement : tout ce qui n'est ni 'non' ni 'rec' → mise à l'étude. */
+     Transcription de la formule du classeur V3 (Synthèse, col. F) : doctrine Excel
+     (décision Jérôme, 16 juill. 2026). Recommandée dès UNE dimension favorable (F ou
+     TF) sans aucun « Peu / Pas du tout favorable » — hors tout-Neutre, qui reste à
+     l'étude. Le guide exigeait ≥2 favorables : seuil écarté. Vérifié 28/28 sur les
+     données V3. Voir docs/methodologie.md §3. */
   function reco(aps){
     const fav=aps.filter(a=>a==='f'||a==='tf').length;
     const pf=aps.filter(a=>a==='pf').length;
     const pdf=aps.filter(a=>a==='pdf').length;
     if(pdf>=1 || pf>=2) return 'non';
-    if(pf===0 && pdf===0 && fav>=2) return 'rec';
+    if(pf===0 && pdf===0 && fav>=1) return 'rec';
     return 'etude';
   }
 

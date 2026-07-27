@@ -39,7 +39,7 @@ const SOURCES = {
   m05: { src: 'Mascouche, fiche 11 « Taux varié pour les terrains vagues desservis »', aussi: 'Gatineau, fiche 10', v3: true },
   m06: { src: 'Mascouche, fiche 12 « Taxe à l\'égard des logements vacants »', aussi: 'Gatineau, fiche 6', v3: true },
   m07: { src: null, v3: true, pouvoir: 'LFM',
-         note: 'Aucune fiche descriptive : Mascouche 12 et Gatineau 6 ne couvrent que le RÉSIDENTIEL. Une fiche de cotation existe au V3 sous « Taxe immeubles vacants (non résidentiel) » — le libellé V3 dit « immeubles », le catalogue TDB dit « logements » (écart relevé à l\'audit de fidélité, §5).' },
+         note: 'Aucune fiche descriptive : Mascouche 12 et Gatineau 6 ne couvrent que le RÉSIDENTIEL. La fiche de cotation existe au V3 sous « Taxe immeubles vacants (non résidentiel) ». Écart de libellé (audit §5) RÉSOLU le 16 juill. 2026 : le catalogue reprend désormais le libellé V3 « immeubles » (décision Jérôme).' },
   m08: { src: 'Gatineau, fiche 9 « Taxe sur les terres à vocation agricole exploitables mais non exploitées »', v3: true, pouvoir: 'LFM' },
   m09: { src: 'Mascouche, fiche 18 « Tarification du stationnement sur rue ou vignettes »', aussi: 'Gatineau, fiche 12', v3: true, pouvoir: 'LFM' },
   m10: { src: 'Mascouche, fiche 19 « Redevance visant les grands générateurs de déplacement »', v3: true, pouvoir: 'PGRR' },
@@ -171,8 +171,8 @@ function toMd() {
   L.push('1. **Les 12 sans description** — reprise de la question C2 du dossier de validation, toujours sans réponse :');
   L.push('   existe-t-il d\'autres fiches (autres mandats) qui les couvrent, ou faut-il les rédiger à partir de la littérature ?');
   L.push('   Si c\'est à rédiger : qui écrit, et qui valide ?');
-  L.push('2. **m07** — le catalogue dit « Taxe logements vacants (non résidentiel) », le V3 dit « Taxe **immeubles** vacants ».');
-  L.push('   Le libellé V3 semble le bon (un non-résidentiel n\'a pas de « logements »).');
+  L.push('2. **m07 — RÉSOLU (16 juill. 2026)** : le catalogue reprend désormais le libellé V3 « Taxe **immeubles** vacants (non résidentiel) »');
+  L.push('   (décision Jérôme — un non-résidentiel n\'a pas de « logements » ; anciennement « Taxe logements vacants »).');
   L.push('3. **Les 5 mesures des sources absentes du catalogue** (tableau ci-dessus) — à ajouter, ou hors mandat ?');
   L.push('');
 

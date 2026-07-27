@@ -69,9 +69,24 @@ Le catalogue de l'app (37 mesures) vient de la *Grille des mesures — MRC Thér
 - « Taux variés en fonction de la **superficie habitable** » existe dans le classeur V3 mais pas dans le catalogue TDB (choix de mandat ?) ;
 - m07 s'intitule « Taxe **logements** vacants (non résidentiel) » dans le catalogue TDB alors que le classeur V3 dit « Taxe **immeubles** vacants (non résidentiel) » — le libellé V3 semble le bon.
 
-## 6 · La question à trancher (pour Jérôme)
+## 6 · La question à trancher (pour Jérôme) — ✅ RÉPONDU (16 juillet 2026)
 
 > **Laquelle des deux sources fait doctrine : la prose du guide, ou les formules du classeur ?**
 > L'application suit aujourd'hui la prose (seuils stricts : TF à ±2, Recommandée à 2 favorables). Si les formules du classeur reflètent l'intention réelle (seuils à ±1, Recommandée dès 1 favorable), le changement dans l'app tient en trois lignes du moteur, couvert par les tests — mais il faut le décider explicitement, car **trois recommandations du classeur V3 changent** selon la réponse.
 
-*Méthode : extraction openpyxl des formules et valeurs du classeur (fiches, Analyse multicritère, Synthèse) ; conversion pandoc du guide ; comparaison ligne à ligne avec `rules.js`. Reproduisible sur demande.*
+> [!success] Décision — **le classeur Excel fait foi** (Jérôme, 16 juillet 2026)
+> Le moteur (`rules.js`) a été aligné sur les formules du classeur : Très favorable dès **S ≥ 1** sans négatif · Pas du tout favorable dès **S ≤ −1** sans positif · Recommandée dès **1** dimension favorable. Reflété dans `docs/methodologie.md` §2-§3, dans les 29 tests (dont 3 de non-régression des bascules) et dans les Edge Functions régénérées.
+>
+> **Décompte corrigé — 5 recommandations basculent (et non 3).** Cet audit n'illustrait que 3 cas de la divergence #2. La recomputation exhaustive à partir des cotes brutes du classeur (vérifiée 112/112 appréciations · 28/28 recommandations) en trouve **cinq** :
+>
+> | Mesure (catalogue) | Guide → Excel | Divergence |
+> |---|---|---|
+> | Taux variés en fonction des secteurs (m03) | Mise à l'étude → **Non recommandée** | #2 (seuil PDF) |
+> | Taxe logements vacants — résidentiel (m06) | Mise à l'étude → **Non recommandée** | #2 (seuil PDF) |
+> | Taxe terres agricoles non exploitées (m08) | Mise à l'étude → **Non recommandée** | #2 (seuil PDF) |
+> | Redevance émissions industrielles (m25) | Mise à l'étude → **Non recommandée** | #2 (seuil PDF) |
+> | Redevance sur les générateurs de risques (m37) | Mise à l'étude → **Recommandée** | #3 (seuil Recommandée) |
+>
+> **Erreurs du classeur (§3) corrigées** sur une copie (`sources/Grille d'analyse multicritère_V3 (corrigé 2026-07-17).xlsx`, original intact) : réf. croisée `Synthèse!C4`→`C7`, 300 cellules `#REF!` purgées, titre manquant de la fiche stationnement rétabli (cause du « 0 »). Détail dans `docs/corrections-classeur-v3.md`.
+
+*Méthode : extraction openpyxl des formules et valeurs du classeur (fiches, Analyse multicritère, Synthèse) ; conversion pandoc du guide ; comparaison ligne à ligne avec `rules.js`. Reproduisible sur demande. **Revérification du 16 juill. 2026** : réplique Python des règles alignées confrontée aux valeurs mises en cache du classeur — 112/112 appréciations, 28/28 recommandations.*
