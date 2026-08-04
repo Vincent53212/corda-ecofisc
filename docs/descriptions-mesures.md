@@ -104,7 +104,7 @@ Prélèvement sur la valeur foncière des immeubles comportant un logement vacan
 
 **Description**
 
-Équivalent non résidentiel de la taxe sur les logements vacants : prélèvement additionnel sur la valeur foncière des immeubles non résidentiels laissés vacants ou inoccupés (locaux commerciaux, bureaux, bâtiments industriels), pour décourager la rétention de bâtiments inutilisés et favoriser la remise en marché des locaux ; le taux peut être progressif selon la durée de la vacance.
+Équivalent non résidentiel de la taxe sur les logements vacants : prélèvement additionnel sur la valeur foncière des immeubles non résidentiels laissés vacants ou inoccupés (locaux commerciaux, bureaux, bâtiments industriels) pour décourager la rétention de bâtiments inutilisés et favoriser la remise en marché des locaux. Le taux peut être progressif selon la durée de la vacance.
 
 *Note : Aucune fiche descriptive : Mascouche 12 et Gatineau 6 ne couvrent que le RÉSIDENTIEL. La fiche de cotation existe au V3 sous « Taxe immeubles vacants (non résidentiel) ». Écart de libellé (audit §5) RÉSOLU le 16 juill. 2026 : le catalogue reprend désormais le libellé V3 « immeubles » (décision Jérôme).*
 
@@ -140,7 +140,7 @@ Redevance auprès des grands générateurs de déplacement (grands employeurs de
 
 **Description**
 
-Redevance d'un montant fixe perçue sur chaque course de transport rémunéré de personnes (taxis et services par application), collectée auprès des répondants et versée à la municipalité, dont le produit finance le transport collectif et l'entretien du réseau routier local sollicité par ces déplacements.
+Redevance d'un montant fixe perçue sur chaque course de transport rémunéré de personnes (taxis et services par application), collectée auprès des répondants et versée à la municipalité. Le produit peut notamment financer le transport collectif et l'entretien du réseau routier local sollicité par ces déplacements.
 
 *Note : Aucune trace : ni fiche descriptive (Mascouche/Gatineau), ni fiche de cotation au V3. À rédiger de zéro.*
 
@@ -158,7 +158,7 @@ Taxe auprès des propriétaires de parcs de stationnement non résidentiels dans
 
 **Description**
 
-Redevance exigée des promoteurs pour financer les infrastructures de transport rendues nécessaires par un nouveau développement (voirie, transport collectif, transport actif), calculée selon l'ampleur du projet. À distinguer de la redevance sur les grands générateurs de déplacements, qui vise l'exploitation d'activités existantes.
+Redevance exigée des promoteurs pour financer les infrastructures de transport rendues nécessaires par un nouveau développement (voirie, transport collectif, transport actif). À distinguer de la redevance sur les grands générateurs de déplacements, qui vise l'exploitation d'activités existantes.
 
 *Note : Fiche de cotation au V3 (« Redevances de transport ») mais aucune fiche descriptive. À distinguer de m10 (grands générateurs) et de m16 (voirie locale).*
 
@@ -186,7 +186,7 @@ Taxe sur les surfaces minéralisées (non végétalisées) de certains immeubles
 
 **Description**
 
-Redevance exigée à la délivrance d'un permis de construction ou de lotissement pour financer la construction, la réfection et l'entretien du réseau routier local rendu nécessaire par le développement, calculée par unité de logement ou par superficie de plancher, selon le principe du bon prélèvement pour le bon service.
+Redevance exigée à la délivrance d'un permis de construction ou de lotissement pour financer la construction, la réfection et l'entretien du réseau routier local rendu nécessaire par le développement. Elle est calculée par unité de logement ou par superficie de plancher, selon le principe du bon prélèvement pour le bon service.
 
 *Note : Aucune trace : ni fiche descriptive, ni fiche de cotation au V3. À rédiger de zéro.*
 
@@ -196,7 +196,7 @@ Redevance exigée à la délivrance d'un permis de construction ou de lotissemen
 
 **Description**
 
-Redevance réglementaire exigée des promoteurs au moment de la délivrance d'un permis pour financer les infrastructures et équipements municipaux rendus nécessaires par un nouveau développement (aqueduc, égout, parcs, voirie). Le règlement doit établir le lien entre la redevance et les dépenses financées, et peut moduler le montant par secteur ou par type de projet.
+Redevance exigée des promoteurs au moment de la délivrance d'un permis pour financer les infrastructures et équipements municipaux rendus nécessaires par un nouveau développement (aqueduc, égout, parcs, voirie). Le règlement doit établir le lien entre la redevance et les dépenses financées, et peut moduler le montant par secteur ou par type de projet.
 
 *Note : Fiche de cotation au V3 (« Redevances de développement ») mais aucune fiche descriptive. Outil bien documenté dans la littérature (art. 145.21 et suiv. LAU).*
 
@@ -222,7 +222,7 @@ Redevance visant la réduction de la perte de canopée dans les projets de const
 
 **Description**
 
-Taxe additionnelle sur la valeur foncière des terrains inscrits comme contaminés et laissés inutilisés, pour inciter à la réhabilitation et à la remise en valeur des sites plutôt qu'à leur rétention en l'état ; l'assiette peut s'appuyer sur le répertoire des terrains contaminés.
+Taxe additionnelle sur la valeur foncière des terrains inscrits comme contaminés et laissés inutilisés, pour inciter à la réhabilitation et à la remise en valeur des sites plutôt qu'à leur rétention en l'état. L'assiette peut s'appuyer sur le répertoire des terrains contaminés.
 
 *Note : Aucune trace : ni fiche descriptive, ni fiche de cotation au V3. À rédiger de zéro.*
 
@@ -250,7 +250,7 @@ Redevance sur les permis de construction, rénovation et démolition pour détou
 
 **Description**
 
-Prélèvement exigé à la délivrance d'une autorisation de démolition, proportionnel à la superficie ou à la valeur du bâtiment démoli, pour internaliser le coût environnemental de la démolition (résidus de construction-rénovation-démolition, énergie grise perdue) et rendre la rénovation ou le réemploi plus avantageux que la démolition-reconstruction.
+Prélèvement exigé à la délivrance d'une autorisation de démolition, proportionnel à la superficie ou à la valeur du bâtiment démoli, pour internaliser le coût environnemental de la démolition (résidus de construction-rénovation-démolition, énergie grise perdue) et rendre la rénovation ou le réemploi plus avantageux.
 
 *Note : Aucune trace. Mesure AJOUTÉE au catalogue à la demande de la MRC (elle ne vient pas du corpus V3). À rédiger de zéro.*
 
@@ -268,7 +268,7 @@ Redevance sur la quantité de contenants et produits à usage unique vendus ou f
 
 **Description**
 
-Redevance auprès des établissements industriels en fonction de leurs émissions déclarées de polluants atmosphériques et de gaz à effet de serre, selon le principe du pollueur-payeur, pour financer les mesures municipales d'amélioration de la qualité de l'air et d'adaptation ; l'assiette s'appuie sur les déclarations d'émissions déjà exigées de ces établissements.
+Redevance auprès des établissements industriels en fonction de leurs émissions déclarées de polluants atmosphériques et de gaz à effet de serre, selon le principe du pollueur-payeur, pour financer les mesures municipales d'amélioration de la qualité de l'air et d'adaptation. L'assiette s'appuie sur les déclarations d'émissions déjà exigées de ces établissements.
 
 *Note : Fiche de cotation au V3 (« Redevance sur les émissions de polluant par les industries ») mais aucune fiche descriptive.*
 
@@ -358,7 +358,7 @@ Redevance réglementaire imposée aux exploitants d'établissements d'hébergeme
 
 **Description**
 
-Taxe annuelle sur les panneaux d'affichage et enseignes publicitaires situés sur le territoire, modulée selon la superficie, le type (statique ou numérique) ou l'emplacement : à la fois source de revenu et levier d'encadrement de l'affichage et de la pollution visuelle.
+Taxe annuelle sur les panneaux d'affichage et enseignes publicitaires situés sur le territoire, modulée selon la superficie, le type (statique ou numérique) ou l'emplacement. Elle est à la fois source de revenu et un levier d'encadrement de l'affichage et de la pollution visuelle.
 
 *Note : Fiche de cotation au V3 (« Taxe sur les panneaux d'affichage ») mais aucune fiche descriptive.*
 

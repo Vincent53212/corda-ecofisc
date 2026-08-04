@@ -14,7 +14,7 @@ Dans le cadre de la démarche d'écofiscalité de votre MRC, nous
 recueillons l'avis des personnes-ressources de chaque ville quant aux mesures
 fiscales possibles. Votre lecture du terrain est essentielle pour nous permettre de refléter l'opinion de vos divers services lors des étapes subséquentes du processus.
 
-**Pour participer :** https://ecofisc.corda.consulting
+**Pour participer :** https://ecofisc.corda.consulting/
 **Votre code d'accès personnel :** `{{CODE}}`
 
 
@@ -32,39 +32,10 @@ Les commentaires nous sont aussi utiles que les cotations, n'hésitez donc pas �
 
 **Échéance : le {{DATE_LIMITE}}.**
 
-Une question ou un problème technique? Écrivez-moi directement à vincent.duguay@enap.ca ou pour .
+Une question ou un problème technique? Écrivez à vincent.duguay@enap.ca ou, en dernier recours, par texto au (581) 882-9009.
 
 Merci beaucoup,
-{{SIGNATURE}}
+L'équipe de Fanny Tremblay-Racicot
 
 ---
 
-## 2. Rappel court (à envoyer ~3 jours avant l'échéance)
-
-**Objet :** Rappel — écofiscalité, avant le {{DATE_LIMITE}}
-
-Bonjour,
-
-Petit rappel amical : la cotation des mesures d'écofiscalité se termine le
-**{{DATE_LIMITE}}**.
-
-https://ecofisc.corda.consulting — votre code : `{{CODE}}`
-
-Même partiel, votre apport compte : répondez à ce que vous connaissez, laissez le reste
-vide (ne mettez pas « 0 » quand vous ne savez pas), et tout s'enregistre au fur et à mesure.
-
-Merci !
-{{SIGNATURE}}
-
----
-
-## Notes de rédaction (pour Vincent, à supprimer avant envoi)
-
-- **Un envoi par personne** : le code est nominatif et sert d'identifiant — ne pas mettre
-  plusieurs destinataires en copie visible avec le même code.
-- À la **première connexion**, la personne saisit prénom, nom et fonction et donne son
-  **consentement** (Loi 25) ; la politique de confidentialité est liée depuis l'écran.
-  Rien à expliquer dans le courriel, mais soyez prêt si quelqu'un pose la question.
-- Le point 3 (« ne sais pas ≠ neutre ») est aussi rappelé **dans l'application**, en tête
-  de l'écran de cotation — le courriel et l'app disent la même chose.
-- Si l'échéance est courte, un rappel à mi-parcours vaut mieux qu'un rappel la veille.
