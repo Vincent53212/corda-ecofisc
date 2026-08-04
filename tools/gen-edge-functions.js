@@ -38,7 +38,7 @@ ${RULES_SRC.replace(/^/gm, '  ')}
 }
 // deno-lint-ignore no-explicit-any
 const Rules: any = __mod.exports;
-const { DIMENSIONS, ALLCRIT, NCRIT, CATS, MEASURES, DESCRIPTIONS, APPREC, RECO, apprec, reco, villeMoyenne, mrcSynthese } = Rules;
+const { DIMENSIONS, ALLCRIT, NCRIT, PREALABLE, IMPL, CATS, MEASURES, DESCRIPTIONS, APPREC, RECO, apprec, reco, villeMoyenne, mrcSynthese, estImplantee, villeImplantee } = Rules;
 `;
 
 const COMMON = `
@@ -80,6 +80,9 @@ function synthOf(respMap: Record<string, Record<string, number>>): Record<string
   const out: Record<string, any> = {};
   for (const m of MEASURES) {
     const rm = respMap[m.id]; if (!rm) continue;
+    /* préalable « déjà en place » → l'analyse multicritère n'a pas d'objet :
+       aucune appréciation, aucune recommandation, statut à part. */
+    if (estImplantee(rm)) { out[m.id] = { impl: true, answered: 0, dims: {}, reco: null }; continue; }
     // deno-lint-ignore no-explicit-any
     const dims: Record<string, string | null> = {};
     let answered = 0;
@@ -89,7 +92,7 @@ function synthOf(respMap: Record<string, Record<string, number>>): Record<string
       dims[d.id] = cotes.length ? apprec(cotes) : null;
     }
     if (!answered) continue;
-    out[m.id] = { answered, dims, reco: reco(DIMENSIONS.map((d: { id: string }) => dims[d.id] || "n")) };
+    out[m.id] = { impl: false, answered, dims, reco: reco(DIMENSIONS.map((d: { id: string }) => dims[d.id] || "n")) };
   }
   return out;
 }
@@ -107,10 +110,11 @@ function groupResponses(rows: any[]): Record<string, Record<string, Record<strin
    d'affichage). Les seuils et règles de calcul, eux, restent ici. */
 function catalogue() {
   return {
-    dimensions: DIMENSIONS.map((d: { id: string; nom: string; crit: { id: string; label: string; q: string; pos: string; neg: string }[] }) =>
-      ({ id: d.id, nom: d.nom, crit: d.crit.map(c => ({ id: c.id, label: c.label, q: c.q, pos: c.pos, neg: c.neg })) })),
+    dimensions: DIMENSIONS.map((d: { id: string; nom: string; crit: { id: string; label: string; q: string; pos: string; mid?: string; neg: string }[] }) =>
+      ({ id: d.id, nom: d.nom, crit: d.crit.map(c => ({ id: c.id, label: c.label, q: c.q, pos: c.pos, mid: c.mid || null, neg: c.neg })) })),
     cats: CATS, measures: MEASURES, descriptions: DESCRIPTIONS,
     apprec: APPREC, reco: RECO, ncrit: NCRIT,
+    prealable: PREALABLE, impl: IMPL,
   };
 }
 `;
@@ -181,7 +185,9 @@ Deno.serve(async (req: Request) => {
 const SET = `${COMMON}
 /* ville-set — écrit UNE réponse et retourne la synthèse recalculée de la mesure. */
 const MEASURE_IDS = new Set(MEASURES.map((m: { id: string }) => m.id));
-const CRIT_IDS = new Set(ALLCRIT.map((c: { id: string }) => c.id));
+/* whitelist : les 23 critères + la question préalable ('impl'), qui se stocke
+   comme une réponse ordinaire mais n'entre dans aucun calcul d'appréciation. */
+const CRIT_IDS = new Set([...ALLCRIT.map((c: { id: string }) => c.id), PREALABLE.id]);
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(req) });
@@ -274,6 +280,13 @@ Deno.serve(async (req: Request) => {
       const cells: Record<string, any> = {};
       const recos: string[] = [];
       for (const v of villes) {
+        /* préalable : la mesure est-elle déjà en place dans cette ville ? */
+        const implVals = codesByVille[v.id].map(code => byCode[code]?.[m.id]?.[PREALABLE.id]).filter(x => x !== undefined && x !== null);
+        if (villeImplantee(implVals)) {
+          cells[v.id] = { impl: true, answered: 0, dims: {}, reco: null, cotes: {} };
+          recos.push("impl");
+          continue;
+        }
         const cotes: Record<string, number> = {};
         let answered = 0;
         for (const cr of ALLCRIT) {
@@ -288,7 +301,7 @@ Deno.serve(async (req: Request) => {
           dims[d.id] = cs.length ? apprec(cs) : null;
         }
         const rc = reco(DIMENSIONS.map((d: { id: string }) => dims[d.id] || "n"));
-        cells[v.id] = { answered, dims, reco: rc, cotes };
+        cells[v.id] = { impl: false, answered, dims, reco: rc, cotes };
         recos.push(rc);
       }
       matrix[m.id] = { cells, mrc: recos.length ? mrcSynthese(recos) : null };

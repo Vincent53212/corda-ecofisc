@@ -134,6 +134,7 @@ textarea{line-height:1.5}
 .mitem.active{background:color-mix(in srgb,var(--accent) 12%, transparent); box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent)}
 .mitem .st{margin-left:auto; font-family:var(--font-mono); font-size:.7rem; color:var(--faint); flex:0 0 auto}
 .mitem .st.done{color:var(--fav-pos)} .mitem .st.part{color:var(--brass)}
+.mitem .st.impl{color:var(--brass); font-size:9.5px; letter-spacing:.06em; text-transform:uppercase}
 .progress{height:8px; background:var(--line-2); border-radius:20px; overflow:hidden; margin-top:10px}
 .progress > i{display:block; height:100%; background:var(--accent); transition:width .25s ease}
 .savedflag{font-family:var(--font-mono); font-size:.7rem; color:var(--fav-pos); opacity:0; transition:opacity .2s}
@@ -166,7 +167,21 @@ textarea{line-height:1.5}
 .q-guide .g{display:inline-flex; align-items:flex-start; gap:5px; font-size:.72rem; line-height:1.34; padding:3px 8px; border-radius:7px; border:1px solid var(--line); max-width:100%}
 .q-guide .g b{font-family:var(--font-mono); font-weight:800; flex:none}
 .q-guide .pos{color:var(--fav-pos); background:color-mix(in srgb, var(--fav-pos) 9%, transparent)}
+.q-guide .mid{color:var(--muted); background:color-mix(in srgb, var(--fav-mid) 12%, transparent)}
 .q-guide .neg{color:var(--fav-neg); background:color-mix(in srgb, var(--fav-neg) 9%, transparent)}
+/* Question préalable (déjà en place) — en tête de mesure, avant les dimensions */
+.prea{display:flex; flex-wrap:wrap; align-items:flex-start; gap:10px; margin:12px 0 4px; padding:12px 14px; border:1px solid color-mix(in srgb,var(--brass) 45%,var(--line)); border-radius:12px; background:color-mix(in srgb,var(--brass) 6%,var(--surface))}
+.prea-main{flex:1 1 240px; min-width:0}
+.prea-btns{display:flex; gap:6px; flex:none}
+.prea .pb{font-family:var(--font-mono); font-size:.8rem; font-weight:700; padding:7px 16px; border-radius:9px; border:1px solid var(--line); background:var(--surface); color:var(--muted); cursor:pointer}
+.prea .pb:hover{border-color:var(--brass)}
+.prea .pb.oui.on{background:var(--brass); color:#fff; border-color:var(--brass)}
+.prea .pb.non.on{background:var(--fav-mid); color:var(--ink); border-color:var(--fav-mid)}
+.prea-com{flex:1 1 100%}
+.prea-hint{font-size:.74rem; color:var(--muted); margin-bottom:5px}
+.prea-com textarea{width:100%; min-height:72px; padding:8px 10px; border:1px solid var(--line); border-radius:9px; background:var(--bg); color:var(--ink); font-family:inherit; font-size:.86rem; resize:vertical}
+.impl-note{margin:12px 0; padding:11px 13px; border-radius:10px; font-size:.84rem; line-height:1.45; color:var(--ink); background:color-mix(in srgb,var(--brass) 14%,var(--surface)); border:1px solid color-mix(in srgb,var(--brass) 40%,var(--line))}
+.rpill.impl{background:var(--brass); color:var(--ink)}
 .projlist{display:flex; flex-direction:column; gap:8px; margin-top:6px}
 /* réponses par répondant */
 .repdim{margin-top:12px}
@@ -453,7 +468,8 @@ body.anno-on .anno-hint{display:block}
       <div class="page-head">
         <span class="eyebrow">Analyse multicritère</span>
         <h1>Cotation des mesures</h1>
-        <p>Pour chaque mesure, répondez aux 22 questions : <b style="color:var(--fav-pos)">+ favorable</b> · <b style="color:var(--fav-mid)">0 neutre</b> · <b style="color:var(--fav-neg)">− défavorable</b>. Tout est enregistré automatiquement.</p>
+        <p id="orchIntro">Pour chaque mesure, indiquez d'abord si elle est <b>déjà en place</b> chez vous — si oui, il n'y a rien d'autre à coter. Sinon, répondez aux questions : <b style="color:var(--fav-pos)">+ favorable</b> · <b style="color:var(--fav-mid)">0 neutre</b> · <b style="color:var(--fav-neg)">− défavorable</b>. Tout est enregistré automatiquement.</p>
+        <p class="faint" style="font-size:.84rem; margin-top:-4px"><b>Vous ne savez pas ?</b> Laissez la question <b>vide</b> — « 0 neutre » veut dire « ni favorable ni défavorable », ce n'est pas la même chose. Répondez à ce que vous connaissez et passez le reste.</p>
       </div>
       <div id="orchHost"></div>
     </section>
@@ -492,12 +508,15 @@ body.anno-on .anno-hint{display:block}
    les Edge Functions (tools/gen-edge-functions.js), testé par node --test tests/. */
 let VILLES=[]; /* villes du projet actif (syncVilles) */
 let DIMENSIONS=[], ALLCRIT=[], NCRIT=0, CATS={}, MEASURES=[], DESCRIPTIONS={}, APPREC={}, RECO={};
+let PREALABLE=null, IMPL=null; /* question préalable « déjà en place » + son statut d'affichage */
 function applyCatalogue(cat){
   if(!cat) return;
   DIMENSIONS=cat.dimensions||[]; CATS=cat.cats||{}; MEASURES=cat.measures||[];
   DESCRIPTIONS=cat.descriptions||{}; APPREC=cat.apprec||{}; RECO=cat.reco||{};
   NCRIT=cat.ncrit||0; ALLCRIT=DIMENSIONS.flatMap(d=>d.crit);
+  PREALABLE=cat.prealable||null; IMPL=cat.impl||null;
 }
+const PRE_ID=()=>PREALABLE?PREALABLE.id:'impl';
 const VILLE_ABBR={'Blainville':'Blain.','Boisbriand':'Boisb.','Bois-des-Filion':'B-d-F','Lorraine':'Lorr.','Rosemère':'Rosem.','Sainte-Thérèse':'Ste-Thé.','Sainte-Anne-des-Plaines':'SADP'};
 const abbrVille=n=>VILLE_ABBR[n]||n.slice(0,6);
 
@@ -683,6 +702,11 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"'\/]/g,m=>({'&':'&amp
 function announce(msg){ const l=$('#live'); if(!l) return; l.textContent=''; setTimeout(()=>{ l.textContent=msg; },30); } /* zone aria-live (WCAG 4.1.3) */
 function toast(msg,type){ const t=$('#toast'); t.textContent=msg; t.classList.toggle('err', type==='err'); t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'), type==='err'?4200:1900); announce(msg); }
 function measAnswered(rid,mId){ return ALLCRIT.filter(c=>{ const r=store.getResponse(rid,mId,c.id); return r && r.cote!=null; }).length; }
+/* Préalable : 1 = déjà en place (l'analyse ne s'applique pas), 0 = non, null = pas répondu */
+function measPre(rid,mId){ const r=store.getResponse(rid,mId,PRE_ID()); return (r && r.cote!=null) ? r.cote : null; }
+function measImpl(rid,mId){ return measPre(rid,mId)===1; }
+/* Une mesure est « faite » quand elle est déclarée en place, ou que ses 23 questions sont cotées */
+function measDone(rid,mId){ return measImpl(rid,mId) || measAnswered(rid,mId)===NCRIT; }
 /* Toutes les appréciations/recommandations viennent du SERVEUR :
    · ville → synthCache (ville-claim, puis ville-set après chaque cote)
    · admin → computed (admin-data) : matrice par ville + synthèses par répondant */
@@ -865,7 +889,7 @@ $('#fcBtn').onclick=async ()=>{
 function renderOrch(){
   const host=$('#orchHost'); const v=VILLES.find(x=>x.id===state.ville); const rid=state.respondentId;
   const prenom=(state.person&&state.person.prenom)||'répondant';
-  const done=MEASURES.filter(m=>measAnswered(rid,m.id)===NCRIT).length;
+  const done=MEASURES.filter(m=>measDone(rid,m.id)).length;
   host.innerHTML=`
     <div class="card" data-anno="Orchestrateur — en-tête répondant">
       <div class="row-between" style="flex-wrap:wrap; gap:10px">
@@ -890,7 +914,8 @@ function renderMeasureList(){
     ms.forEach(m=>{
       const a=measAnswered(rid,m.id);
       const b=document.createElement('button'); b.className='mitem'+(state.measure===m.id?' active':''); b.dataset.anno='Mesure — '+m.titre;
-      const st = a===NCRIT ? '<span class="st done">✓</span>' : a>0 ? '<span class="st part">'+a+'/'+NCRIT+'</span>' : '<span class="st">—</span>';
+      const st = measImpl(rid,m.id) ? '<span class="st impl" title="Déjà en place">en place</span>'
+        : a===NCRIT ? '<span class="st done">✓</span>' : a>0 ? '<span class="st part">'+a+'/'+NCRIT+'</span>' : '<span class="st">—</span>';
       b.innerHTML='<span>'+esc(m.titre)+'</span>'+st;
       b.onclick=()=>{ if(state.anno) return; openMeasure(m.id); };
       host.appendChild(b);
@@ -907,10 +932,60 @@ function openMeasure(mId){
       <div class="cat-pill"><i style="background:${CATS[m.cat].color}"></i>${esc(CATS[m.cat].label)}</div>
       <h2 style="font-size:1.4rem; margin:6px 0 10px">${esc(m.titre)}</h2>
       ${descHTML(mId)}
-      ${dims}
+      ${prealableHTML(mId)}
+      <div id="dimsWrap">${dims}</div>
       <div class="reco-banner" id="recoBanner"></div>
     </div>`;
-  wireQuestions(mId); refreshSynthesis(mId);
+  wirePrealable(mId); wireQuestions(mId); applyPreState(mId); refreshSynthesis(mId);
+}
+/* --- Question préalable : « la mesure est-elle déjà en place ? » ---------------
+   Oui ⇒ l'analyse multicritère n'a pas d'objet pour cette municipalité : les 23
+   questions sont masquées et seul le commentaire (quoi modifier/améliorer) est
+   recueilli. Elle se stocke comme une réponse ordinaire (critère 'impl'). */
+function prealableHTML(mId){
+  if(!PREALABLE) return '';
+  const r=store.getResponse(state.respondentId,mId,PREALABLE.id)||{cote:null,comment:''};
+  const on=v=> r.cote===v?' on':'';
+  return '<div class="prea" data-anno="Mesure — question préalable">'
+    +'<div class="prea-main"><div class="q-label">'+esc(PREALABLE.label)+'</div><div class="q-text">'+esc(PREALABLE.q)+'</div></div>'
+    +'<div class="prea-btns" role="group" aria-label="'+esc(PREALABLE.q)+'">'
+    +'<button type="button" class="pb oui'+on(1)+'" data-pre="1" aria-pressed="'+(r.cote===1)+'">Oui</button>'
+    +'<button type="button" class="pb non'+on(0)+'" data-pre="0" aria-pressed="'+(r.cote===0)+'">Non</button>'
+    +'</div>'
+    +'<div class="prea-com" id="preaCom"'+(r.cote===1?'':' hidden')+'>'
+    +'<label class="sr-only" for="preaTa">'+esc(PREALABLE.hint)+'</label>'
+    +'<div class="prea-hint">'+esc(PREALABLE.hint)+'</div>'
+    +'<textarea id="preaTa" placeholder="Ce qu\'il y aurait à modifier ou à améliorer…">'+esc(r.comment||'')+'</textarea></div>'
+    +'</div>';
+}
+function wirePrealable(mId){
+  if(!PREALABLE) return;
+  const rid=state.respondentId, host=$('#mdetail .prea'); if(!host) return;
+  host.querySelectorAll('.pb').forEach(btn=>{
+    btn.onclick=()=>{ if(state.anno) return;
+      const val=parseInt(btn.dataset.pre,10);
+      const cur=measPre(rid,mId);
+      const nv=(cur===val)?null:val; /* re-cliquer annule la réponse */
+      const ok=store.setResponse(rid,mId,PREALABLE.id,{cote:nv});
+      host.querySelectorAll('.pb').forEach(b=>{ const sel=nv!=null && parseInt(b.dataset.pre,10)===nv; b.classList.toggle('on',sel); b.setAttribute('aria-pressed',sel); });
+      if(ok) flashSaved();
+      applyPreState(mId); refreshSynthesis(mId); refreshProgress();
+    };
+  });
+  const ta=host.querySelector('#preaTa'); let t;
+  if(ta) ta.oninput=()=>{ clearTimeout(t); t=setTimeout(()=>{ const ok=store.setResponse(rid,mId,PREALABLE.id,{comment:ta.value}); if(ok) flashSaved(); },400); };
+}
+/* Masque les 23 questions quand la mesure est déclarée déjà en place */
+function applyPreState(mId){
+  const impl=measImpl(state.respondentId,mId);
+  const wrap=$('#dimsWrap'), com=$('#preaCom');
+  if(com) com.hidden=!impl;
+  if(wrap){ wrap.hidden=impl; if(impl && !$('#implNote')){
+    const n=document.createElement('div'); n.id='implNote'; n.className='impl-note';
+    n.innerHTML='<b>Mesure déjà en place.</b> L\'analyse multicritère ne s\'applique pas : les 23 questions sont masquées. Vos cotes déjà saisies sont conservées si vous revenez à « Non ».';
+    wrap.parentNode.insertBefore(n, wrap);
+  } }
+  const note=$('#implNote'); if(note) note.hidden=!impl;
 }
 function questionRow(mId,c){
   const r=store.getResponse(state.respondentId,mId,c.id)||{cote:null,comment:''};
@@ -918,7 +993,9 @@ function questionRow(mId,c){
   const hasC=(r.comment&&r.comment.trim())?' has':'';
   return '<div class="q" data-crit="'+c.id+'">'
     +'<div class="q-main"><div class="q-label">'+esc(c.label)+'</div><div class="q-text">'+esc(c.q)+'</div>'
-    +'<div class="q-guide"><span class="g pos"><b>＋</b><span>'+esc(c.pos||'Oui')+'</span></span><span class="g neg"><b>−</b><span>'+esc(c.neg||'Non')+'</span></span></div></div>'
+    +'<div class="q-guide"><span class="g pos"><b>＋</b><span>'+esc(c.pos||'Oui')+'</span></span>'
+    +(c.mid?'<span class="g mid"><b>0</b><span>'+esc(c.mid)+'</span></span>':'')
+    +'<span class="g neg"><b>−</b><span>'+esc(c.neg||'Non')+'</span></span></div></div>'
     +'<div class="q-actions"><div class="cote-btns" role="group" aria-label="'+esc('Cotation — '+c.label)+'">'
     +'<button type="button" class="cb pos'+on(1)+'" data-cote="1" title="Favorable" aria-label="Favorable" aria-pressed="'+(r.cote===1)+'">+</button>'
     +'<button type="button" class="cb mid'+on(0)+'" data-cote="0" title="Neutre" aria-label="Neutre" aria-pressed="'+(r.cote===0)+'">0</button>'
@@ -950,6 +1027,12 @@ function wireQuestions(mId){
 function refreshSynthesis(mId){
   /* les appréciations/recommandations viennent du serveur (synthCache) — le client n'a pas les règles */
   const s=synthCache[mId]||null;
+  if(measImpl(state.respondentId,mId)){ /* déjà en place → pas de recommandation */
+    const banner=$('#recoBanner');
+    if(banner && IMPL){ banner.style.background=IMPL.c; banner.style.color=IMPL.tc;
+      banner.innerHTML='<span style="font-family:var(--font-mono); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; opacity:.85">Statut</span> <b style="font-size:1.05rem">'+esc(IMPL.l)+'</b>'; }
+    return;
+  }
   DIMENSIONS.forEach(d=>{
     const el=$('#ap-'+d.id); if(!el) return;
     const code=s&&s.dims?s.dims[d.id]:null;
@@ -963,7 +1046,7 @@ function refreshSynthesis(mId){
 }
 function refreshProgress(){
   const rid=state.respondentId;
-  const done=MEASURES.filter(m=>measAnswered(rid,m.id)===NCRIT).length;
+  const done=MEASURES.filter(m=>measDone(rid,m.id)).length;
   const bar=$('#globalProg'); if(bar) bar.style.width=Math.round(done/MEASURES.length*100)+'%';
   const pw=$('#progWrap'); if(pw) pw.setAttribute('aria-valuenow',done);
   const cnt=$('#doneCount'); if(cnt) cnt.textContent=done;
@@ -982,7 +1065,7 @@ function renderPortrait(){
   }
   const started={}; Object.keys(computed.matrix).forEach(mId=>Object.keys(computed.matrix[mId].cells||{}).forEach(v=>started[v]=1));
   const startedCount=Object.keys(started).length;
-  let rows=''; const mrcTally={rec:0,etude:0,non:0};
+  let rows=''; const mrcTally={rec:0,etude:0,non:0,impl:0};
   Object.keys(CATS).forEach(catId=>{
     const ms=MEASURES.filter(m=>m.cat===catId); if(!ms.length) return;
     rows+='<tr><td colspan="'+(VILLES.length+2)+'" style="background:var(--surface-2); font-family:var(--font-mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted)"><span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:'+CATS[catId].color+'; margin-right:6px"></span>'+esc(CATS[catId].label)+'</td></tr>';
@@ -992,14 +1075,18 @@ function renderPortrait(){
       VILLES.forEach(v=>{
         const cell=entry.cells[v.id];
         if(!cell){ cells+='<td><span class="rpill none" title="'+esc(v.nom)+' — pas de données">·<span class="sr-only">'+esc(v.nom)+' : pas de données</span></span></td>'; }
+        else if(cell.impl){ /* déjà en place → pas d'analyse multicritère */
+          const tip=v.nom+'\n'+(IMPL?IMPL.l:'Déjà en place')+'\nL\'analyse multicritère ne s\'applique pas.';
+          cells+='<td><button type="button" class="rpill impl cellbtn" title="'+esc(tip)+'" data-tip="'+esc(tip)+'" aria-label="'+esc(v.nom+' : déjà en place')+'">'+(IMPL?IMPL.abbr:'I')+'</button></td>'; }
         else { const rc=cell.reco;
           const tip=v.nom+'\n'+DIMENSIONS.map(d=>{ const ap=cell.dims[d.id]; return '• '+d.nom+' : '+(ap?APPREC[ap].l:'—'); }).join('\n')+'\n→ '+RECO[rc].l+(cell.answered<NCRIT?' (provisoire '+cell.answered+'/'+NCRIT+')':'');
           /* bouton (pas span) : détail accessible au clic/clavier, pas seulement au survol (WCAG 1.4.13) */
           cells+='<td><button type="button" class="rpill '+rc+' cellbtn" title="'+esc(tip)+'" data-tip="'+esc(tip)+'" aria-label="'+esc(v.nom+' : '+RECO[rc].l+' — afficher le détail')+'">'+RECO[rc].abbr+'</button></td>'; }
       });
       let mrc='<span class="faint">—</span>';
-      if(entry.mrc){ const {cc, maj}=entry.mrc; mrcTally[maj]++;
-        mrc='<span class="rpill rec">'+cc.rec+'</span><span class="rpill etude">'+cc.etude+'</span><span class="rpill non">'+cc.non+'</span>'; }
+      if(entry.mrc){ const {cc, maj}=entry.mrc; if(maj) mrcTally[maj]++;
+        mrc='<span class="rpill rec">'+cc.rec+'</span><span class="rpill etude">'+cc.etude+'</span><span class="rpill non">'+cc.non+'</span>'
+          +(cc.impl?'<span class="rpill impl" title="villes où la mesure est déjà en place">'+cc.impl+'</span>':''); }
       cells+='<td><div class="mrccell">'+mrc+'</div></td>';
       rows+='<tr><td>'+esc(m.titre)+'</td>'+cells+'</tr>';
     });
@@ -1010,12 +1097,14 @@ function renderPortrait(){
         <div class="sumcard" style="background:var(--fav-pos)"><div class="n">${mrcTally.rec}</div><div class="l">mesures recommandées (majorité des villes)</div></div>
         <div class="sumcard" style="background:var(--fav-warn); color:var(--ink)"><div class="n">${mrcTally.etude}</div><div class="l">mesures à mettre à l'étude</div></div>
         <div class="sumcard" style="background:var(--fav-neg)"><div class="n">${mrcTally.non}</div><div class="l">mesures non recommandées</div></div>
+        ${mrcTally.impl?`<div class="sumcard" style="background:var(--brass); color:var(--ink)"><div class="n">${mrcTally.impl}</div><div class="l">mesures déjà en place partout</div></div>`:''}
       </div>
       <div class="row-between" style="margin-top:14px; flex-wrap:wrap; gap:10px">
         <div class="btnrow" style="margin:0">
           <span class="cat-pill"><span class="rpill rec">R</span> Recommandée</span>
           <span class="cat-pill"><span class="rpill etude">É</span> À l'étude</span>
           <span class="cat-pill"><span class="rpill non">N</span> Non recommandée</span>
+          <span class="cat-pill"><span class="rpill impl">I</span> Déjà en place</span>
           <span class="cat-pill"><span class="rpill none">·</span> Pas de données</span>
         </div>
         <div class="btnrow" style="margin:0">
@@ -1107,13 +1196,19 @@ function renderReponses(){
 }
 function renderRepDetail(code){
   const c=store.findCode(code); if(!c) return; const rid=c.code; const v=VILLES.find(x=>x.id===c.ville);
-  const touched=MEASURES.filter(m=>measAnswered(rid,m.id)>0);
+  const touched=MEASURES.filter(m=>measAnswered(rid,m.id)>0 || measPre(rid,m.id)!=null);
   const total=MEASURES.reduce((s,m)=>s+measAnswered(rid,m.id),0);
   let body='';
   if(!touched.length){ body='<div class="card"><div class="faint mono" style="font-size:.86rem">Ce répondant n\'a pas encore commencé à coter.</div></div>'; }
   else { body=touched.map(m=>{
     const a=measAnswered(rid,m.id);
     const synth=synthForRespondent(rid,m.id); /* appréciations/reco calculées par le serveur */
+    if(measImpl(rid,m.id)){ /* déjà en place → pas de cotation, mais le commentaire compte */
+      const pr=store.getResponse(rid,m.id,PRE_ID())||{};
+      const com=(pr.comment&&pr.comment.trim())?'<div class="repq-c"><div class="repcom">💬 '+esc(pr.comment)+'</div></div>':'<div class="faint mono" style="font-size:.74rem">Aucun commentaire.</div>';
+      return '<div class="card" data-anno="Réponses — mesure"><div class="row-between" style="margin-bottom:4px"><h3 style="margin:0; font-size:1rem">'+esc(m.titre)+'</h3><span class="rpill impl" title="'+esc(IMPL?IMPL.l:'Déjà en place')+'">'+(IMPL?IMPL.abbr:'I')+'</span></div>'
+        +'<div class="faint mono" style="font-size:.72rem; margin-bottom:6px">'+esc(IMPL?IMPL.l:'Déjà en place')+' — analyse multicritère sans objet'+(a?' ('+a+' cote(s) antérieure(s) conservée(s))':'')+'</div>'+com+'</div>';
+    }
     const dimrows=DIMENSIONS.map(d=>{
       const qs=d.crit.map(cr=>{ const r=store.getResponse(rid,m.id,cr.id); const cv=(r&&r.cote!=null)?r.cote:null;
         const pill=cv==null?'<span class="rpill none">·</span>':'<span class="rpill '+(cv>0?'rec':cv<0?'non':'etude')+'">'+(cv>0?'+':cv<0?'−':'0')+'</span>';
@@ -1140,14 +1235,14 @@ async function exportExcel(){
   if(!window.ExcelJS){ toast('Export Excel indisponible (vérifiez la connexion Internet).'); return; }
   toast('Génération du fichier Excel…');
   const wb=new ExcelJS.Workbook(); wb.creator='Orchestrateur — Corda Écofiscalité';
-  const C={green:'FF1A6E47', greenL:'FF2E7D45', grey:'FF9AA0A6', amber:'FFE0A030', red:'FFC0392B', white:'FFFFFFFF', cream:'FFF4ECDF'};
+  const C={green:'FF1A6E47', greenL:'FF2E7D45', grey:'FF9AA0A6', amber:'FFE0A030', red:'FFC0392B', white:'FFFFFFFF', cream:'FFF4ECDF', brass:'FFA9802F'};
   const fill=(cell,argb)=>{ cell.fill={type:'pattern', pattern:'solid', fgColor:{argb}}; };
   const headStyle=cell=>{ cell.font={bold:true, color:{argb:C.white}, size:10}; fill(cell,C.green); cell.alignment={vertical:'middle', horizontal:'center', wrapText:true}; };
   const apprecColor=ap=> ap==='tf'?C.green : ap==='f'?C.greenL : ap==='n'?C.grey : ap==='pf'?C.amber : ap==='pdf'?C.red : C.cream;
   const coteColor=v=> v>0?C.greenL : v<0?C.red : C.grey;
   const recoColor=rc=> rc==='rec'?C.green : rc==='etude'?C.amber : C.red;
   /* Texte lisible sur remplissage : encre sur fonds clairs (vert clair, gris, ambre), blanc sinon — même règle que l'UI */
-  const inkFills=[C.greenL,C.grey,C.amber];
+  const inkFills=[C.greenL,C.grey,C.amber,C.brass];
   const fontOn=(argb,bold)=>({color:{argb: inkFills.includes(argb)?'FF211C15':C.white}, bold:!!bold});
   /* Anti-injection de formule (OWASP) : ExcelJS écrit des chaînes inertes en .xlsx, mais on préfixe
      par prudence les données SAISIES par un utilisateur (noms de villes) débutant par = + - @
@@ -1157,34 +1252,73 @@ async function exportExcel(){
   /* feuille globale — depuis la matrice calculée par le serveur */
   const g=wb.addWorksheet('Synthèse (MRC)', {views:[{state:'frozen', xSplit:2, ySplit:1}]});
   g.addRow(['Catégorie','Mesure', ...VILLES.map(v=>xlSafe(v.nom)), 'MRC (majorité)']); g.getRow(1).eachCell(headStyle);
+  const implLabel=IMPL?IMPL.l:'Déjà en place';
+  const statutLabel=c=> !c?'' : c.impl?implLabel : (RECO[c.reco]?RECO[c.reco].l:'');
+  const statutColor=c=> c&&c.impl ? C.brass : recoColor(c?c.reco:null);
   MEASURES.forEach(m=>{
     const entry=computed.matrix[m.id]||{cells:{}, mrc:null};
-    const cellLabels=VILLES.map(v=>{ const c=entry.cells[v.id]; return c?RECO[c.reco].l:''; });
+    const cellLabels=VILLES.map(v=>statutLabel(entry.cells[v.id]));
     const maj=entry.mrc?entry.mrc.maj:null;
-    const row=g.addRow([CATS[m.cat].label, m.titre, ...cellLabels, maj?RECO[maj].l:'']);
-    VILLES.forEach((v,i)=>{ const c=entry.cells[v.id]; if(c){ const cell=row.getCell(3+i); const fc=recoColor(c.reco); fill(cell,fc); cell.font=fontOn(fc,true); cell.alignment={horizontal:'center'}; } });
-    if(maj){ const cell=row.getCell(3+VILLES.length); const fc=recoColor(maj); fill(cell,fc); cell.font=fontOn(fc,true); cell.alignment={horizontal:'center'}; }
+    const majLabel=!maj?'' : maj==='impl'?implLabel : RECO[maj].l;
+    const row=g.addRow([CATS[m.cat].label, m.titre, ...cellLabels, majLabel]);
+    VILLES.forEach((v,i)=>{ const c=entry.cells[v.id]; if(c){ const cell=row.getCell(3+i); const fc=statutColor(c); fill(cell,fc); cell.font=fontOn(fc,true); cell.alignment={horizontal:'center'}; } });
+    if(maj){ const cell=row.getCell(3+VILLES.length); const fc=maj==='impl'?C.brass:recoColor(maj); fill(cell,fc); cell.font=fontOn(fc,true); cell.alignment={horizontal:'center'}; }
   });
   g.columns.forEach((col,i)=>{ col.width = i===0?28 : i===1?44 : 15; });
 
   /* une feuille par ville ayant des données (cotes agrégées calculées par le serveur) */
   VILLES.forEach(v=>{
     if(!MEASURES.some(m=>cellOf(v.id,m.id))) return;
-    const ws=wb.addWorksheet(v.nom.slice(0,31), {views:[{state:'frozen', xSplit:2, ySplit:1}]});
-    ws.addRow(['Catégorie','Mesure', ...ALLCRIT.map(c=>c.label), ...DIMENSIONS.map(d=>d.nom), 'Recommandation']); ws.getRow(1).eachCell(headStyle);
+    const ws=wb.addWorksheet(v.nom.slice(0,31), {views:[{state:'frozen', xSplit:3, ySplit:1}]});
+    const C0=4; /* 1=Catégorie · 2=Mesure · 3=Déjà en place · 4…=cotes */
+    ws.addRow(['Catégorie','Mesure','Déjà en place', ...ALLCRIT.map(c=>c.label), ...DIMENSIONS.map(d=>d.nom), 'Recommandation']); ws.getRow(1).eachCell(headStyle);
     MEASURES.forEach(m=>{
       const cell=cellOf(v.id,m.id);
-      const cotes=ALLCRIT.map(c=> cell&&cell.cotes&&(c.id in cell.cotes) ? cell.cotes[c.id] : null);
+      const impl=!!(cell&&cell.impl);
+      const cotes=ALLCRIT.map(c=> !impl && cell&&cell.cotes&&(c.id in cell.cotes) ? cell.cotes[c.id] : null);
       const coteLabels=cotes.map(ct=> ct==null?'' : ct>0?'+1':ct<0?'−1':'0');
-      const dimLabels=DIMENSIONS.map(d=>{ const ap=cell&&cell.dims?cell.dims[d.id]:null; return ap?APPREC[ap].l:''; });
-      const rc=cell?cell.reco:null;
-      const row=ws.addRow([CATS[m.cat].label, m.titre, ...coteLabels, ...dimLabels, rc?RECO[rc].l:'']);
-      cotes.forEach((ct,i)=>{ if(ct!=null){ const xc=row.getCell(3+i); const fc=coteColor(ct); fill(xc,fc); xc.font=fontOn(fc,true); xc.alignment={horizontal:'center'}; } });
-      DIMENSIONS.forEach((d,i)=>{ const ap=cell&&cell.dims?cell.dims[d.id]:null; if(ap){ const xc=row.getCell(3+ALLCRIT.length+i); const fc=apprecColor(ap); fill(xc,fc); xc.font=fontOn(fc,false); } });
-      if(rc){ const xc=row.getCell(3+ALLCRIT.length+DIMENSIONS.length); const fc=recoColor(rc); fill(xc,fc); xc.font=fontOn(fc,true); }
+      const dimLabels=DIMENSIONS.map(d=>{ const ap=(!impl&&cell&&cell.dims)?cell.dims[d.id]:null; return ap?APPREC[ap].l:''; });
+      const rc=(!impl&&cell)?cell.reco:null;
+      const row=ws.addRow([CATS[m.cat].label, m.titre, impl?'Oui':(cell?'Non':''), ...coteLabels, ...dimLabels, impl?implLabel:(rc?RECO[rc].l:'')]);
+      if(impl){ const xc=row.getCell(3); fill(xc,C.brass); xc.font=fontOn(C.brass,true); xc.alignment={horizontal:'center'}; }
+      cotes.forEach((ct,i)=>{ if(ct!=null){ const xc=row.getCell(C0+i); const fc=coteColor(ct); fill(xc,fc); xc.font=fontOn(fc,true); xc.alignment={horizontal:'center'}; } });
+      DIMENSIONS.forEach((d,i)=>{ const ap=(!impl&&cell&&cell.dims)?cell.dims[d.id]:null; if(ap){ const xc=row.getCell(C0+ALLCRIT.length+i); const fc=apprecColor(ap); fill(xc,fc); xc.font=fontOn(fc,false); } });
+      const last=row.getCell(C0+ALLCRIT.length+DIMENSIONS.length);
+      if(impl){ fill(last,C.brass); last.font=fontOn(C.brass,true); }
+      else if(rc){ const fc=recoColor(rc); fill(last,fc); last.font=fontOn(fc,true); }
     });
-    ws.columns.forEach((col,i)=>{ col.width = i===0?22 : i===1?38 : (i>=2 && i<2+ALLCRIT.length)?7 : 16; });
+    ws.columns.forEach((col,i)=>{ col.width = i===0?22 : i===1?38 : i===2?13 : (i>=3 && i<3+ALLCRIT.length)?7 : 16; });
   });
+
+  /* ---- feuille COMMENTAIRES — la matière première de l'analyse qualitative ----
+     Un commentaire par ligne, filtrable (autoFilter), texte en retour à la ligne.
+     Inclut le commentaire de la question préalable (« quoi modifier/améliorer »).
+     ⚠ Nominatif : cet export est journalisé (audit_log) — voir loi25/. */
+  const critMeta={}; DIMENSIONS.forEach(d=>d.crit.forEach(c=>{ critMeta[c.id]={dim:d.nom, label:c.label}; }));
+  const preId=PRE_ID(), preLabel=PREALABLE?PREALABLE.label:'Mesure déjà en place';
+  const wc=wb.addWorksheet('Commentaires', {views:[{state:'frozen', ySplit:1}]});
+  wc.addRow(['Ville','Répondant','Fonction','Catégorie','Mesure','Dimension','Question','Réponse','Commentaire']); wc.getRow(1).eachCell(headStyle);
+  let nCom=0;
+  store.listCodes().filter(c=>c.person).forEach(c=>{
+    const v=VILLES.find(x=>x.id===c.ville); const who=c.person.prenom+' '+c.person.nom;
+    MEASURES.forEach(m=>{
+      [{id:preId, dim:'Préalable', label:preLabel}, ...ALLCRIT.map(cr=>({id:cr.id, dim:critMeta[cr.id].dim, label:critMeta[cr.id].label}))].forEach(q=>{
+        const r=store.getResponse(c.code,m.id,q.id);
+        if(!r || !r.comment || !r.comment.trim()) return;
+        const rep = q.id===preId ? (r.cote===1?'Oui':r.cote===0?'Non':'—')
+                                 : (r.cote==null?'—' : r.cote>0?'+1' : r.cote<0?'−1' : '0');
+        const row=wc.addRow([xlSafe(v?v.nom:'—'), xlSafe(who), xlSafe(c.person.fonction||''), CATS[m.cat].label, m.titre, q.dim, q.label, rep, xlSafe(r.comment.trim())]);
+        row.getCell(8).alignment={horizontal:'center'};
+        row.getCell(9).alignment={wrapText:true, vertical:'top'};
+        if(q.id===preId){ const xc=row.getCell(8); const fc=r.cote===1?C.brass:C.grey; fill(xc,fc); xc.font=fontOn(fc,true); }
+        else if(r.cote!=null){ const xc=row.getCell(8); const fc=coteColor(r.cote); fill(xc,fc); xc.font=fontOn(fc,true); }
+        nCom++;
+      });
+    });
+  });
+  if(!nCom) wc.addRow(['—','—','—','—','Aucun commentaire saisi pour l\'instant.','','','','']);
+  wc.columns.forEach((col,i)=>{ col.width = [16,22,20,20,34,20,24,10,80][i]||16; });
+  wc.autoFilter={from:{row:1,column:1}, to:{row:1,column:9}};
 
   if(sync.online) remote.audit('export',{project:store.activeId()}); /* journal Loi 25 : export nominatif */
   const buf=await wb.xlsx.writeBuffer();
@@ -1654,8 +1788,10 @@ function renderPont(){
      un projet fraîchement créé afficherait la reco d'un autre projet) */
   const entry=(computed.projectId===store.activeId())?computed.matrix[mId]:null;
   const mes=MEASURES.find(x=>x.id===mId);
-  if(entry && entry.mrc){ const {cc,maj}=entry.mrc;
-    host.innerHTML='Le Portrait dit : <span class="rpill '+maj+'">'+RECO[maj].abbr+'</span> <b>'+esc(RECO[maj].l)+'</b> <span class="faint mono" style="font-size:.72rem">(R '+cc.rec+' · É '+cc.etude+' · N '+cc.non+')</span>';
+  if(entry && entry.mrc && entry.mrc.maj){ const {cc,maj}=entry.mrc;
+    /* maj vaut 'rec' | 'etude' | 'non' | 'impl' (toutes les villes l'ont déjà en place) */
+    const S = maj==='impl' ? (IMPL||{l:'Déjà en place', abbr:'I'}) : RECO[maj];
+    host.innerHTML='Le Portrait dit : <span class="rpill '+maj+'">'+esc(S.abbr)+'</span> <b>'+esc(S.l)+'</b> <span class="faint mono" style="font-size:.72rem">(R '+cc.rec+' · É '+cc.etude+' · N '+cc.non+(cc.impl?' · en place '+cc.impl:'')+')</span>';
   } else {
     host.innerHTML='<span class="faint">Cette mesure n\'a pas encore été cotée dans ce projet — la recette est une chose, l\'acceptabilité en est une autre.</span>';
   }

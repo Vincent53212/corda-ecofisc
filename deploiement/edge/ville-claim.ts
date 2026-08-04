@@ -10,10 +10,11 @@ const __mod: { exports: Record<string, unknown> } = { exports: {} };
   const module = __mod;
   /* ============================================================================
      RULES.JS — Moteur de cotation de l'Orchestrateur (analyse multicritère)
-     Un produit Corda · Écofiscalité — grille V3, dir. Pre Fanny Tremblay-Racicot.
+     Un produit Corda · Écofiscalité — grille V4, dir. Pre Fanny Tremblay-Racicot.
   
      CE FICHIER EST LA SOURCE UNIQUE des règles métier :
-     · les 4 dimensions et leurs 22 critères (questions verbatim de la grille V3,
+     · la question PRÉALABLE (mesure déjà implantée → l'analyse ne s'applique pas) ;
+     · les 4 dimensions et leurs 23 critères (questions verbatim de la grille V4,
        avec la « boussole » +/− de chaque question) ;
      · le CATALOGUE des mesures (CATS, MEASURES, DESCRIPTIONS — fiches Mascouche
        et Gatineau 2025) : la whitelist measure_id/criterion_id des Edge Functions
@@ -21,7 +22,8 @@ const __mod: { exports: Record<string, unknown> } = { exports: {} };
      · apprec()      — somme des cotes d'une dimension → appréciation ;
      · reco()        — 4 appréciations → recommandation de la mesure ;
      · villeMoyenne()— agrégation d'une ville = moyenne arrondie de ses répondants ;
-     · mrcSynthese() — synthèse MRC = majorité des recommandations des villes.
+     · mrcSynthese() — synthèse MRC = majorité des recommandations des villes ;
+     · estImplantee()/villeImplantee() — lecture du préalable (mesure déjà en place).
   
      ⚠ Toute modification doit passer la suite de tests :   node --test tests/
      Les règles sont documentées en prose dans docs/methodologie.md (validation
@@ -38,31 +40,37 @@ const __mod: { exports: Record<string, unknown> } = { exports: {} };
   }(typeof self !== 'undefined' ? self : this, function () {
     "use strict";
   
-    /* ---------- 4 dimensions · 22 critères (questions verbatim de la grille V3) ----------
-       pos/neg = « boussole de cotation » : ce que signifie une réponse + ou − pour CETTE
-       question (7 questions sont à polarité inversée : un « oui » y est défavorable). */
+    /* ---------- 4 dimensions · 23 critères (questions verbatim de la grille V4) ----------
+       pos/neg (et mid, optionnel) = « boussole de cotation » : ce que signifie une réponse
+       +, − (ou 0) pour CETTE question. Depuis la V4 (22 juill. 2026), les 7 questions
+       jadis à polarité inversée (pf3, sg1, sg4, sg5, ae3, ae6, ae7) sont réécrites en
+       polarité positive : un « oui » est TOUJOURS favorable (+1). La boussole est
+       conservée — elle reste utile pour lever les ambiguïtés de degré. */
     const DIMENSIONS = [
       {id:'pf', nom:'Potentiel fiscal', crit:[
         {id:'pf1', label:"Largeur de l'assiette fiscale", q:"L'assiette fiscale concerne-t-elle un nombre de contribuables ou encore un flux ou un stock monétaire suffisamment grand pour assurer à court terme des revenus qui peuvent être considérés comme étant significatifs ?", pos:"Assiette large (nombreux contribuables ou flux important)", neg:"Assiette étroite ou marginale"},
         {id:'pf2', label:"Potentiel de croissance", q:"L'assiette fiscale présente-t-elle un potentiel de croissance raisonnablement prévisible à moyen et long terme ?", pos:"Croissance prévisible à moyen-long terme", neg:"Stagnation ou déclin attendu"},
-        {id:'pf3', label:"Marge de manœuvre sur le taux du prélèvement", q:"En considérant le contexte de compétitivité fiscale de la Ville, le taux de prélèvement actuel sur cette assiette fiscale peut-il être considéré comme étant déjà élevé ?", pos:"Taux actuel bas → de la marge de manœuvre", neg:"Taux déjà élevé → peu de marge"},
+        {id:'pf3', label:"Marge de manœuvre sur le taux du prélèvement", q:"En considérant le contexte de compétitivité fiscale de la Ville, le taux de prélèvement actuel sur cette assiette fiscale est-il suffisamment bas pour laisser une marge de manœuvre ?", pos:"Taux actuel bas → de la marge de manœuvre", neg:"Taux déjà élevé → peu de marge"},
       ]},
       {id:'sg', nom:'Saine gestion administrative', crit:[
-        {id:'sg1', label:"Coûts d'administration", q:"Un prélèvement supplémentaire sur cette assiette fiscale nécessiterait-il des ressources (immobilisations, exploitation, conformité fiscale) dont le coût peut être considéré comme élevé ou prohibitif ? Par exemple, le processus de perception est-il compatible avec la méthode actuelle de gestion du compte de taxes ?", pos:"Coûts d'administration faibles, perception simple", neg:"Coûts élevés ou prohibitifs"},
+        {id:'sg1', label:"Coûts d'administration", q:"Un prélèvement supplémentaire sur cette assiette fiscale peut-il être administré avec des ressources (immobilisations, exploitation, conformité fiscale) dont le coût peut être considéré comme faible ou raisonnable ? Par exemple, le processus de perception est-il compatible avec la méthode actuelle de gestion du compte de taxes ?", pos:"Coûts d'administration faibles, perception simple", neg:"Coûts élevés ou prohibitifs"},
         {id:'sg2', label:"Utilisateur-payeur", q:"La mesure s'appuie-t-elle sur le principe d'utilisateur-payeur ? Permet-elle d'accroître la participation financière de catégories de contribuables dont la consommation de services publics excède les coûts de production de la municipalité ?", pos:"S'appuie sur l'utilisateur-payeur", neg:"Aucun lien entre usage et coût"},
         {id:'sg3', label:"Applicabilité (court terme)", q:"À court terme, les données ou la technologie nécessaires à la mise en œuvre de la mesure sont-elles disponibles et applicables selon les pratiques actuellement en vigueur ?", pos:"Données et technologie déjà disponibles", neg:"Non disponibles à court terme"},
-        {id:'sg4', label:"Conformité réglementaire", q:"La mesure entre-t-elle en contradiction avec des réglementations ou politiques en vigueur ? Nécessite-t-elle un nouveau régime de réglementation ou une modification de la réglementation actuelle ?", pos:"Aucun conflit; le cadre actuel suffit", neg:"Conflit ou nouvelle réglementation requise"},
-        {id:'sg5', label:"Contestation judiciaire", q:"La mesure possède-t-elle un risque de contestation judiciaire ?", pos:"Risque de contestation faible ou nul", neg:"Risque élevé de contestation judiciaire"},
+        {id:'sg4', label:"Conformité réglementaire", q:"La mesure est-elle compatible avec les réglementations et les politiques actuellement en vigueur, sans nécessiter la création d'un nouveau régime de réglementation ni une modification de la réglementation actuelle ?", pos:"Aucun conflit; le cadre actuel suffit", neg:"Conflit ou nouvelle réglementation requise"},
+        {id:'sg5', label:"Contestation judiciaire", q:"Le risque de contestation judiciaire de la mesure est-il faible ou nul ?", pos:"Risque de contestation faible ou nul", neg:"Risque élevé de contestation judiciaire"},
         {id:'sg6', label:"Orientations du plan stratégique", q:"La mesure renforce-t-elle les orientations ou dispositions prévues au plan stratégique ou à d'autres documents de la municipalité ?", pos:"Renforce le plan stratégique", neg:"S'écarte des orientations"},
+        /* sg7 — ajouté en V4 (22 juill. 2026). Seul critère dont le barème des trois
+           valeurs est écrit dans la grille : le « 0 » y est explicite (non étudiée). */
+        {id:'sg7', label:"Historique", q:"La mesure a-t-elle été récemment mise à l'étude par la municipalité ?", pos:"Récemment mise à l'étude", mid:"Jamais étudiée", neg:"Étudiée puis rejetée"},
       ]},
       {id:'ae', nom:'Acceptabilité et équité', crit:[
         {id:'ae1', label:"Perception", q:"La mesure recevrait-elle un niveau d'approbation de la population supérieur à celui auquel on pourrait s'attendre d'un prélèvement fiscal ?", pos:"Approbation probable de la population", neg:"Rejet probable"},
         {id:'ae2', label:"Disponibilité d'alternatives", q:"En principe, un contribuable peut-il diminuer ou éviter les prélèvements en modifiant son comportement ?", pos:"Évitable en changeant de comportement", neg:"Prélèvement subi, sans échappatoire"},
-        {id:'ae3', label:"Personnes vulnérables", q:"La mesure a-t-elle un impact financier plus important auprès des personnes vulnérables ?", pos:"Peu ou pas d'impact sur les personnes vulnérables", neg:"Impact important sur les personnes vulnérables"},
+        {id:'ae3', label:"Personnes vulnérables", q:"La mesure évite-t-elle un impact financier plus important auprès des personnes vulnérables ?", pos:"Peu ou pas d'impact sur les personnes vulnérables", neg:"Impact important sur les personnes vulnérables"},
         {id:'ae4', label:"Capacité de payer", q:"La mesure permet-elle d'accroître raisonnablement la participation financière des personnes (morales ou physiques) ayant une capacité de payer supérieure ?", pos:"Cible les hautes capacités de payer", neg:"Frappe surtout les faibles capacités de payer"},
         {id:'ae5', label:"Équité temporelle", q:"La mesure permet-elle de cibler des catégories de contribuables qui ont bénéficié, dans les dernières années, d'un transfert fiscal favorable ?", pos:"Corrige un avantage fiscal passé", neg:"Sans effet correctif (ou l'accentue)"},
-        {id:'ae6', label:"Équité territoriale", q:"La mesure a-t-elle potentiellement un impact plus important pour les contribuables de certains secteurs de la municipalité ?", pos:"Impact réparti uniformément sur le territoire", neg:"Impact concentré sur certains secteurs"},
-        {id:'ae7', label:"Abordabilité", q:"Lorsqu'applicable, la mesure a-t-elle un effet sur l'abordabilité des logements ?", pos:"Sans effet — ou améliore l'abordabilité du logement", neg:"Nuit à l'abordabilité (renchérit le logement)"},
+        {id:'ae6', label:"Équité territoriale", q:"L'impact de la mesure est-il réparti uniformément entre les contribuables des différents secteurs de la municipalité ?", pos:"Impact réparti uniformément sur le territoire", neg:"Impact concentré sur certains secteurs"},
+        {id:'ae7', label:"Abordabilité", q:"Lorsqu'applicable, la mesure préserve-t-elle ou améliore-t-elle l'abordabilité des logements ?", pos:"Préserve ou améliore l'abordabilité du logement", neg:"Nuit à l'abordabilité (renchérit le logement)"},
       ]},
       {id:'ee', nom:'Efficacité environnementale', crit:[
         {id:'ee1', label:"Pertinence", q:"La mesure est-elle le moyen le plus approprié d'atteindre l'objectif environnemental visé ?", pos:"Le moyen le plus approprié pour l'objectif", neg:"Moyen mal adapté ou détourné"},
@@ -74,7 +82,30 @@ const __mod: { exports: Record<string, unknown> } = { exports: {} };
       ]},
     ];
     const ALLCRIT = DIMENSIONS.flatMap(d=>d.crit);
-    const NCRIT = ALLCRIT.length; // 22
+    const NCRIT = ALLCRIT.length; // 23
+  
+    /* ---------- Question PRÉALABLE (V4, 3 août 2026) ----------
+       Posée AVANT les 23 critères, pour chaque mesure. « Oui » = la mesure est déjà
+       en place (ou en voie de l'être) : l'analyse multicritère n'a plus d'objet pour
+       cette municipalité — les 23 questions sont masquées et seul le commentaire est
+       recueilli (ce qu'il y aurait à modifier ou à améliorer).
+       Stockage : une réponse comme les autres (criterion_id 'impl'), cote 1 = oui,
+       0 = non — mais elle n'entre dans AUCUN calcul d'appréciation (elle n'appartient
+       à aucune dimension). Un statut d'affichage distinct la représente : IMPL. */
+    const PREALABLE = Object.freeze({
+      id:'impl',
+      label:"Mesure déjà en place",
+      q:"Est-ce que la mesure est déjà implantée ou en voie de l'être ?",
+      hint:"Si oui, commentez les éléments à modifier ou à améliorer. Les 23 questions d'analyse ne s'appliqueront pas à cette mesure.",
+      oui:"Oui — déjà implantée ou en voie de l'être",
+      non:"Non — pas en place",
+    });
+    const IMPL = Object.freeze({l:'Déjà en place', abbr:'I', c:'var(--brass)', tc:'var(--ink)'});
+    /* Le répondant a-t-il déclaré la mesure déjà en place ? (rm = {critId: cote}) */
+    function estImplantee(rm){ return !!rm && rm[PREALABLE.id] === 1; }
+    /* Agrégation ville du préalable : UN SEUL répondant qui l'affirme suffit — c'est un
+       FAIT vérifiable, pas une opinion à moyenner (règle à valider, methodologie.md §7). */
+    function villeImplantee(vals){ return !!vals && vals.some(v=>v===1); }
   
     /* ---------- Catalogue des mesures (37 mesures · 6 catégories) ----------
        Source unique du catalogue : l'UI l'affiche, les tests en vérifient l'intégrité,
@@ -219,20 +250,26 @@ const __mod: { exports: Record<string, unknown> } = { exports: {} };
   
     /* ---------- Règle 4 : synthèse MRC = majorité des recommandations des villes ----------
        Égalités : 'non' prime sur tout, puis 'rec' prime sur 'etude' (docs/methodologie.md §5).
-       À n'appeler qu'avec ≥1 recommandation (les appelants filtrent les villes sans données). */
+       Les villes ayant déclaré la mesure DÉJÀ EN PLACE ('impl') sont comptées à part et
+       retirées du vote : leur situation n'est pas une recommandation (methodologie.md §7).
+       Si toutes les villes concernées l'ont déjà en place, la majorité vaut 'impl'.
+       Sans aucune donnée exploitable → maj null (les appelants filtrent déjà en amont). */
     function mrcSynthese(recos){
-      const cc={rec:0,etude:0,non:0}; recos.forEach(r=>cc[r]++);
+      const cc={rec:0,etude:0,non:0,impl:0};
+      (recos||[]).forEach(r=>{ if(r in cc) cc[r]++; });
+      const votes=cc.rec+cc.etude+cc.non;
+      if(!votes) return {cc, maj: cc.impl ? 'impl' : null};
       const maj=(cc.non>=cc.rec && cc.non>=cc.etude)?'non':(cc.rec>=cc.etude)?'rec':'etude';
       return {cc, maj};
     }
   
-    return Object.freeze({ DIMENSIONS, ALLCRIT, NCRIT, CATS, MEASURES, DESCRIPTIONS, APPREC, RECO, apprec, reco, villeMoyenne, mrcSynthese });
+    return Object.freeze({ DIMENSIONS, ALLCRIT, NCRIT, PREALABLE, IMPL, CATS, MEASURES, DESCRIPTIONS, APPREC, RECO, apprec, reco, villeMoyenne, mrcSynthese, estImplantee, villeImplantee });
   }));
   
 }
 // deno-lint-ignore no-explicit-any
 const Rules: any = __mod.exports;
-const { DIMENSIONS, ALLCRIT, NCRIT, CATS, MEASURES, DESCRIPTIONS, APPREC, RECO, apprec, reco, villeMoyenne, mrcSynthese } = Rules;
+const { DIMENSIONS, ALLCRIT, NCRIT, PREALABLE, IMPL, CATS, MEASURES, DESCRIPTIONS, APPREC, RECO, apprec, reco, villeMoyenne, mrcSynthese, estImplantee, villeImplantee } = Rules;
 
 const ORIGINS = [
   "https://ecofisc.corda.consulting",
@@ -268,6 +305,9 @@ function synthOf(respMap: Record<string, Record<string, number>>): Record<string
   const out: Record<string, any> = {};
   for (const m of MEASURES) {
     const rm = respMap[m.id]; if (!rm) continue;
+    /* préalable « déjà en place » → l'analyse multicritère n'a pas d'objet :
+       aucune appréciation, aucune recommandation, statut à part. */
+    if (estImplantee(rm)) { out[m.id] = { impl: true, answered: 0, dims: {}, reco: null }; continue; }
     // deno-lint-ignore no-explicit-any
     const dims: Record<string, string | null> = {};
     let answered = 0;
@@ -277,7 +317,7 @@ function synthOf(respMap: Record<string, Record<string, number>>): Record<string
       dims[d.id] = cotes.length ? apprec(cotes) : null;
     }
     if (!answered) continue;
-    out[m.id] = { answered, dims, reco: reco(DIMENSIONS.map((d: { id: string }) => dims[d.id] || "n")) };
+    out[m.id] = { impl: false, answered, dims, reco: reco(DIMENSIONS.map((d: { id: string }) => dims[d.id] || "n")) };
   }
   return out;
 }
@@ -295,10 +335,11 @@ function groupResponses(rows: any[]): Record<string, Record<string, Record<strin
    d'affichage). Les seuils et règles de calcul, eux, restent ici. */
 function catalogue() {
   return {
-    dimensions: DIMENSIONS.map((d: { id: string; nom: string; crit: { id: string; label: string; q: string; pos: string; neg: string }[] }) =>
-      ({ id: d.id, nom: d.nom, crit: d.crit.map(c => ({ id: c.id, label: c.label, q: c.q, pos: c.pos, neg: c.neg })) })),
+    dimensions: DIMENSIONS.map((d: { id: string; nom: string; crit: { id: string; label: string; q: string; pos: string; mid?: string; neg: string }[] }) =>
+      ({ id: d.id, nom: d.nom, crit: d.crit.map(c => ({ id: c.id, label: c.label, q: c.q, pos: c.pos, mid: c.mid || null, neg: c.neg })) })),
     cats: CATS, measures: MEASURES, descriptions: DESCRIPTIONS,
     apprec: APPREC, reco: RECO, ncrit: NCRIT,
+    prealable: PREALABLE, impl: IMPL,
   };
 }
 

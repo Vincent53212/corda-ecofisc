@@ -53,8 +53,8 @@ Mécanique (le critère devient le 7e de la dimension SG, **ligne 14** de chaque
 ## ⚠️ À arrimer
 
 1. **Validation scientifique des reformulations.** Les 7 nouvelles formulations sont dérivées du sens « + » de la boussole de l'application ; elles reformulent des questions de la grille scientifique V3 (dir. Pre Tremblay-Racicot). À faire valider par la direction scientifique avant diffusion externe.
-2. **Cohérence app ↔ sources.** L'application (`rules.js`) affiche toujours les questions **d'origine** (verbatim V3) avec la boussole +/−, et compte **22 critères** — le critère « Historique » n'y existe pas (ni dans `methodologie.md`, le dictionnaire de données, les Edge Functions ou les 29 tests). Si la V4 est entérinée : aligner le moteur (23 critères, sg7) et les questions, ou documenter l'écart.
-3. **Le critère « Historique » n'est pas dans le Word V4** — la question vit dans l'Excel (Guide + fiches) ; ajouter la puce au §2.2 du guide Word si la V4 est entérinée.
+2. ~~**Cohérence app ↔ sources.**~~ **FAIT le 3 août 2026** : `rules.js` porte les 7 questions réécrites et le critère `sg7` « Historique » (**23 critères**) ; `methodologie.md`, le dictionnaire de données, les 3 Edge Functions et les tests (34/34) sont alignés. S'y ajoute une **question préalable** demandée par Vincent — « la mesure est-elle déjà implantée ou en voie de l'être ? » (`methodologie.md` §7), qui n'est **pas** dans les sources V4 : à porter dans la grille et le guide si elle est retenue.
+3. ~~**Le critère « Historique » n'est pas dans le Word V4 »**~~ — **corrigé** : la puce figure désormais au §2.2 du guide Word V4 (avec son barème). ⚠️ Reste un écart de libellé mineur entre les deux sources : le Word écrit « …est-il **faible** ? » pour sg5, le classeur « …est-il **faible ou nul** ? ». L'app suit le classeur (doctrine).
 
 ## Note de traçabilité
 

@@ -1,24 +1,30 @@
 # Méthodologie de cotation — Orchestrateur (analyse multicritère)
 
-> **Source des règles :** grille d'analyse multicritère **V3** (dir. Pre Fanny Tremblay-Racicot, ENAP/CERGO).
-> **Implémentation :** `rules.js` (source unique du moteur) · vérifiée par **29 tests** (`node --test tests/rules.test.js`).
-> **Statut :** règles transcrites fidèlement du **classeur V3** — **points de validation en §6** pour la direction de recherche.
+> **Source des règles :** grille d'analyse multicritère **V4** (dir. Pre Fanny Tremblay-Racicot, ENAP/CERGO).
+> **Implémentation :** `rules.js` (source unique du moteur) · vérifiée par **34 tests** (`node --test tests/rules.test.js`).
+> **Statut :** règles transcrites fidèlement du **classeur** — **points de validation en §6** pour la direction de recherche.
+
+> [!important] Passage à la V4 — 3 août 2026
+> Trois changements par rapport à la V3, tous portés dans `rules.js` :
+> 1. les **7 questions à polarité inversée sont réécrites en polarité positive** (pf3, sg1, sg4, sg5, ae3, ae6, ae7) : un « oui » est désormais **toujours** favorable. Les cotes déjà saisies gardent leur sens (les répondants notaient −1/0/+1, pas oui/non) ;
+> 2. **nouveau critère `sg7` « Historique »** (7e de la Saine gestion) : *la mesure a-t-elle été récemment mise à l'étude ?* — barème explicite : mise à l'étude **+1** · jamais étudiée **0** · étudiée puis rejetée **−1**. Total : **23 critères** ;
+> 3. **question préalable « déjà en place »** (§7), qui court-circuite l'analyse pour une mesure déjà implantée.
 
 > [!important] Doctrine des seuils — décision du 16 juillet 2026 (Jérôme)
 > L'audit de fidélité (`docs/audit-fidelite-v3.md`) avait révélé que le **guide en prose** et les **formules du classeur Excel** de la V3 ne définissaient pas les mêmes seuils. **La direction a tranché : les formules du classeur font foi.** Le moteur applique donc les seuils Excel — Très favorable dès **S ≥ 1** sans négatif · Pas du tout favorable dès **S ≤ −1** sans positif · Recommandée dès **1** dimension favorable. Effet : **5 recommandations de référence du classeur V3 changent** par rapport aux seuils du guide (voir audit §6). Règles vérifiées bout-à-bout contre le classeur : **112/112** appréciations et **28/28** recommandations reproduites exactement.
 
 ## 1. L'échelle de cotation
 
-Chaque répondant municipal cote **37 mesures** sur **22 questions** regroupées en **4 dimensions** :
+Chaque répondant municipal cote **37 mesures** sur **23 questions** regroupées en **4 dimensions** :
 
 | Dimension | Questions |
 |---|---|
 | Potentiel fiscal | 3 (pf1-pf3) |
-| Saine gestion administrative | 6 (sg1-sg6) |
+| Saine gestion administrative | **7** (sg1-**sg7**) |
 | Acceptabilité et équité | 7 (ae1-ae7) |
 | Efficacité environnementale | 6 (ee1-ee6) |
 
-Réponses possibles : **+1** (favorable) · **0** (neutre) · **−1** (défavorable). Chaque question porte une **boussole** (« + signifie… / − signifie… ») affichée sous son libellé, car **7 questions sont à polarité inversée** — un « oui » y est *défavorable* : pf3 (taux déjà élevé), sg1 (coûts élevés), sg4 (conflit réglementaire), sg5 (risque judiciaire), ae3 (impact sur personnes vulnérables), ae6 (impact concentré), ae7 (nuit à l'abordabilité).
+Réponses possibles : **+1** (favorable) · **0** (neutre) · **−1** (défavorable) · **pas de réponse** (la question est simplement ignorée dans la somme — c'est ce qu'il faut choisir quand on ne sait pas, plutôt que « neutre »). Chaque question porte une **boussole** (« + signifie… / − signifie… ») affichée sous son libellé. Depuis la V4, plus aucune question n'est à polarité inversée ; la boussole reste affichée pour lever les ambiguïtés de degré, et `sg7` en affiche aussi le sens du **0** (« jamais étudiée »), seul critère dont la grille écrit les trois valeurs.
 
 ## 2. Des réponses à l'appréciation d'une dimension (`apprec`)
 
@@ -79,6 +85,18 @@ Exemples : {1 R, 1 N} → **N** · {1 R, 1 É} → **R** · {1 É, 1 N} → **N*
 | 5 | Agrégation ville (§4) | moyenne arrondie | médiane |
 | 6 | Boussole ae7 (abordabilité) et ae2 (alternatives) | polarité proposée au Bloc boussole | confirmer le sens attendu |
 | 7 | Mesures « non applicables » à une ville | aucun statut « N/A » (0 = neutre) | introduire un vrai N/A ? (ae7 dit « lorsqu'applicable ») |
+| 8 | Agrégation ville du préalable (§7) | **un seul** répondant qui déclare « déjà en place » suffit | exiger la majorité des répondants de la ville |
+| 9 | Effet du préalable sur la synthèse MRC (§7) | les villes « déjà en place » **sortent du vote** (comptées à part) | les compter comme « recommandée » (mesure validée par la pratique) |
+
+## 7. Question préalable : « la mesure est-elle déjà en place ? » (V4)
+
+Avant les 23 questions, chaque mesure pose une question **oui / non** : *« Est-ce que la mesure est déjà implantée ou en voie de l'être ? »*
+
+- **Oui** → l'analyse multicritère **n'a pas d'objet** pour cette municipalité : les 23 questions sont masquées, aucune appréciation ni recommandation n'est calculée, et la mesure prend le statut distinct **« Déjà en place »** (pastille laiton `I` dans le Portrait). Seul un **commentaire** est recueilli : ce qu'il y aurait à *modifier ou améliorer*.
+- **Non** (ou pas de réponse) → parcours normal.
+- La réponse se stocke comme une réponse ordinaire, sous le critère **`impl`** (cote 1 = oui, 0 = non), mais `impl` **n'appartient à aucune dimension** : il n'entre dans aucune somme. Les cotes déjà saisies avant un « oui » sont **conservées** et redeviennent actives si le répondant revient à « non ».
+- **Agrégation ville** : la mesure est réputée en place dès qu'**un** répondant de la ville l'affirme — c'est un *fait* vérifiable, pas une opinion à moyenner (à valider, §6 point 8).
+- **Synthèse MRC** : les villes « déjà en place » sont **retirées du vote de majorité** et comptées séparément (`cc.impl`). Si toutes les villes ayant répondu l'ont déjà en place, la synthèse affiche « Déjà en place » (à valider, §6 point 9).
 
 ---
 *Document produit au Bloc 2 du plan de travail (extraction du moteur `rules.js`). Toute modification des règles doit passer par `rules.js` + la suite de tests, puis être reflétée ici.*

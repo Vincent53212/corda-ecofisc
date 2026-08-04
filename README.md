@@ -17,9 +17,10 @@ L'**écofiscalité municipale**, ce sont des taxes et redevances qui font payer 
 comportements nuisibles (stationnements de surface, logements vacants, surfaces
 minéralisées…) plutôt que d'augmenter la taxe foncière de tout le monde. Les professeur.e.s
 Fanny Tremblay-Racicot et Jérôme Couture ont développé une **grille d'analyse multicritère**
-pour évaluer ces mesures : chaque mesure est notée sur **22 questions** regroupées en
+pour évaluer ces mesures : chaque mesure est notée sur **23 questions** regroupées en
 **4 dimensions** (potentiel fiscal · saine gestion administrative · acceptabilité et
-équité · efficacité environnementale).
+équité · efficacité environnementale) — précédées d'une **question préalable** : si la
+mesure est **déjà en place** dans la municipalité, il n'y a rien à coter (grille **V4**).
 
 L'**Orchestrateur** transforme cette grille (jusqu'ici un fichier Excel) en application :
 

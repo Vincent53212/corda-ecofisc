@@ -96,26 +96,67 @@ test('mrcSynthese — majorité simple', () => {
   assert.equal(R.mrcSynthese(['etude','etude','rec']).maj, 'etude');
 });
 test('mrcSynthese — compte exact par catégorie', () => {
-  assert.deepEqual(R.mrcSynthese(['rec','etude','non','rec']).cc, {rec:2, etude:1, non:1});
+  assert.deepEqual(R.mrcSynthese(['rec','etude','non','rec']).cc, {rec:2, etude:1, non:1, impl:0});
 });
 test("mrcSynthese — égalités : « non » prime, puis « rec » prime sur « étude » (à valider — méthodo §5)", () => {
   assert.equal(R.mrcSynthese(['rec','non']).maj, 'non');
   assert.equal(R.mrcSynthese(['rec','etude']).maj, 'rec');
   assert.equal(R.mrcSynthese(['etude','non']).maj, 'non');
 });
-test('mrcSynthese — liste vide → « non » (garde : les appelants filtrent les villes sans données)', () => {
-  assert.equal(R.mrcSynthese([]).maj, 'non');  // comportement actuel documenté, jamais atteint dans l'UI
+test('mrcSynthese — liste vide → aucune majorité (garde : les appelants filtrent en amont)', () => {
+  assert.equal(R.mrcSynthese([]).maj, null);
+  assert.equal(R.mrcSynthese(null).maj, null);
+});
+test('mrcSynthese — les villes « déjà en place » sortent du vote mais restent comptées', () => {
+  const s = R.mrcSynthese(['rec','impl','impl','etude']);
+  assert.deepEqual(s.cc, {rec:1, etude:1, non:0, impl:2});
+  assert.equal(s.maj, 'rec');                       // 1 rec vs 1 étude → rec prime, impl ne vote pas
+  assert.equal(R.mrcSynthese(['impl','impl']).maj, 'impl'); // toutes en place → statut « en place »
 });
 
-/* ---------- Intégrité des données de référence (grille V3) ---------- */
-test('DIMENSIONS — 4 dimensions, 22 critères, ids uniques', () => {
+/* ---------- Intégrité des données de référence (grille V4) ---------- */
+test('DIMENSIONS — 4 dimensions, 23 critères, ids uniques', () => {
   assert.equal(R.DIMENSIONS.length, 4);
-  assert.equal(R.NCRIT, 22);
-  assert.equal(R.ALLCRIT.length, 22);
-  assert.equal(new Set(R.ALLCRIT.map(c=>c.id)).size, 22);
+  assert.equal(R.NCRIT, 23);
+  assert.equal(R.ALLCRIT.length, 23);
+  assert.equal(new Set(R.ALLCRIT.map(c=>c.id)).size, 23);
 });
-test('DIMENSIONS — répartition des critères (3/6/7/6)', () => {
-  assert.deepEqual(R.DIMENSIONS.map(d=>d.crit.length), [3,6,7,6]);
+test('DIMENSIONS — répartition des critères (3/7/7/6) — sg7 « Historique » ajouté en V4', () => {
+  assert.deepEqual(R.DIMENSIONS.map(d=>d.crit.length), [3,7,7,6]);
+  const sg = R.DIMENSIONS.find(d=>d.id==='sg');
+  assert.equal(sg.crit[6].id, 'sg7');
+  assert.equal(sg.crit[6].label, 'Historique');
+  assert.ok(sg.crit[6].mid, 'sg7 : le barème du 0 (« jamais étudiée ») doit être explicite');
+});
+test('V4 — les 7 questions repolarisées ne posent plus de question « inversée »', () => {
+  const q = id => R.ALLCRIT.find(c=>c.id===id).q;
+  assert.match(q('pf3'), /suffisamment bas pour laisser une marge/);
+  assert.match(q('sg1'), /peut-il être administré avec des ressources/);
+  assert.match(q('sg4'), /est-elle compatible avec les réglementations/);
+  assert.match(q('sg5'), /risque de contestation judiciaire de la mesure est-il faible/);
+  assert.match(q('ae3'), /évite-t-elle un impact financier/);
+  assert.match(q('ae6'), /réparti uniformément/);
+  assert.match(q('ae7'), /préserve-t-elle ou améliore-t-elle/);
+  assert.doesNotMatch(q('pf3'), /Gatineau/);   // généricisation du gabarit
+});
+
+/* ---------- Question préalable « mesure déjà en place » (V4, 3 août 2026) ---------- */
+test('PREALABLE — identifiant hors dimensions, libellés présents', () => {
+  assert.equal(R.PREALABLE.id, 'impl');
+  assert.ok(R.PREALABLE.q && R.PREALABLE.hint && R.PREALABLE.oui && R.PREALABLE.non);
+  assert.ok(!R.ALLCRIT.some(c=>c.id===R.PREALABLE.id), "'impl' ne doit appartenir à aucune dimension");
+  assert.ok(R.IMPL.l && R.IMPL.abbr === 'I');
+});
+test('estImplantee — vrai seulement sur une réponse « oui » explicite', () => {
+  assert.equal(R.estImplantee({impl:1}), true);
+  assert.equal(R.estImplantee({impl:0}), false);
+  assert.equal(R.estImplantee({pf1:1}), false);
+  assert.equal(R.estImplantee(null), false);
+});
+test('villeImplantee — un seul répondant suffit (fait, pas opinion — méthodo §7)', () => {
+  assert.equal(R.villeImplantee([0,0,1]), true);
+  assert.equal(R.villeImplantee([0,0]), false);
+  assert.equal(R.villeImplantee([]), false);
 });
 test('DIMENSIONS — chaque critère porte sa question et sa boussole (pos/neg)', () => {
   for(const c of R.ALLCRIT){
@@ -153,7 +194,7 @@ test('DESCRIPTIONS — chaque description pointe vers une mesure existante (25/3
   assert.equal(Object.keys(R.DESCRIPTIONS).length, 25); // 12 manquantes — dossier de validation §C2
 });
 test('Whitelist serveur — measure_id et criterion_id générables depuis rules.js', () => {
-  const wl = new Set([...R.MEASURES.map(m=>m.id), ...R.ALLCRIT.map(c=>c.id)]);
-  assert.equal(wl.size, 37+22);            // aucune collision entre les deux familles d'ids
-  assert.ok(wl.has('m05') && wl.has('pf1') && wl.has('ee6'));
+  const wl = new Set([...R.MEASURES.map(m=>m.id), ...R.ALLCRIT.map(c=>c.id), R.PREALABLE.id]);
+  assert.equal(wl.size, 37+23+1);          // aucune collision entre les familles d'ids (+ le préalable)
+  assert.ok(wl.has('m05') && wl.has('pf1') && wl.has('sg7') && wl.has('ee6') && wl.has('impl'));
 });
