@@ -1,7 +1,7 @@
 # Corda Écofiscalité — Orchestrateur
 
 > **Le projet en une phrase :** un outil web qui permet aux villes d'une MRC d'évaluer
-> ensemble 37 mesures écofiscales (taxes et redevances vertes) selon une grille
+> ensemble 36 mesures écofiscales (taxes et redevances vertes) selon une grille
 > scientifique, et qui produit automatiquement le portrait régional des mesures
 > recommandées.
 
@@ -59,7 +59,7 @@ qu'après authentification, et les recommandations sont calculées côté serveu
 ┌─ L'atelier (ce dépôt) ────────────────────────────────────────────┐
 │  rules.js             la SOURCE UNIQUE du cerveau (compilée vers  │
 │                       le serveur par tools/gen-edge-functions.js) │
-│  tests/               29 tests automatiques : toute modification  │
+│  tests/               35 tests automatiques : toute modification  │
 │                       des règles doit les passer                  │
 │  docs/methodologie.md les règles en français clair (validation)   │
 │  deploiement/         mode d'emploi, schéma SQL, paquet dist/,    │
@@ -69,7 +69,7 @@ qu'après authentification, et les recommandations sont calculées côté serveu
 
 **Pourquoi `rules.js` reste séparé ?** Pour qu'il n'existe qu'**une seule** version de
 la vérité. Si Fanny décide de changer une règle (ex. l'arrondi des moyennes), on modifie
-**quelques lignes à un seul endroit**, les 29 tests confirment que rien d'autre n'a
+**quelques lignes à un seul endroit**, les 35 tests confirment que rien d'autre n'a
 bougé, on regénère les fonctions serveur, et tout l'écosystème suit.
 
 **Où vivent les données ?** Dans **Supabase, région Canada** (exigence de la Loi 25
@@ -83,7 +83,7 @@ consentements horodatés, journal des accès, anti force-brute sur les codes. L'
 |---|---|
 | Prototype complet (cotation, portrait, accès, projets, export Excel) | ✅ |
 | Durcissement (sauvegarde fiable, accessibilité, contrastes, sécurité légère) | ✅ |
-| Moteur isolé + 29 tests + méthodologie documentée | ✅ |
+| Moteur isolé + 35 tests + méthodologie documentée | ✅ |
 | Dossier de validation chez Fanny (règles + descriptions + Loi 25) | 📨 en circulation |
 | Consentement à la 1re connexion (Loi 25, art. 8) | ✅ |
 | Projet « Démo » (données fictives) pour les présentations | ✅ |
@@ -123,7 +123,7 @@ Le détail vit dans `deploiement/plan-de-travail.md`.
 
 ## 6. Corriger les textes des mesures, sans toucher au code
 
-Les **descriptions des 37 mesures** (ce que la ville lit sous le titre) se révisent dans un
+Les **descriptions des 36 mesures** (ce que la ville lit sous le titre) se révisent dans un
 document, pas dans le code :
 
 1. ouvrir `docs/descriptions-mesures.md` (Obsidian, Word, n'importe quoi) et corriger
@@ -134,7 +134,7 @@ document, pas dans le code :
    node tools/publier.js
    ```
 
-   Elle réinjecte le document dans `rules.js`, **vérifie le moteur** (34 tests),
+   Elle réinjecte le document dans `rules.js`, **vérifie le moteur** (35 tests),
    recompile les 3 Edge Functions, reconstruit `deploiement/dist/`, remet le document au
    propre, puis affiche les deux gestes manuels qui restent (coller les Edge Functions
    dans Supabase, téléverser `dist/`) avec les tailles de fichiers à contrôler.

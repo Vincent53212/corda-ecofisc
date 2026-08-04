@@ -7,7 +7,7 @@
    Enchaîne, dans l'ordre, et s'arrête au premier problème :
 
      1. docs/descriptions-mesures.md   →  rules.js      (réinjection des textes)
-     2. rules.js                        →  34 tests      (le moteur tient toujours)
+     2. rules.js                        →  35 tests      (le moteur tient toujours)
      3. rules.js                        →  3 Edge Functions (catalogue serveur)
      4. rules.js + orchestrateur.html   →  deploiement/dist/ (page publique)
      5. rules.js                        →  docs/descriptions-mesures.md (remis au propre)

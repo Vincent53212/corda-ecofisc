@@ -44,7 +44,7 @@
 | `cote` −1 \| 0 \| 1 \| null | `cote smallint check (cote in (-1,0,1))` | le check SQL vaut côté serveur, indépendamment du client |
 | `comment` | `comment text default ''` | 🔒 texte libre — **peut contenir des RP de tiers** (rappel prévu au Bloc 3) |
 | `updatedAt` | `updated_at timestamptz` | pas de trigger de mise à jour côté SQL (constat C — Phase B) |
-| — | `measure_id` / `criterion_id` sans FK | whitelist imposée dans les Edge Functions, **générée** de `rules.js` : 37 mesures × (23 critères + `impl`) |
+| — | `measure_id` / `criterion_id` sans FK | whitelist imposée dans les Edge Functions, **générée** de `rules.js` : 36 mesures × (23 critères + `impl`). Un `measure_id` retiré du catalogue (m27, 4 août 2026) est refusé à l'écriture, mais les lignes déjà en base subsistent : elles cessent simplement d'être lues. |
 | `critId = "impl"` | même table `responses` | **question préalable** « mesure déjà en place » (V4) : `cote 1` = oui, `0` = non. N'appartient à aucune dimension, n'entre dans aucun calcul d'appréciation ; son `comment` porte « ce qu'il y aurait à modifier/améliorer ». Voir `methodologie.md` §7. |
 
 ### 2.4 Archives — `archived[]` (sans équivalent SQL)

@@ -45,24 +45,43 @@ Rédigées dans le même style que celles tirées des fiches Mascouche (mécanis
 
 ☐ Approuvées telles quelles  ☐ Avec corrections (annoter ci-dessus)
 
-### C2. Douze mesures encore sans description — source à identifier (ou rédaction à prévoir)
+### C2. Onze mesures rédigées par Corda — **relecture scientifique demandée**
 
-| id | Mesure |
+> **Mise à jour du 4 août 2026.** Cette section demandait au départ *où trouver* les descriptions
+> manquantes. Aucune source ne les couvrait : elles ont été **rédigées par Corda** le 3 août 2026,
+> puis **révisées par Vincent** le 4 août. La question n'est donc plus « où les trouver » mais
+> **« sont-elles justes ? »** — elles sont en ligne et n'ont aucune caution scientifique tant
+> qu'elles ne sont pas relues. Le texte intégral est dans `docs/descriptions-mesures.md`.
+
+| id | Mesure (libellé au 4 août 2026) |
 |---|---|
-| m07 | Taxe immeubles vacants (non résidentiel) — *la fiche Gatineau ne couvre que le résidentiel* (libellé aligné sur le V3 le 16 juill. 2026) |
+| m07 | Taxe sur les immeubles non-résidentiels vacants — *la fiche Gatineau ne couvre que le résidentiel* (libellé aligné sur le V3 le 16 juill. 2026, précisé le 4 août) |
 | m11 | Redevance transport rémunéré de personnes |
 | m13 | Redevances de transport |
 | m16 | Redevances visant le financement de la voirie locale |
 | m17 | Redevances de développement |
 | m20 | Taxe sur les terrains contaminés |
-| m23 | Taxe sur la démolition |
-| m25 | Redevance sur les émissions de polluant par les industries (dont les GES) |
-| m27 | Redevance à l'égard de la performance énergétique des bâtiments |
+| m23 | Taxe ou redevance sur la démolition |
+| m25 | Redevance sur la performance énergétique et climatique des immeubles |
 | m33 | Redevance d'amusement |
 | m35 | Taxe sur les panneaux d'affichage |
-| m37 | Redevance sur les générateurs de risques (dont les réservoirs de produits chimiques) |
+| m37 | Redevance sur les générateurs de risques |
 
-**Question :** existe-t-il d'autres fiches (autres mandats) couvrant ces mesures, ou souhaitez-vous que nous rédigions des descriptions courtes à partir de la littérature (à valider ensuite) ? ☐
+**Question 1 :** ces onze descriptions décrivent-elles bien la mesure que la grille avait en tête ?
+Attention particulière à **m11, m13, m16 et m17** — quatre redevances de transport / développement
+dont les périmètres se recoupent. ☐
+
+**Question 2 — pour Jérôme :** **m25 a changé d'objet** le 4 août 2026. Elle visait « les émissions de
+polluant par les industries (dont les GES) » ; elle vise désormais la **performance énergétique et
+climatique des immeubles** et s'adresse aux **propriétaires d'immeubles**, pas aux seuls établissements
+industriels. Elle absorbe l'ancienne **m27** (« Redevance à l'égard de la performance énergétique des
+bâtiments »), **retirée du catalogue** — qui passe de 37 à **36 mesures**. Vos cotes du V3 pour m25
+avaient été attribuées à la mesure étroite : **restent-elles valides pour la mesure élargie, ou
+faut-il recoter ?** ☐
+
+**Question 3 :** trois pouvoirs habilitants ont été corrigés par rapport à la feuille « Liste des
+mesures » du V3 — m07 : LFM → **PGT** · m13 : LAU + PGRR → **LAU** · m20 : **PGT** (absent du V3).
+À confirmer. ☐
 
 ## D. Décisions Loi 25 (avant toute collecte réelle)
 

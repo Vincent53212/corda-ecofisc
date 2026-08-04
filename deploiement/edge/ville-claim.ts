@@ -107,7 +107,7 @@ const __mod: { exports: Record<string, unknown> } = { exports: {} };
        FAIT vérifiable, pas une opinion à moyenner (règle à valider, methodologie.md §7). */
     function villeImplantee(vals){ return !!vals && vals.some(v=>v===1); }
   
-    /* ---------- Catalogue des mesures (37 mesures · 6 catégories) ----------
+    /* ---------- Catalogue des mesures (36 mesures · 6 catégories) ----------
        Source unique du catalogue : l'UI l'affiche, les tests en vérifient l'intégrité,
        et la whitelist des Edge Functions (measure_id/criterion_id admis) en est générée. */
     const CATS = {
@@ -125,7 +125,7 @@ const __mod: { exports: Record<string, unknown> } = { exports: {} };
       {id:'m04', cat:'fonc', titre:'Taux varié par tranche de valeur (non résidentiels)'},
       {id:'m05', cat:'fonc', titre:'Taux varié terrain vague desservi'},
       {id:'m06', cat:'fonc', titre:'Taxe logements vacants (résidentiel)'},
-      {id:'m07', cat:'fonc', titre:'Taxe immeubles vacants (non résidentiel)'},
+      {id:'m07', cat:'fonc', titre:'Taxe sur les immeubles non-résidentiels vacants'},
       {id:'m08', cat:'fonc', titre:'Taxe sur les terres à vocation agricole exploitables mais non exploitées'},
       {id:'m09', cat:'transp', titre:'Tarification stationnement sur rue'},
       {id:'m10', cat:'transp', titre:'Redevance grands générateurs de déplacements'},
@@ -141,11 +141,14 @@ const __mod: { exports: Record<string, unknown> } = { exports: {} };
       {id:'m20', cat:'amenag', titre:'Taxe sur les terrains contaminés'},
       {id:'m21', cat:'crd', titre:'Tarification variable des matières résiduelles'},
       {id:'m22', cat:'crd', titre:'Redevance visant les résidus de CRD'},
-      {id:'m23', cat:'crd', titre:'Taxe sur la démolition'},
+      {id:'m23', cat:'crd', titre:'Taxe ou redevance sur la démolition'},
       {id:'m24', cat:'crd', titre:'Redevance sur les contenants à usage unique ou individuel'},
-      {id:'m25', cat:'crd', titre:'Redevance sur les émissions de polluant par les industries (dont les GES)'},
+      {id:'m25', cat:'crd', titre:'Redevance sur la performance énergétique et climatique des immeubles'},
       {id:'m26', cat:'crd', titre:'Redevance visant à compenser les GES associés au développement immobilier'},
-      {id:'m27', cat:'crd', titre:"Redevance à l'égard de la performance énergétique des bâtiments"},
+      /* m27 (« Redevance à l'égard de la performance énergétique des bâtiments ») RETIRÉE le
+         4 août 2026 : fusionnée dans m25, dont l'objet couvre désormais la performance
+         énergétique des immeubles. L'identifiant n'est PAS réattribué et les suivants ne sont
+         PAS renumérotés — les réponses en base sont indexées par measure_id. */
       {id:'m28', cat:'crd', titre:'Taxe sur les systèmes au mazout ou biénergie'},
       {id:'m29', cat:'eau', titre:"Redevance rejets d'eaux usées"},
       {id:'m30', cat:'eau', titre:'Tarification eau résidentiel'},
@@ -155,7 +158,7 @@ const __mod: { exports: Record<string, unknown> } = { exports: {} };
       {id:'m34', cat:'autres', titre:"Redevance d'hébergement touristique"},
       {id:'m35', cat:'autres', titre:"Taxe sur les panneaux d'affichage"},
       {id:'m36', cat:'autres', titre:'Redevance sur les services de câblodistribution et télécommunication'},
-      {id:'m37', cat:'autres', titre:'Redevance sur les générateurs de risques (dont les réservoirs de produits chimiques)'},
+      {id:'m37', cat:'autres', titre:'Redevance sur les générateurs de risques'},
     ];
   
     /* Descriptions des mesures — extraites des fiches analytiques Mascouche et Gatineau (2025)
@@ -168,37 +171,36 @@ const __mod: { exports: Record<string, unknown> } = { exports: {} };
       m04:"Régime d'impôt foncier à taux variés par tranche de valeur pour les immeubles non résidentiels (p. ex. < 1 M$, 1-2 M$, 2 M$ et plus). Un second taux peut s'appliquer, sans excéder 133,3 % du premier.",
       m05:"Taxe pouvant atteindre quatre fois le taux de base (résidentiel) sur les terrains vagues desservis par l'aqueduc et l'égout sanitaire, afin de récupérer des revenus, accroître la densification et limiter la spéculation foncière.",
       m06:"Prélèvement sur la valeur foncière des immeubles comportant un logement vacant ou sous-utilisé, avec un taux maximal progressif (p. ex. 1 % la 1re année, 2 % la 2e, 3 % la 3e).",
-      m07:"Équivalent non résidentiel de la taxe sur les logements vacants : prélèvement additionnel sur la valeur foncière des immeubles non résidentiels laissés vacants ou inoccupés (locaux commerciaux, bureaux, bâtiments industriels) pour décourager la rétention de bâtiments inutilisés et favoriser la remise en marché des locaux. Le taux peut être progressif selon la durée de la vacance.",
+      m07:"Application du pouvoir général de taxation aux immeubles non-résidentiels vacants. L'assiette de cette taxe est la superficie des immeubles concernés et non leur valeur foncière.",
       m08:"Taxe ou redevance visant les terres à vocation agricole exploitables mais non exploitées, pour décourager la spéculation et encourager la remise en culture : taxe sur la valeur foncière (plafonnée à trois fois le taux de base) ou redevance au m² alimentant un fonds de remise en culture, avec exemptions possibles (exploitants enregistrés, agri-projets partenaires).",
       m09:"Tarif (ou vignette) pour contrôler et gérer le stationnement sur rue ; le montant peut varier selon le secteur, le quartier ou le type de véhicule.",
       m10:"Redevance auprès des grands générateurs de déplacement (grands employeurs de 100+ employés, organisateurs d'événements) dépourvus d'un programme de gestion des déplacements, pour financer le transport collectif et les infrastructures de transport actif.",
-      m11:"Redevance d'un montant fixe perçue sur chaque course de transport rémunéré de personnes (taxis et services par application), collectée auprès des répondants et versée à la municipalité. Le produit peut notamment financer le transport collectif et l'entretien du réseau routier local sollicité par ces déplacements.",
+      m11:"La redevance est un montant fixe perçu sur chaque course de transport rémunéré de personnes (taxis et services par application), collecté auprès des usagers et versée à la municipalité. Le produit peut notamment financer le transport collectif et l'entretien du réseau routier local sollicité par ces déplacements.",
       m12:"Taxe auprès des propriétaires de parcs de stationnement non résidentiels dans les zones desservies en transport collectif, calculée sur la superficie ou le nombre de cases (exemptions de base possibles), avec un taux modulable par secteur, type de stationnement (extérieur taxé davantage) et niveau de desserte — pour financer le transport collectif et optimiser l'usage des terrains.",
-      m13:"Redevance exigée des promoteurs pour financer les infrastructures de transport rendues nécessaires par un nouveau développement (voirie, transport collectif, transport actif). À distinguer de la redevance sur les grands générateurs de déplacements, qui vise l'exploitation d'activités existantes.",
-      m14:"Taxe sur les immeubles non résidentiels/industriels desservis dont le coefficient d'occupation du sol (COS) est inférieur à 20 %, calculée sur la différence entre 20 % de la superficie non contrainte et la superficie réelle, multipliée par un taux sectoriel.",
+      m13:"Redevance exigée des requérants de permis de construction et destinée à financer tout ou partie d’une dépense liée à un service de transport collectif qui bénéficie à l’immeuble visé par la demande de permis ou de certificat, à ses occupants ou à ses usagers. À distinguer de la redevance visant les grands générateurs de déplacements, qui vise à inciter le générateur à se doter d'un plan de réduction des déplacements.",
+      m14:"Taxe sur les immeubles non-résidentiels desservis dont le coefficient d'occupation du sol (COS) est inférieur à un certain seuil. Le montant de la taxe/redevance total sur le COS pourrait notamment être calculé en utilisant la différence entre la superficie de plancher intérieur d’un bâtiment principal et la superficie requise pour atteindre le COS minimal fixé par la municipalité. Cet écart peut ensuite être imposé à un taux déterminé par la municipalité.",
       m15:"Taxe sur les surfaces minéralisées (non végétalisées) de certains immeubles non résidentiels : superficie du terrain moins bâtiments moins surfaces végétalisées, avec strates progressives (exemption de base, puis tarifs croissants).",
-      m16:"Redevance exigée à la délivrance d'un permis de construction ou de lotissement pour financer la construction, la réfection et l'entretien du réseau routier local rendu nécessaire par le développement. Elle est calculée par unité de logement ou par superficie de plancher, selon le principe du bon prélèvement pour le bon service.",
-      m17:"Redevance exigée des promoteurs au moment de la délivrance d'un permis pour financer les infrastructures et équipements municipaux rendus nécessaires par un nouveau développement (aqueduc, égout, parcs, voirie). Le règlement doit établir le lien entre la redevance et les dépenses financées, et peut moduler le montant par secteur ou par type de projet.",
+      m16:"Redevance exigée auprès des utilisateurs de la voirie locale pour financer la construction, la réfection et l'entretien du réseau routier local.",
+      m17:"Redevance exigée des requérants de permis de construction/lotissement pour financer les infrastructures et équipements municipaux rendus nécessaires par un nouveau développement (eau potable, eaux usées, voirie). Le règlement doit établir le lien entre la redevance et les dépenses financées, et peut moduler le montant par secteur ou par type de projet.",
       m18:"Taxe visant l'absence d'arbre en cour avant (façade) des immeubles résidentiels et non résidentiels : taxe unitaire imposée aux propriétaires non conformes.",
       m19:"Redevance visant la réduction de la perte de canopée dans les projets de construction ; montant établi de façon discrétionnaire ou selon la valeur écosystémique des arbres abattus (nombre, essence, âge, taille).",
-      m20:"Taxe additionnelle sur la valeur foncière des terrains inscrits comme contaminés et laissés inutilisés, pour inciter à la réhabilitation et à la remise en valeur des sites plutôt qu'à leur rétention en l'état. L'assiette peut s'appuyer sur le répertoire des terrains contaminés.",
+      m20:"Taxe imposée aux terrains inscrits comme contaminés et laissés inutilisés, pour inciter à la réhabilitation et à la remise en valeur des sites plutôt qu'à leur rétention en l'état. L'assiette peut s'appuyer sur le répertoire des terrains contaminés et doit s'asseoir sur la superficie, non la valeur foncière.",
       m21:"Tarification incitative selon le nombre de levées et la taille du bac, afin de réduire les matières vouées à l'enfouissement (coûts aujourd'hui assumés par la taxe foncière générale).",
       m22:"Redevance sur les permis de construction, rénovation et démolition pour détourner les résidus de CRD de l'élimination ; les redevables ayant un plan de gestion des matières pourraient être exemptés.",
-      m23:"Prélèvement exigé à la délivrance d'une autorisation de démolition, proportionnel à la superficie ou à la valeur du bâtiment démoli, pour internaliser le coût environnemental de la démolition (résidus de construction-rénovation-démolition, énergie grise perdue) et rendre la rénovation ou le réemploi plus avantageux.",
+      m23:"Prélèvement exigé à la délivrance d'une autorisation de démolition, proportionnel à la superficie/volume du bâtiment démoli. Dans le cas d'une redevance, celle-ci permettrait d'internaliser le coût environnemental de la démolition (résidus de construction-rénovation-démolition, énergie grise perdue) et de rendre la rénovation ou le réemploi plus avantageux.",
       m24:"Redevance sur la quantité de contenants et produits à usage unique vendus ou fournis par les commerçants (verres, bouteilles d'eau, pailles…), établie par déclaration périodique, pour financer la gestion des matières résiduelles et inciter à la réduction à la source ; un montant compensatoire peut être retenu par les commerçants pour la gestion.",
-      m25:"Redevance auprès des établissements industriels en fonction de leurs émissions déclarées de polluants atmosphériques et de gaz à effet de serre, selon le principe du pollueur-payeur, pour financer les mesures municipales d'amélioration de la qualité de l'air et d'adaptation. L'assiette s'appuie sur les déclarations d'émissions déjà exigées de ces établissements.",
+      m25:"Redevance exigée auprès des propriétaires d'immeubles en fonction de leurs émissions déclarées de polluants atmosphériques, de gaz à effet de serre ou de leur performance énergétique, selon le principe du pollueur-payeur. Elle vise à financer les mesures municipales d'amélioration de la qualité de l'air, l'adaptation aux changements climatiques, les programmes municipaux d'efficacité énergétique ou à inciter les propriétaires à apporter des améliorations à la performance environnementale du bâtiment. La redevance s'appuie sur les déclarations d'émissions exigées de ces établissements.",
       m26:"Redevance imposée au promoteur lors du permis de construction ou de branchement à l'aqueduc, pour compenser les GES émis par l'urbanisation d'un terrain (perte de biomasse, travaux d'infrastructures) : superficie développée × taux de compensation arrimé au prix du carbone (p. ex. 1,08 $/m²), versée à un fonds dédié à l'atténuation et à l'adaptation ; requalification exemptable.",
-      m27:"Redevance modulée selon la performance énergétique du bâtiment (cote ou consommation déclarée), plus élevée pour les bâtiments énergivores, pour financer les programmes municipaux d'efficacité énergétique et inciter à la rénovation. Suppose un mécanisme de divulgation ou de cotation énergétique des bâtiments visés.",
       m28:"Taxe imposée aux propriétaires d'immeubles résidentiels disposant d'appareils de chauffage au mazout ou d'un système biénergie au mazout ; montant fixe par appareil assujetti.",
       m29:"Redevance sur les rejets d'eaux usées, prélevée selon la quantité et le niveau de contamination rejetés sur une période donnée, pour financer le traitement des eaux usées.",
       m30:"Tarification de l'eau potable au secteur résidentiel selon le principe utilisateur-payeur : variable (consommation en m³ avec compteurs) ou forfaitaire (tarif annuel au compte de taxes).",
       m31:"Tarification de l'eau potable pour les industries, commerces et institutions (ICI) selon le principe utilisateur-payeur : variable selon la consommation (compteurs) ou forfaitaire au coût moyen.",
       m32:"Transformation de la tarification actuelle des piscines en taxe générale, avec un montant par propriété calibré pour générer des revenus supplémentaires.",
-      m33:"Prélèvement sur le prix d'entrée ou le droit de participation à des activités de divertissement commercial (spectacles, événements, attractions, jeux), perçu par l'exploitant et remis à la municipalité, qui fait contribuer aux services municipaux une clientèle en bonne partie non résidente.",
+      m33:"Prélèvement sur le prix d'entrée ou le droit de participation à des activités de divertissement commercial (spectacles, événements, attractions, jeux), perçu par l'exploitant et remis à la municipalité, qui fait contribuer une clientèle en bonne partie non résidente aux services municipaux.",
       m34:"Redevance réglementaire imposée aux exploitants d'établissements d'hébergement touristique — montant annuel par unité de capacité (chambre, lit, site de camping), modulable par type d'établissement et secteur — pour compenser les coûts municipaux liés au tourisme (voirie, parcs, déchets, sécurité) ; distincte de la taxe provinciale sur l'hébergement et non facturée aux touristes.",
-      m35:"Taxe annuelle sur les panneaux d'affichage et enseignes publicitaires situés sur le territoire, modulée selon la superficie, le type (statique ou numérique) ou l'emplacement. Elle est à la fois source de revenu et un levier d'encadrement de l'affichage et de la pollution visuelle.",
+      m35:"Taxe prélevée auprès des requérants de permis d'affichage sur les panneaux et enseignes publicitaires situés sur le territoire, modulée selon la superficie, le type (statique ou numérique) ou l'emplacement.",
       m36:"Redevance réglementaire liée à l'occupation du domaine public par les réseaux de câblodistribution et de télécommunication (encadrée par un accord d'accès municipal) : frais de permis, dégradation de la chaussée, relocalisations — au coût réel, selon les balises du CRTC (principe de neutralité des coûts pour les contribuables).",
-      m37:"Redevance auprès des exploitants d'installations présentant un risque pour la population ou l'environnement (réservoirs de produits chimiques, entreposage de matières dangereuses), calculée selon la nature et le volume entreposés, pour financer les capacités municipales de prévention et d'intervention d'urgence qu'exigent ces installations.",
+      m37:"Redevance auprès des propriétaires d'installations présentant un risque pour la population ou l'environnement (réservoirs de produits chimiques, entreposage de matières dangereuses), calculée selon la nature et le volume entreposés, pour financer les capacités municipales de prévention et d'intervention d'urgence qu'exigent ces installations.",
     };
   
     /* ---------- Libellés et couleurs des états ----------

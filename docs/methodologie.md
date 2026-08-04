@@ -1,7 +1,7 @@
 # Méthodologie de cotation — Orchestrateur (analyse multicritère)
 
 > **Source des règles :** grille d'analyse multicritère **V4** (dir. Pre Fanny Tremblay-Racicot, ENAP/CERGO).
-> **Implémentation :** `rules.js` (source unique du moteur) · vérifiée par **34 tests** (`node --test tests/rules.test.js`).
+> **Implémentation :** `rules.js` (source unique du moteur) · vérifiée par **35 tests** (`node --test tests/rules.test.js`).
 > **Statut :** règles transcrites fidèlement du **classeur** — **points de validation en §6** pour la direction de recherche.
 
 > [!important] Passage à la V4 — 3 août 2026
@@ -15,7 +15,7 @@
 
 ## 1. L'échelle de cotation
 
-Chaque répondant municipal cote **37 mesures** sur **23 questions** regroupées en **4 dimensions** :
+Chaque répondant municipal cote **36 mesures** sur **23 questions** regroupées en **4 dimensions** :
 
 | Dimension | Questions |
 |---|---|

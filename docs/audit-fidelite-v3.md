@@ -69,6 +69,18 @@ Le catalogue de l'app (37 mesures) vient de la *Grille des mesures — MRC Thér
 - « Taux variés en fonction de la **superficie habitable** » existe dans le classeur V3 mais pas dans le catalogue TDB (choix de mandat ?) ;
 - m07 s'intitule « Taxe **logements** vacants (non résidentiel) » dans le catalogue TDB alors que le classeur V3 dit « Taxe **immeubles** vacants (non résidentiel) » — le libellé V3 semble le bon.
 
+> [!note] Addendum du 4 août 2026 — le catalogue a bougé depuis cet audit
+> Cet audit décrit l'état du 11 juillet 2026 et ses constats ne sont pas réécrits. Depuis :
+> - l'écart de libellé **m07 est résolu** (décision Jérôme, 16 juill.), le titre étant précisé le
+>   4 août en « Taxe sur les immeubles non-résidentiels vacants » ;
+> - **m27 est retirée** du catalogue, fusionnée dans **m25** dont l'objet s'élargit à la performance
+>   énergétique des immeubles → le catalogue compte désormais **36 mesures**. ⚠️ Les cotes du
+>   classeur V3 pour m25 portaient sur les seules émissions industrielles : leur validité pour la
+>   mesure élargie est une question ouverte au dossier de validation (C2, question 2) ;
+> - **m23** et **m37** ont été renommées (portée inchangée).
+>
+> Le nombre de mesures de cet audit (37) et le compte de tests (29) sont donc ceux de juillet 2026.
+
 ## 6 · La question à trancher (pour Jérôme) — ✅ RÉPONDU (16 juillet 2026)
 
 > **Laquelle des deux sources fait doctrine : la prose du guide, ou les formules du classeur ?**

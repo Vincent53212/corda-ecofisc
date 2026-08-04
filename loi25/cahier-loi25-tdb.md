@@ -160,7 +160,7 @@ et `deploiement/schema.sql` font foi.)*
 ## 1. Description du système
 
 {{OUTIL}} numérise la grille d'analyse multicritère de {{CHERCHEURE}} : des
-représentants municipaux désignés cotent 37 mesures écofiscales sur 22 critères ;
+représentants municipaux désignés cotent 36 mesures écofiscales sur 23 critères ;
 l'outil calcule les recommandations et le portrait régional. Accès par **code personnel**
 remis par l'équipe du mandat (aucune inscription publique) ; administration par comptes
 nominatifs. Le contenu et les calculs sont servis par le serveur **après

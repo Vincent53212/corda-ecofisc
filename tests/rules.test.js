@@ -171,31 +171,52 @@ test('APPREC / RECO — codes complets et libellés français', () => {
 });
 
 /* ---------- Intégrité du catalogue des mesures (source de la whitelist serveur) ---------- */
-test('MEASURES — 37 mesures, ids m01…m37 uniques, catégories valides', () => {
-  assert.equal(R.MEASURES.length, 37);
+test('MEASURES — 36 mesures, ids mNN uniques et croissants, catégories valides', () => {
+  assert.equal(R.MEASURES.length, 36);
   const ids = R.MEASURES.map(m=>m.id);
-  assert.equal(new Set(ids).size, 37);
-  for(const [i,id] of ids.entries()) assert.equal(id, 'm'+String(i+1).padStart(2,'0'));
+  assert.equal(new Set(ids).size, 36);
+  /* Les ids ne sont PLUS consécutifs depuis le retrait de m27 (4 août 2026, fusionnée
+     dans m25) : un identifiant retiré n'est jamais réattribué et rien n'est renuméroté,
+     parce que les réponses en base sont indexées par measure_id. On vérifie donc le
+     format et la croissance stricte, pas la continuité. */
+  let precedent = 0;
+  for(const id of ids){
+    assert.match(id, /^m\d\d$/, `identifiant mal formé : ${id}`);
+    const n = Number(id.slice(1));
+    assert.ok(n > precedent, `identifiants non croissants : ${id} après m${String(precedent).padStart(2,'0')}`);
+    precedent = n;
+  }
+  assert.ok(!ids.includes('m27'), 'm27 a été retirée le 4 août 2026 : son identifiant ne doit pas être réattribué');
   for(const m of R.MEASURES){
     assert.ok(m.titre && m.titre.trim(), `mesure ${m.id} : titre manquant`);
     assert.ok(R.CATS[m.cat], `mesure ${m.id} : catégorie inconnue « ${m.cat} »`);
   }
 });
+test('MEASURES — les titres révisés du 4 août 2026 sont en place', () => {
+  const t = Object.fromEntries(R.MEASURES.map(m=>[m.id, m.titre]));
+  assert.equal(t.m07, 'Taxe sur les immeubles non-résidentiels vacants');
+  assert.equal(t.m23, 'Taxe ou redevance sur la démolition');
+  assert.equal(t.m25, 'Redevance sur la performance énergétique et climatique des immeubles');
+  assert.equal(t.m37, 'Redevance sur les générateurs de risques');
+});
 test('CATS — 6 catégories, libellé et couleur présents', () => {
   assert.equal(Object.keys(R.CATS).length, 6);
   for(const [k,c] of Object.entries(R.CATS)) assert.ok(c.label && c.color, `catégorie ${k} incomplète`);
 });
-test('DESCRIPTIONS — les 37 mesures sont décrites, sans orpheline (12 rédigées le 3 août 2026)', () => {
+test('DESCRIPTIONS — les 36 mesures sont décrites, sans orpheline (11 rédigées le 3 août 2026)', () => {
   const ids = new Set(R.MEASURES.map(m=>m.id));
   for(const k of Object.keys(R.DESCRIPTIONS)){
     assert.ok(ids.has(k), `description orpheline : ${k}`);
     assert.ok(R.DESCRIPTIONS[k].trim().length > 40, `description ${k} anormalement courte`);
   }
-  assert.equal(Object.keys(R.DESCRIPTIONS).length, 37);
+  assert.equal(Object.keys(R.DESCRIPTIONS).length, 36);
   for(const m of R.MEASURES) assert.ok(R.DESCRIPTIONS[m.id], `mesure sans description : ${m.id}`);
+  /* Garde-fou du pipeline : le marqueur de retrait écrit dans le .md ne doit jamais
+     se retrouver publié comme si c'était une description. */
+  for(const [k,d] of Object.entries(R.DESCRIPTIONS)) assert.ok(!/RETIR[ÉE]/i.test(d), `${k} : marqueur de retrait publié comme description`);
 });
 test('Whitelist serveur — measure_id et criterion_id générables depuis rules.js', () => {
   const wl = new Set([...R.MEASURES.map(m=>m.id), ...R.ALLCRIT.map(c=>c.id), R.PREALABLE.id]);
-  assert.equal(wl.size, 37+23+1);          // aucune collision entre les familles d'ids (+ le préalable)
+  assert.equal(wl.size, 36+23+1);          // aucune collision entre les familles d'ids (+ le préalable)
   assert.ok(wl.has('m05') && wl.has('pf1') && wl.has('sg7') && wl.has('ee6') && wl.has('impl'));
 });
