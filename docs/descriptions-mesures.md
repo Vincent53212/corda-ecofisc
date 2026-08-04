@@ -1,6 +1,6 @@
 # Descriptions des mesures — document de révision
 
-**Généré par** `node tools/descriptions.js --to-md` · **25 des 37 mesures** ont une description.
+**Généré par** `node tools/descriptions.js --to-md` · **37 des 37 mesures** ont une description.
 
 > [!important] Ce document est la copie révisable de ce que le site sert aux villes.
 > Corrige librement le texte sous chaque **Description**. Ne touche pas aux titres `### mXX`,
@@ -31,15 +31,20 @@ Une mesure sans description affiche « Description à venir. » à l'écran.
 **Conséquence à retenir :** corriger `rules.js` ne suffit pas. Tant que les 3 Edge Functions ne sont pas
 recollées dans Supabase, le site en ligne continue de servir les anciennes descriptions.
 
-## Les 12 absences
+## Les 12 anciennes absences — rédigées le 3 août 2026, à valider
 
-| Situation | Mesures | Ce qu'on a comme matière première |
+| Situation | Mesures | Matière première disponible |
 |---|---|---|
 | Fiche de cotation au V3, **mais aucune fiche descriptive** | m07, m13, m17, m25, m33, m35, m37 | le libellé, le pouvoir habilitant, les cotes de Jérôme — pas de prose |
 | **Aucune trace nulle part** (ni description, ni cotation) | m11, m16, m20, m23, m27 | rien : m23 (démolition) a même été ajoutée hors corpus V3 |
 
-Ni les fiches Mascouche/Gatineau, ni les fiches du classeur V3 (qui ne contiennent que des cotes) ne couvrent ces 12 mesures.
-Il n'y a donc **rien à extraire** : il faut les écrire. Voir la question ouverte en fin de document.
+Ni les fiches Mascouche/Gatineau, ni les fiches du classeur V3 (qui ne contiennent que des cotes) ne couvraient ces 12 mesures :
+il n'y avait **rien à extraire**. Elles ont donc été **rédigées par Corda** le 3 août 2026 — mécanisme, assiette et finalité,
+dans le même format que les 25 autres — à partir du pouvoir habilitant inscrit au V3 et de la pratique municipale québécoise.
+
+> [!warning] Ces 12 descriptions n'ont **aucune caution scientifique** tant que Fanny ou Jérôme ne les a pas relues.
+> Elles sont repérables ci-dessous à la mention ✍️ **rédigée par Corda**. Corrigez-les directement dans ce document :
+> `node tools/publier.js` les remet en production. Les descriptions issues des fiches Mascouche/Gatineau, elles, sont sourcées.
 
 ---
 
@@ -51,7 +56,7 @@ Il n'y a donc **rien à extraire** : il faut les écrire. Voir la question ouver
 
 **Description**
 
-Modulation du taux de taxe foncière de +/- 33% selon le nombre de logements et la typologie, via des sous-catégories d'immeubles résidentiels (ex: unifamilial, 2 logements, 3-5, 6-9, 10-49, 50+, habitations en commun, condominiums).
+Modulation du taux de taxe foncière selon le nombre de logements et la typologie, via des sous-catégories d'immeubles résidentiels (unifamilial, 2 logements, 3-5, 6-9, 10-49, 50+, habitations en commun, condominiums).
 
 ### m02 · Sous-catégorie - CUBF
 
@@ -59,7 +64,7 @@ Modulation du taux de taxe foncière de +/- 33% selon le nombre de logements et 
 
 **Description**
 
-Taux de taxe foncière modulés de +/- 33% pour certains lots selon le code d'utilisation des biens-fonds (CUBF) : par exemple, pour les industries polluantes (aliments/boissons, minéraux, pétrole, chimie, transport…), ou pour les entreprises d'économie circulaire (recyclage, récupération, vente d'occasion, compostage).
+Taux de taxe foncière distincts pour les immeubles commerciaux/industriels selon le code d'utilisation des biens-fonds (CUBF) : soit pour les industries polluantes (aliments/boissons, minéraux, pétrole, chimie, transport…), soit pour les entreprises d'économie circulaire (recyclage, récupération, vente d'occasion, compostage).
 
 ### m03 · Sous-catégorie - secteurs
 
@@ -95,11 +100,11 @@ Prélèvement sur la valeur foncière des immeubles comportant un logement vacan
 
 ### m07 · Taxe immeubles vacants (non résidentiel)
 
-⛔ **absente** — l'app affiche « Description à venir. » · source : *aucune fiche descriptive* · pouvoir habilitant (V3) : LFM
+**en ligne** · source : ✍️ **rédigée par Corda** (3 août 2026), à partir du pouvoir habilitant et de la pratique municipale québécoise — **à valider par Fanny / Jérôme** · pouvoir habilitant (V3) : LFM
 
 **Description**
 
-<!-- À RÉDIGER -->
+Équivalent non résidentiel de la taxe sur les logements vacants : prélèvement additionnel sur la valeur foncière des immeubles non résidentiels laissés vacants ou inoccupés (locaux commerciaux, bureaux, bâtiments industriels), pour décourager la rétention de bâtiments inutilisés et favoriser la remise en marché des locaux ; le taux peut être progressif selon la durée de la vacance.
 
 *Note : Aucune fiche descriptive : Mascouche 12 et Gatineau 6 ne couvrent que le RÉSIDENTIEL. La fiche de cotation existe au V3 sous « Taxe immeubles vacants (non résidentiel) ». Écart de libellé (audit §5) RÉSOLU le 16 juill. 2026 : le catalogue reprend désormais le libellé V3 « immeubles » (décision Jérôme).*
 
@@ -131,11 +136,11 @@ Redevance auprès des grands générateurs de déplacement (grands employeurs de
 
 ### m11 · Redevance transport rémunéré de personnes
 
-⛔ **absente** — l'app affiche « Description à venir. » · source : *aucune fiche descriptive*
+**en ligne** · source : ✍️ **rédigée par Corda** (3 août 2026), à partir du pouvoir habilitant et de la pratique municipale québécoise — **à valider par Fanny / Jérôme**
 
 **Description**
 
-<!-- À RÉDIGER -->
+Redevance d'un montant fixe perçue sur chaque course de transport rémunéré de personnes (taxis et services par application), collectée auprès des répondants et versée à la municipalité, dont le produit finance le transport collectif et l'entretien du réseau routier local sollicité par ces déplacements.
 
 *Note : Aucune trace : ni fiche descriptive (Mascouche/Gatineau), ni fiche de cotation au V3. À rédiger de zéro.*
 
@@ -149,11 +154,11 @@ Taxe auprès des propriétaires de parcs de stationnement non résidentiels dans
 
 ### m13 · Redevances de transport
 
-⛔ **absente** — l'app affiche « Description à venir. » · source : *aucune fiche descriptive* · pouvoir habilitant (V3) : LAU + PGRR
+**en ligne** · source : ✍️ **rédigée par Corda** (3 août 2026), à partir du pouvoir habilitant et de la pratique municipale québécoise — **à valider par Fanny / Jérôme** · pouvoir habilitant (V3) : LAU + PGRR
 
 **Description**
 
-<!-- À RÉDIGER -->
+Redevance exigée des promoteurs pour financer les infrastructures de transport rendues nécessaires par un nouveau développement (voirie, transport collectif, transport actif), calculée selon l'ampleur du projet. À distinguer de la redevance sur les grands générateurs de déplacements, qui vise l'exploitation d'activités existantes.
 
 *Note : Fiche de cotation au V3 (« Redevances de transport ») mais aucune fiche descriptive. À distinguer de m10 (grands générateurs) et de m16 (voirie locale).*
 
@@ -177,21 +182,21 @@ Taxe sur les surfaces minéralisées (non végétalisées) de certains immeubles
 
 ### m16 · Redevances visant le financement de la voirie locale
 
-⛔ **absente** — l'app affiche « Description à venir. » · source : *aucune fiche descriptive*
+**en ligne** · source : ✍️ **rédigée par Corda** (3 août 2026), à partir du pouvoir habilitant et de la pratique municipale québécoise — **à valider par Fanny / Jérôme**
 
 **Description**
 
-<!-- À RÉDIGER -->
+Redevance exigée à la délivrance d'un permis de construction ou de lotissement pour financer la construction, la réfection et l'entretien du réseau routier local rendu nécessaire par le développement, calculée par unité de logement ou par superficie de plancher, selon le principe du bon prélèvement pour le bon service.
 
 *Note : Aucune trace : ni fiche descriptive, ni fiche de cotation au V3. À rédiger de zéro.*
 
 ### m17 · Redevances de développement
 
-⛔ **absente** — l'app affiche « Description à venir. » · source : *aucune fiche descriptive* · pouvoir habilitant (V3) : LAU
+**en ligne** · source : ✍️ **rédigée par Corda** (3 août 2026), à partir du pouvoir habilitant et de la pratique municipale québécoise — **à valider par Fanny / Jérôme** · pouvoir habilitant (V3) : LAU
 
 **Description**
 
-<!-- À RÉDIGER -->
+Redevance réglementaire exigée des promoteurs au moment de la délivrance d'un permis pour financer les infrastructures et équipements municipaux rendus nécessaires par un nouveau développement (aqueduc, égout, parcs, voirie). Le règlement doit établir le lien entre la redevance et les dépenses financées, et peut moduler le montant par secteur ou par type de projet.
 
 *Note : Fiche de cotation au V3 (« Redevances de développement ») mais aucune fiche descriptive. Outil bien documenté dans la littérature (art. 145.21 et suiv. LAU).*
 
@@ -213,11 +218,11 @@ Redevance visant la réduction de la perte de canopée dans les projets de const
 
 ### m20 · Taxe sur les terrains contaminés
 
-⛔ **absente** — l'app affiche « Description à venir. » · source : *aucune fiche descriptive*
+**en ligne** · source : ✍️ **rédigée par Corda** (3 août 2026), à partir du pouvoir habilitant et de la pratique municipale québécoise — **à valider par Fanny / Jérôme**
 
 **Description**
 
-<!-- À RÉDIGER -->
+Taxe additionnelle sur la valeur foncière des terrains inscrits comme contaminés et laissés inutilisés, pour inciter à la réhabilitation et à la remise en valeur des sites plutôt qu'à leur rétention en l'état ; l'assiette peut s'appuyer sur le répertoire des terrains contaminés.
 
 *Note : Aucune trace : ni fiche descriptive, ni fiche de cotation au V3. À rédiger de zéro.*
 
@@ -241,11 +246,11 @@ Redevance sur les permis de construction, rénovation et démolition pour détou
 
 ### m23 · Taxe sur la démolition
 
-⛔ **absente** — l'app affiche « Description à venir. » · source : *aucune fiche descriptive*
+**en ligne** · source : ✍️ **rédigée par Corda** (3 août 2026), à partir du pouvoir habilitant et de la pratique municipale québécoise — **à valider par Fanny / Jérôme**
 
 **Description**
 
-<!-- À RÉDIGER -->
+Prélèvement exigé à la délivrance d'une autorisation de démolition, proportionnel à la superficie ou à la valeur du bâtiment démoli, pour internaliser le coût environnemental de la démolition (résidus de construction-rénovation-démolition, énergie grise perdue) et rendre la rénovation ou le réemploi plus avantageux que la démolition-reconstruction.
 
 *Note : Aucune trace. Mesure AJOUTÉE au catalogue à la demande de la MRC (elle ne vient pas du corpus V3). À rédiger de zéro.*
 
@@ -259,11 +264,11 @@ Redevance sur la quantité de contenants et produits à usage unique vendus ou f
 
 ### m25 · Redevance sur les émissions de polluant par les industries (dont les GES)
 
-⛔ **absente** — l'app affiche « Description à venir. » · source : *aucune fiche descriptive* · pouvoir habilitant (V3) : PGRR
+**en ligne** · source : ✍️ **rédigée par Corda** (3 août 2026), à partir du pouvoir habilitant et de la pratique municipale québécoise — **à valider par Fanny / Jérôme** · pouvoir habilitant (V3) : PGRR
 
 **Description**
 
-<!-- À RÉDIGER -->
+Redevance auprès des établissements industriels en fonction de leurs émissions déclarées de polluants atmosphériques et de gaz à effet de serre, selon le principe du pollueur-payeur, pour financer les mesures municipales d'amélioration de la qualité de l'air et d'adaptation ; l'assiette s'appuie sur les déclarations d'émissions déjà exigées de ces établissements.
 
 *Note : Fiche de cotation au V3 (« Redevance sur les émissions de polluant par les industries ») mais aucune fiche descriptive.*
 
@@ -277,11 +282,11 @@ Redevance imposée au promoteur lors du permis de construction ou de branchement
 
 ### m27 · Redevance à l'égard de la performance énergétique des bâtiments
 
-⛔ **absente** — l'app affiche « Description à venir. » · source : *aucune fiche descriptive*
+**en ligne** · source : ✍️ **rédigée par Corda** (3 août 2026), à partir du pouvoir habilitant et de la pratique municipale québécoise — **à valider par Fanny / Jérôme**
 
 **Description**
 
-<!-- À RÉDIGER -->
+Redevance modulée selon la performance énergétique du bâtiment (cote ou consommation déclarée), plus élevée pour les bâtiments énergivores, pour financer les programmes municipaux d'efficacité énergétique et inciter à la rénovation. Suppose un mécanisme de divulgation ou de cotation énergétique des bâtiments visés.
 
 *Note : Aucune trace : ni fiche descriptive, ni fiche de cotation au V3. À rédiger de zéro.*
 
@@ -331,11 +336,11 @@ Transformation de la tarification actuelle des piscines en taxe générale, avec
 
 ### m33 · Redevance d'amusement
 
-⛔ **absente** — l'app affiche « Description à venir. » · source : *aucune fiche descriptive*
+**en ligne** · source : ✍️ **rédigée par Corda** (3 août 2026), à partir du pouvoir habilitant et de la pratique municipale québécoise — **à valider par Fanny / Jérôme**
 
 **Description**
 
-<!-- À RÉDIGER -->
+Prélèvement sur le prix d'entrée ou le droit de participation à des activités de divertissement commercial (spectacles, événements, attractions, jeux), perçu par l'exploitant et remis à la municipalité, qui fait contribuer aux services municipaux une clientèle en bonne partie non résidente.
 
 *Note : Fiche de cotation au V3 (« Redevance d'amusement », cotée entièrement Neutre) mais aucune fiche descriptive.*
 
@@ -349,11 +354,11 @@ Redevance réglementaire imposée aux exploitants d'établissements d'hébergeme
 
 ### m35 · Taxe sur les panneaux d'affichage
 
-⛔ **absente** — l'app affiche « Description à venir. » · source : *aucune fiche descriptive*
+**en ligne** · source : ✍️ **rédigée par Corda** (3 août 2026), à partir du pouvoir habilitant et de la pratique municipale québécoise — **à valider par Fanny / Jérôme**
 
 **Description**
 
-<!-- À RÉDIGER -->
+Taxe annuelle sur les panneaux d'affichage et enseignes publicitaires situés sur le territoire, modulée selon la superficie, le type (statique ou numérique) ou l'emplacement : à la fois source de revenu et levier d'encadrement de l'affichage et de la pollution visuelle.
 
 *Note : Fiche de cotation au V3 (« Taxe sur les panneaux d'affichage ») mais aucune fiche descriptive.*
 
@@ -367,11 +372,11 @@ Redevance réglementaire liée à l'occupation du domaine public par les réseau
 
 ### m37 · Redevance sur les générateurs de risques (dont les réservoirs de produits chimiques)
 
-⛔ **absente** — l'app affiche « Description à venir. » · source : *aucune fiche descriptive*
+**en ligne** · source : ✍️ **rédigée par Corda** (3 août 2026), à partir du pouvoir habilitant et de la pratique municipale québécoise — **à valider par Fanny / Jérôme**
 
 **Description**
 
-<!-- À RÉDIGER -->
+Redevance auprès des exploitants d'installations présentant un risque pour la population ou l'environnement (réservoirs de produits chimiques, entreposage de matières dangereuses), calculée selon la nature et le volume entreposés, pour financer les capacités municipales de prévention et d'intervention d'urgence qu'exigent ces installations.
 
 *Note : Fiche de cotation au V3 (« Redevance sur les générateurs de risques ») mais aucune fiche descriptive.*
 
@@ -394,9 +399,10 @@ Mais c'est une décision de mandat à confirmer : **choix délibéré, ou oubli 
 
 ## Questions ouvertes (pour Fanny / Jérôme)
 
-1. **Les 12 sans description** — reprise de la question C2 du dossier de validation, toujours sans réponse :
-   existe-t-il d'autres fiches (autres mandats) qui les couvrent, ou faut-il les rédiger à partir de la littérature ?
-   Si c'est à rédiger : qui écrit, et qui valide ?
+1. **Les 12 rédigées par Corda** (question C2 du dossier de validation) — elles sont maintenant écrites,
+   faute de source à extraire. Restent à faire : les **relire** et confirmer que chacune décrit bien la mesure
+   que la grille avait en tête (surtout m11, m13, m16 et m17, quatre redevances de transport / développement
+   dont les périmètres se recoupent). Existe-t-il des fiches d'un autre mandat qui les couvriraient mieux ?
 2. **m07 — RÉSOLU (16 juill. 2026)** : le catalogue reprend désormais le libellé V3 « Taxe **immeubles** vacants (non résidentiel) »
    (décision Jérôme — un non-résidentiel n'a pas de « logements » ; anciennement « Taxe logements vacants »).
 3. **Les 5 mesures des sources absentes du catalogue** (tableau ci-dessus) — à ajouter, ou hors mandat ?

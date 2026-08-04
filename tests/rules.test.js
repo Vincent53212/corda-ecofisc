@@ -185,13 +185,14 @@ test('CATS — 6 catégories, libellé et couleur présents', () => {
   assert.equal(Object.keys(R.CATS).length, 6);
   for(const [k,c] of Object.entries(R.CATS)) assert.ok(c.label && c.color, `catégorie ${k} incomplète`);
 });
-test('DESCRIPTIONS — chaque description pointe vers une mesure existante (25/37 rédigées)', () => {
+test('DESCRIPTIONS — les 37 mesures sont décrites, sans orpheline (12 rédigées le 3 août 2026)', () => {
   const ids = new Set(R.MEASURES.map(m=>m.id));
   for(const k of Object.keys(R.DESCRIPTIONS)){
     assert.ok(ids.has(k), `description orpheline : ${k}`);
     assert.ok(R.DESCRIPTIONS[k].trim().length > 40, `description ${k} anormalement courte`);
   }
-  assert.equal(Object.keys(R.DESCRIPTIONS).length, 25); // 12 manquantes — dossier de validation §C2
+  assert.equal(Object.keys(R.DESCRIPTIONS).length, 37);
+  for(const m of R.MEASURES) assert.ok(R.DESCRIPTIONS[m.id], `mesure sans description : ${m.id}`);
 });
 test('Whitelist serveur — measure_id et criterion_id générables depuis rules.js', () => {
   const wl = new Set([...R.MEASURES.map(m=>m.id), ...R.ALLCRIT.map(c=>c.id), R.PREALABLE.id]);

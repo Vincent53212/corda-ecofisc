@@ -121,7 +121,34 @@ Le détail vit dans `deploiement/plan-de-travail.md`.
 | **Loi 25** | Loi québécoise sur la protection des renseignements personnels — encadre noms/fonctions recueillis |
 | **EFVP** | Évaluation des facteurs relatifs à la vie privée (analyse d'impact exigée par la Loi 25) |
 
-## 6. Règles du dépôt (pour quiconque touche au code)
+## 6. Corriger les textes des mesures, sans toucher au code
+
+Les **descriptions des 37 mesures** (ce que la ville lit sous le titre) se révisent dans un
+document, pas dans le code :
+
+1. ouvrir `docs/descriptions-mesures.md` (Obsidian, Word, n'importe quoi) et corriger
+   librement le texte sous chaque **Description** — sans toucher aux titres `### mXX` ;
+2. lancer **une seule commande** :
+
+   ```
+   node tools/publier.js
+   ```
+
+   Elle réinjecte le document dans `rules.js`, **vérifie le moteur** (34 tests),
+   recompile les 3 Edge Functions, reconstruit `deploiement/dist/`, remet le document au
+   propre, puis affiche les deux gestes manuels qui restent (coller les Edge Functions
+   dans Supabase, téléverser `dist/`) avec les tailles de fichiers à contrôler.
+
+   `node tools/publier.js --verifier` fait le tour **sans rien écrire** : utile pour voir
+   quelles descriptions ont changé avant de publier.
+
+**Filet de sécurité :** si un contrôle échoue (description effacée par mégarde, titre
+`### mXX` modifié…), `rules.js` est **remis dans son état d'avant** et rien n'est publié.
+
+> ⚠️ Corriger le document ne change **rien en ligne** tant que les 3 Edge Functions ne sont
+> pas recollées dans Supabase : c'est le serveur qui détient les textes (« coffre-fort »).
+
+## 7. Règles du dépôt (pour quiconque touche au code)
 
 - **Jamais de secrets dans Git** (`service_role`, mots de passe — voir `.gitignore`) ;
   le document source Gatineau est confidentiel et exclu du dépôt.

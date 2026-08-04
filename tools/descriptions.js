@@ -116,15 +116,20 @@ function toMd() {
   L.push('**Conséquence à retenir :** corriger `rules.js` ne suffit pas. Tant que les 3 Edge Functions ne sont pas');
   L.push('recollées dans Supabase, le site en ligne continue de servir les anciennes descriptions.');
   L.push('');
-  L.push('## Les 12 absences');
+  L.push('## Les 12 anciennes absences — rédigées le 3 août 2026, à valider');
   L.push('');
-  L.push('| Situation | Mesures | Ce qu\'on a comme matière première |');
+  L.push('| Situation | Mesures | Matière première disponible |');
   L.push('|---|---|---|');
   L.push('| Fiche de cotation au V3, **mais aucune fiche descriptive** | m07, m13, m17, m25, m33, m35, m37 | le libellé, le pouvoir habilitant, les cotes de Jérôme — pas de prose |');
   L.push('| **Aucune trace nulle part** (ni description, ni cotation) | m11, m16, m20, m23, m27 | rien : m23 (démolition) a même été ajoutée hors corpus V3 |');
   L.push('');
-  L.push('Ni les fiches Mascouche/Gatineau, ni les fiches du classeur V3 (qui ne contiennent que des cotes) ne couvrent ces 12 mesures.');
-  L.push('Il n\'y a donc **rien à extraire** : il faut les écrire. Voir la question ouverte en fin de document.');
+  L.push('Ni les fiches Mascouche/Gatineau, ni les fiches du classeur V3 (qui ne contiennent que des cotes) ne couvraient ces 12 mesures :');
+  L.push('il n\'y avait **rien à extraire**. Elles ont donc été **rédigées par Corda** le 3 août 2026 — mécanisme, assiette et finalité,');
+  L.push('dans le même format que les 25 autres — à partir du pouvoir habilitant inscrit au V3 et de la pratique municipale québécoise.');
+  L.push('');
+  L.push('> [!warning] Ces 12 descriptions n\'ont **aucune caution scientifique** tant que Fanny ou Jérôme ne les a pas relues.');
+  L.push('> Elles sont repérables ci-dessous à la mention ✍️ **rédigée par Corda**. Corrigez-les directement dans ce document :');
+  L.push('> `node tools/publier.js` les remet en production. Les descriptions issues des fiches Mascouche/Gatineau, elles, sont sourcées.');
   L.push('');
   L.push('---');
   L.push('');
@@ -137,7 +142,9 @@ function toMd() {
     L.push(`### ${m.id} · ${m.titre}`);
     L.push('');
     const meta = [d ? '**en ligne**' : '⛔ **absente** — l\'app affiche « Description à venir. »'];
-    meta.push(`source : ${s.src || '*aucune fiche descriptive*'}`);
+    /* pas de fiche source = l'une des 12 rédigées par Corda le 3 août 2026 (aucune
+       des deux sources ne les couvrait) → à faire valider avant diffusion. */
+    meta.push(`source : ${s.src || '✍️ **rédigée par Corda** (3 août 2026), à partir du pouvoir habilitant et de la pratique municipale québécoise — **à valider par Fanny / Jérôme**'}`);
     if (s.aussi) meta.push(`aussi couverte par ${s.aussi}`);
     if (s.pouvoir) meta.push(`pouvoir habilitant (V3) : ${s.pouvoir}`);
     L.push(meta.join(' · '));
@@ -168,9 +175,10 @@ function toMd() {
   L.push('');
   L.push('## Questions ouvertes (pour Fanny / Jérôme)');
   L.push('');
-  L.push('1. **Les 12 sans description** — reprise de la question C2 du dossier de validation, toujours sans réponse :');
-  L.push('   existe-t-il d\'autres fiches (autres mandats) qui les couvrent, ou faut-il les rédiger à partir de la littérature ?');
-  L.push('   Si c\'est à rédiger : qui écrit, et qui valide ?');
+  L.push('1. **Les 12 rédigées par Corda** (question C2 du dossier de validation) — elles sont maintenant écrites,');
+  L.push('   faute de source à extraire. Restent à faire : les **relire** et confirmer que chacune décrit bien la mesure');
+  L.push('   que la grille avait en tête (surtout m11, m13, m16 et m17, quatre redevances de transport / développement');
+  L.push('   dont les périmètres se recoupent). Existe-t-il des fiches d\'un autre mandat qui les couvriraient mieux ?');
   L.push('2. **m07 — RÉSOLU (16 juill. 2026)** : le catalogue reprend désormais le libellé V3 « Taxe **immeubles** vacants (non résidentiel) »');
   L.push('   (décision Jérôme — un non-résidentiel n\'a pas de « logements » ; anciennement « Taxe logements vacants »).');
   L.push('3. **Les 5 mesures des sources absentes du catalogue** (tableau ci-dessus) — à ajouter, ou hors mandat ?');
