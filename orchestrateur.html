@@ -1821,21 +1821,32 @@ function carteIncidence(){
     if(leg) leg.innerHTML=''; if(note) note.textContent=''; return;
   }
   const m=calcState.measure, parUnite=calcState.metrique==='unite';
-  const vals=[];
   cells.forEach(c=>{
     const conc=rowsConcernees(c.rows, m);
     c._n=conc.reduce((s,r)=>s+(+r.n),0);
     c._ch=conc.length?chargeCellule(conc):0;
     c._v=parUnite ? (c._n ? c._ch/c._n : 0) : c._ch;
-    if(c._v) vals.push(Math.abs(c._v));
   });
+  /* Le périmètre CADRE la carte et RECALCULE l'échelle. Se contenter d'atténuer
+     les autres villes ne suffisait pas : la ville choisie restait au format de
+     la MRC entière, et ses écarts internes restaient écrasés par les quantiles
+     du territoire complet — un parc industriel à l'autre bout aplatissait tout.
+     Les villes voisines restent dessinées, en retrait, quand elles tombent dans
+     le cadre : une frontière se lit mieux avec ce qu'il y a de l'autre côté. */
+  const cadre = calcState.scope==='all' ? cells : cells.filter(c=>c.ville===calcState.scope);
+  const cellsCadre = cadre.length ? cadre : cells; /* ville sans position : on garde le tout */
+  const vals=[];
+  cellsCadre.forEach(c=>{ if(c._v) vals.push(Math.abs(c._v)); });
   vals.sort((a,b)=>a-b);
   const seuils=[]; for(let i=1;i<6 && vals.length;i++) seuils.push(vals[Math.floor(i*vals.length/6)]);
   const rang=v=>{ const a=Math.abs(v); let i=0; while(i<seuils.length && a>=seuils[i]) i++; return i; };
 
-  const xs=cells.map(c=>c.cx), ys=cells.map(c=>c.cy);
-  const X0=Math.min.apply(null,xs), X1=Math.max.apply(null,xs);
-  const Y0=Math.min.apply(null,ys), Y1=Math.max.apply(null,ys);
+  /* le cadre suit le périmètre : une marge d'une case évite que la ville touche
+     le bord, et laisse voir ce qui la borde */
+  const xs=cellsCadre.map(c=>c.cx), ys=cellsCadre.map(c=>c.cy);
+  const marge = cellsCadre===cells ? 0 : 1;
+  const X0=Math.min.apply(null,xs)-marge, X1=Math.max.apply(null,xs)+marge;
+  const Y0=Math.min.apply(null,ys)-marge, Y1=Math.max.apply(null,ys)+marge;
   const W=X1-X0+1, H=Y1-Y0+1;
   const vn=id=>{ const v=VILLES.find(x=>x.id===id); return v?v.nom:id; };
   const HMAX=520; /* hauteur visée ; la largeur en découle par la forme du territoire */
@@ -1866,14 +1877,14 @@ function carteIncidence(){
   if(note){
     const sp=+(grille.meta.sans_position||0);
     note.innerHTML=esc('Une case = '+(grille.pas>=1000?(grille.pas/1000)+' km':grille.pas+' m')+' au sol · '
-      + cells.length.toLocaleString('fr-CA')+' cases occupées · '
+      + cellsCadre.length.toLocaleString('fr-CA')+' cases occupées · ' /* du CADRE, pas du projet */
       + (parUnite?'couleur = charge annuelle par immeuble visé (indépendante de la densité du bâti)'
                  :'couleur = recette de la case — à densité de bâti égale ; les secteurs les plus bâtis ressortent d\'abord')
       + (sp?' · ⚠ '+sp.toLocaleString('fr-CA')+' unité(s) sans position, absentes de la carte':'')
-      /* la carte montre TOUT le projet même quand un périmètre est choisi : une
-         ville se lit mieux dans son voisinage, et la recette affichée plus haut,
-         elle, reste bien celle du périmètre */
-      + (calcState.scope!=='all'?' · le territoire complet reste affiché, les autres villes en retrait':''))
+      + (calcState.scope!=='all'
+          ? (cadre.length?' · cadré sur le périmètre, échelle recalculée pour cette ville seule'
+                         :' · ⚠ aucune position pour cette ville : territoire complet affiché')
+          : ''))
       /* attribution exigée par les licences OpenStreetMap (ODbL) et CARTO */
       + '<br><span class="faint">Fond de carte © OpenStreetMap contributors © CARTO · '
       + 'rôle d\'évaluation © MAMH (CC-BY 4.0)</span>';
