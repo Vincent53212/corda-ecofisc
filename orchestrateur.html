@@ -668,6 +668,8 @@ const remote = {
         body:JSON.stringify({deleted_at:new Date().toISOString()})}); break; /* archivage doux — destruction réelle à l'échéance (schema.sql) */
       case 'project.rename': await this.rest('projects?id=eq.'+encodeURIComponent(op.id),{method:'PATCH', prefer:'return=minimal',
         body:JSON.stringify({title:op.title})}); break; /* PATCH : idempotent tel quel, le rejeu de la file est sans effet */
+      case 'project.villes': await this.rest('projects?id=eq.'+encodeURIComponent(op.id),{method:'PATCH', prefer:'return=minimal',
+        body:JSON.stringify({villes:op.villes})}); break; /* remplace la liste entière : idempotent au rejeu */
       case 'code.create': await this.rest('access_codes?on_conflict=code',{method:'POST', prefer:'resolution=merge-duplicates,return=minimal',
         body:JSON.stringify({code:op.code.code, project_id:op.code.project, ville:op.code.ville, created_at:op.code.createdAt})}); break;
       case 'code.delete': await this.rest('access_codes?code=eq.'+encodeURIComponent(op.code),{method:'DELETE', prefer:'return=minimal'}); break;
@@ -729,6 +731,11 @@ const store = {
   renameProject(id, title){ const d=this._load(); const p=d.projects.find(x=>x.id===id); if(!p) return false;
     const t=(title||'').trim(); if(!t || t===p.title) return false;
     p.title=t; this._save(); sync.push({t:'project.rename', id, title:t}); return true; },
+  /* Les projets d'avant le sélecteur de municipalités (dont le projet historique
+     semé par schema.sql) portent des villes SANS code officiel : ni rechargement
+     du rôle, ni positions, ni carte. Cette méthode complète la liste après coup. */
+  setVilles(id, villes){ const d=this._load(); const p=d.projects.find(x=>x.id===id); if(!p) return false;
+    p.villes=villes; this._save(); sync.push({t:'project.villes', id, villes}); return true; },
   deleteProject(id){ const d=this._load(); const proj=d.projects.find(p=>p.id===id); if(!proj) return;
     const codes=d.codes.filter(c=>c.project===id); const responses={};
     codes.forEach(c=>Object.keys(d.responses).forEach(k=>{ if(this._kRid(k)===c.code) responses[k]=d.responses[k]; }));
@@ -2289,13 +2296,14 @@ async function renderReglages(message, msgRole){
   }catch(e){ console.error(e); panne=true; } /* serveur injoignable ≠ rôle absent — ne pas inciter à recharger pour rien */
   const roleOk=totalUnites>0;
   const manquantes=VILLES.filter(v=>v.code && !(parVille[v.id]||0));
+  const sansCode=VILLES.filter(v=>!v.code);
   /* une ligne par ville : compte + ↻ pour rejouer le téléchargement officiel */
   const listeVilles=VILLES.length?'<div class="vroles">'+VILLES.map((v,i)=>{
     const n=parVille[v.id]||0;
     return '<div class="vrole"><span class="n">'+esc(v.nom)+'</span>'
       +'<span class="u'+(!panne&&!n?' vide':'')+'">'+(panne?'—':n?n.toLocaleString('fr-CA')+' unités':'aucune unité')+'</span>'
       +(v.code?'<button type="button" class="rl" data-i="'+i+'" title="Retélécharger le rôle officiel de '+esc(v.nom)+' ('+esc(v.code)+')" aria-label="Recharger le rôle de '+esc(v.nom)+'">↻</button>'
-              :'<span class="u">code absent</span>')
+              :'<span class="u" title="Sans le code officiel de la municipalité, ni le rôle ni les positions ne peuvent se télécharger">code absent</span>')
       +'</div>'; }).join('')+'</div>':'';
   host.innerHTML=`
     <div class="card" data-anno="Réglages — sources">
@@ -2303,6 +2311,10 @@ async function renderReglages(message, msgRole){
       <div class="src"><div class="ic">🗺</div><div class="bd"><div class="t">Rôle d'évaluation foncière</div>
         <div class="d">Données Québec / MAMH (CC-BY 4.0) · téléchargé automatiquement à la création du projet, ou extrait via <span class="mono">tools/etl-role.py</span> · ${panne?'inventaire indisponible (serveur injoignable)':roleOk?('<b>'+totalUnites.toLocaleString('fr-CA')+' unités</b> au total'):'aucune unité chargée pour ce projet'}</div>
         ${listeVilles}
+        ${sansCode.length?'<div class="impl-note">⚠ <b>'+sansCode.length+' ville'+(sansCode.length>1?'s':'')+' sans code officiel</b> — '
+          +esc(sansCode.map(v=>v.nom).join(', '))+'. Ce projet est antérieur au sélecteur de municipalités : '
+          +'sans le code, ni le rôle ni les positions ne peuvent se télécharger, et la carte reste vide. '
+          +'<button type="button" class="btn ghost" id="rlCodes" style="padding:5px 11px; margin-top:8px">Associer les codes officiels</button></div>':''}
         <div class="roleact">
           <button type="button" class="btn ghost" id="rlAll">↻ Retélécharger tous les rôles</button>
           ${manquantes.length&&!panne&&manquantes.length<VILLES.length?'<button type="button" class="btn ghost" id="rlVides">↻ Charger les '+manquantes.length+' manquantes</button>':''}
@@ -2337,6 +2349,53 @@ async function renderReglages(message, msgRole){
   const rlAll=$('#rlAll'); if(rlAll) rlAll.onclick=()=>rechargerRoles(VILLES.filter(v=>v.code));
   const rlVides=$('#rlVides'); if(rlVides) rlVides.onclick=()=>rechargerRoles(manquantes);
   const rlRef=$('#rlRefresh'); if(rlRef) rlRef.onclick=()=>{ agg=null; grille=null; renderReglages(null, 'Inventaire rafraîchi.'); };
+  const rlCodes=$('#rlCodes'); if(rlCodes) rlCodes.onclick=()=>associerCodes(rlCodes);
+}
+
+/* ---- associer les codes officiels aux villes d'un projet ancien ----
+   Le projet historique a été semé par schema.sql avant que le sélecteur de
+   municipalités existe : ses villes n'ont que { id, nom }. Sans code, ni le
+   rôle ni les positions ne se téléchargent. On complète par le NOM, contre la
+   liste officielle des 1 011 municipalités servie par role-import.
+
+   Prudence délibérée : on n'associe QUE les correspondances exactes et UNIQUES.
+   Une dizaine de noms sont portés par deux municipalités du Québec (Bedford,
+   Saint-Lambert, Hemmingford…) — deviner reviendrait à télécharger le rôle
+   d'une autre ville sans que rien ne le signale. Ces cas-là restent à la main. */
+function normNom(s){ /* \u0300-\u036f : les accents que NFD detache — ecrits en
+     echappement plutot qu'en litteral, ces caracteres etant INVISIBLES dans le source */
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(); }
+async function associerCodes(btn){
+  const p=store.activeProj(); if(!p) return;
+  btn.disabled=true; const libelle=btn.textContent; btn.textContent='Recherche…';
+  try{
+    const munis=await ensureMunis();
+    const parNom=new Map();
+    munis.forEach(m=>{ const k=normNom(m.nom);
+      parNom.set(k, parNom.has(k) ? null : m); }); /* null = nom ambigu (2 municipalités) */
+    let trouves=0; const restants=[];
+    const villes=p.villes.map(v=>{
+      if(v.code) return v;
+      const m=parNom.get(normNom(v.nom));
+      if(m){ trouves++; return Object.assign({}, v, {code:m.code}); }
+      restants.push(v.nom); return v;
+    });
+    if(!trouves){
+      renderReglages(null, '⚠ Aucun code trouvé pour : '+restants.join(', ')
+        +' — nom introuvable ou porté par deux municipalités. À corriger à la main.');
+      return;
+    }
+    store.setVilles(p.id, villes); syncVilles();
+    await sync.settle(); /* le code doit être en base AVANT tout téléchargement */
+    remote.audit('write',{table:'projects', action:'codes_villes', projet:p.id, n:trouves});
+    renderReglages(null, '✓ '+trouves+' code'+(trouves>1?'s':'')+' associé'+(trouves>1?'s':'')
+      +(restants.length?' · restent à la main : '+restants.join(', '):'')
+      +' — le bouton ↻ est maintenant disponible.');
+  }catch(e){ console.error(e);
+    btn.disabled=false; btn.textContent=libelle;
+    renderReglages(null, '⚠ Association impossible : '+(e.message||'serveur injoignable'));
+  }
 }
 
 /* ===================== BOOT (en ligne seulement — le contenu arrive après authentification) ===================== */

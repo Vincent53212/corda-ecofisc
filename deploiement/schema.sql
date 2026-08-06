@@ -94,17 +94,39 @@ create table if not exists public.login_attempts (
 create index if not exists login_attempts_origin_idx on public.login_attempts (origin_hash, at desc);
 
 -- ---------- 5) Amorçage : le projet historique MRC Thérèse-De Blainville ----------
+--  ⚠ Le champ `code` (code géographique MAMH) est INDISPENSABLE : sans lui, ni le
+--    téléchargement du rôle officiel, ni le chargement des positions, ni donc la
+--    carte d'incidence ne fonctionnent — l'écran Réglages affiche « code absent ».
+--    Il manquait à ce semis jusqu'au 6 août 2026, le projet étant antérieur au
+--    sélecteur de municipalités. Codes recoupés SGC StatCan ↔ répertoire MAMH.
 insert into public.projects (id, title, type, villes)
 values ('tdb', 'MRC Thérèse-De Blainville', 'multi', '[
-  {"id":"blainville","nom":"Blainville"},
-  {"id":"boisbriand","nom":"Boisbriand"},
-  {"id":"bois-des-filion","nom":"Bois-des-Filion"},
-  {"id":"lorraine","nom":"Lorraine"},
-  {"id":"rosemere","nom":"Rosemère"},
-  {"id":"sainte-therese","nom":"Sainte-Thérèse"},
-  {"id":"sainte-anne-des-plaines","nom":"Sainte-Anne-des-Plaines"}
+  {"id":"blainville","nom":"Blainville","code":"73015"},
+  {"id":"boisbriand","nom":"Boisbriand","code":"73005"},
+  {"id":"bois-des-filion","nom":"Bois-des-Filion","code":"73030"},
+  {"id":"lorraine","nom":"Lorraine","code":"73025"},
+  {"id":"rosemere","nom":"Rosemère","code":"73020"},
+  {"id":"sainte-therese","nom":"Sainte-Thérèse","code":"73010"},
+  {"id":"sainte-anne-des-plaines","nom":"Sainte-Anne-des-Plaines","code":"73035"}
 ]'::jsonb)
 on conflict (id) do nothing;
+
+-- Rattrapage pour une base DÉJÀ installée : le `on conflict do nothing` ci-dessus
+-- ne corrige pas un projet existant. Ce bloc ajoute le code aux villes qui n'en ont
+-- pas, sans toucher au reste (ni aux autres projets, ni aux villes déjà codées).
+update public.projects p
+   set villes = (
+     select jsonb_agg(
+       case when v ? 'code' then v
+            else v || jsonb_build_object('code', c.code) end)
+       from jsonb_array_elements(p.villes) v
+       left join (values
+         ('blainville','73015'), ('boisbriand','73005'), ('bois-des-filion','73030'),
+         ('lorraine','73025'), ('rosemere','73020'), ('sainte-therese','73010'),
+         ('sainte-anne-des-plaines','73035')
+       ) as c(id, code) on c.id = v->>'id')
+ where p.id = 'tdb'
+   and exists (select 1 from jsonb_array_elements(p.villes) v where not (v ? 'code'));
 
 -- ============================================================================
 --  CONSERVATION & DESTRUCTION RÉELLE (Loi 25, art. 23)
