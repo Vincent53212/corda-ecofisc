@@ -650,6 +650,8 @@ const remote = {
         body:JSON.stringify({id:op.project.id, title:op.project.title, type:op.project.type, villes:op.project.villes, created_at:op.project.createdAt})}); break;
       case 'project.delete': await this.rest('projects?id=eq.'+encodeURIComponent(op.id),{method:'PATCH', prefer:'return=minimal',
         body:JSON.stringify({deleted_at:new Date().toISOString()})}); break; /* archivage doux — destruction réelle à l'échéance (schema.sql) */
+      case 'project.rename': await this.rest('projects?id=eq.'+encodeURIComponent(op.id),{method:'PATCH', prefer:'return=minimal',
+        body:JSON.stringify({title:op.title})}); break; /* PATCH : idempotent tel quel, le rejeu de la file est sans effet */
       case 'code.create': await this.rest('access_codes?on_conflict=code',{method:'POST', prefer:'resolution=merge-duplicates,return=minimal',
         body:JSON.stringify({code:op.code.code, project_id:op.code.project, ville:op.code.ville, created_at:op.code.createdAt})}); break;
       case 'code.delete': await this.rest('access_codes?code=eq.'+encodeURIComponent(op.code),{method:'DELETE', prefer:'return=minimal'}); break;
@@ -705,6 +707,12 @@ const store = {
   createProject(p){ const d=this._load(); let base=slugify(p.title).slice(0,14)||'projet', id=base, n=2; while(d.projects.some(x=>x.id===id)){ id=base+'-'+n; n++; }
     const proj={id, title:p.title, type:p.type, villes:p.villes, createdAt:nowISO()}; d.projects.push(proj); d.activeProject=id; this._save();
     sync.push({t:'project.create', project:proj}); return proj; },
+  /* Le titre d'un projet nomme le mandat dans l'avis de collecte (Loi 25, art. 8) :
+     il doit rester corrigeable après coup, pas seulement à la création. L'identifiant,
+     lui, ne bouge JAMAIS — les codes et les réponses y sont rattachés. */
+  renameProject(id, title){ const d=this._load(); const p=d.projects.find(x=>x.id===id); if(!p) return false;
+    const t=(title||'').trim(); if(!t || t===p.title) return false;
+    p.title=t; this._save(); sync.push({t:'project.rename', id, title:t}); return true; },
   deleteProject(id){ const d=this._load(); const proj=d.projects.find(p=>p.id===id); if(!proj) return;
     const codes=d.codes.filter(c=>c.project===id); const responses={};
     codes.forEach(c=>Object.keys(d.responses).forEach(k=>{ if(this._kRid(k)===c.code) responses[k]=d.responses[k]; }));
@@ -1459,6 +1467,7 @@ function renderProjets(){
     return '<div class="codecard" data-anno="Projet — '+esc(p.title)+'"><div class="bd"><div class="who2">'+esc(p.title)+(isAct?' <span class="st3 claimed">actif</span>':'')+'</div>'
       +'<div class="meta2">'+villesTxt+' · '+store.codeCount(p.id)+' code(s) · créé le '+fmtDate(p.createdAt)+'</div></div>'
       +(isAct?'':'<button class="btn ghost projact" data-act="'+esc(p.id)+'" style="padding:6px 10px">Activer</button>')
+      +'<button class="btn ghost projren" data-ren="'+esc(p.id)+'" style="padding:6px 10px">Renommer</button>'
       +'<button class="btn ghost projdel" data-del="'+esc(p.id)+'" style="padding:6px 10px; color:var(--fav-neg); border-color:color-mix(in srgb,var(--fav-neg) 35%,var(--line))">Supprimer</button></div>';
   }).join('');
   host.innerHTML=`
@@ -1483,6 +1492,23 @@ function renderProjets(){
       <div class="impbar" id="npImp" hidden></div>
     </div>`;
   $$('#projetsHost .projact').forEach(b=>b.onclick=()=>{ if(state.anno) return; store.setActive(b.dataset.act); syncVilles(); renderProjPill(); computedStale=true; toast('Projet activé'); go('portrait'); });
+  $$('#projetsHost .projren').forEach(b=>b.onclick=()=>{ if(state.anno) return; const id=b.dataset.ren; const p=store.projects().find(x=>x.id===id); if(!p) return;
+    const card=b.closest('.codecard'); if(card.querySelector('.renform')) return;
+    card.insertAdjacentHTML('beforeend','<div class="renform field" style="flex-basis:100%; margin:6px 0 0">'
+      +'<label class="sr-only" for="renInput">Nouveau titre du projet</label>'
+      +'<input id="renInput" type="text" autocomplete="off" spellcheck="false">'
+      +'<div class="faint" style="font-size:.74rem; margin-top:6px">Ce titre nomme le mandat dans l\'avis de collecte que lit chaque répondant à sa première connexion — la finalité doit y être nommée précisément (Loi 25, art. 8). L\'identifiant interne du projet, lui, ne change pas : les codes et les cotations restent rattachés.</div>'
+      +'<div class="btnrow" style="margin-top:8px"><button class="btn primary" id="renOk" style="padding:6px 12px">Enregistrer</button>'
+      +'<button class="btn ghost" id="renNo" style="padding:6px 12px">Annuler</button></div></div>');
+    const inp=card.querySelector('#renInput'); inp.value=p.title; inp.focus(); inp.select();
+    const close=()=>{ const f=card.querySelector('.renform'); if(f) f.remove(); b.focus(); };
+    const save=()=>{ const t=inp.value.trim();
+      if(!t){ toast('Le titre ne peut pas être vide.','err'); inp.focus(); return; }
+      if(t===p.title){ close(); return; }
+      store.renameProject(id,t); renderProjPill(); renderProjets(); toast('Projet renommé'); };
+    card.querySelector('#renNo').onclick=close;
+    card.querySelector('#renOk').onclick=save;
+    inp.onkeydown=e=>{ if(e.key==='Escape'){ e.preventDefault(); close(); } else if(e.key==='Enter'){ e.preventDefault(); save(); } }; });
   $$('#projetsHost .projdel').forEach(b=>b.onclick=()=>{ if(state.anno) return; const id=b.dataset.del; const p=store.projects().find(x=>x.id===id);
     if(store.projects().length<=1){ toast('Impossible de supprimer le dernier projet.'); return; }
     if(!confirm('Supprimer le projet « '+(p?p.title:id)+' » et toutes ses cotations ?\n\nLe projet est archivé côté serveur (destruction réelle à l\'échéance de conservation).')) return;
