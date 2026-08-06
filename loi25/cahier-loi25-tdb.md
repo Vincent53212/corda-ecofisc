@@ -18,7 +18,7 @@ marques ⏳ = décisions D1/D2 du dossier de validation, à confirmer en séance
 
 | Variable | Valeur — mandat MRC Thérèse-De Blainville | Statut |
 |---|---|---|
-| `{{PROJET}}` | Analyse multicritère des mesures écofiscales — MRC Thérèse-De Blainville | ✔ |
+| `{{PROJET}}` | Stratégie écofiscale de soutien à la transition climatique, MRC de Thérèse-De Blainville | ✔ nom officiel, fixé par Fanny le 6 août 2026 |
 | `{{OUTIL}}` | Orchestrateur (ecofisc.corda.consulting), un produit Corda | ✔ |
 | `{{CHERCHEURE}}` | Pre Fanny Tremblay-Racicot, ENAP / CERGO — chercheure responsable du mandat | ✔ |
 | `{{MANDANT}}` | MRC Thérèse-De Blainville | ✔ à confirmer (signataire exact) |
