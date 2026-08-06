@@ -1733,16 +1733,20 @@ async function ensureGrille(){
   const pid=store.activeId(), pas=calcState.pas;
   if(grille && grille.pid===pid && grille.pas===pas) return grille;
   const d=await remote.rest('rpc/calc_grille',{method:'POST', body:JSON.stringify({pid, pas_m:pas})})||{};
+  /* Clé = position ET VILLE. Une case de 500 m ne s'arrête pas à la limite
+     municipale : sur la MRC, 69 cases (9,6 %) chevauchent deux villes et
+     portent 19,8 % des unités. Les attribuer à la ville dominante ferait deux
+     dégâts — la charge affichée mélangerait deux municipalités, et filtrer sur
+     une ville en escamoterait jusqu'à 8 % (Lorraine) sans rien dire.
+     Une case frontalière existe donc en DEUX morceaux ; l'affichage les
+     rassemble ou les sépare selon le périmètre regardé (voir carteIncidence). */
   const cells=new Map();
   (d.cellules||[]).forEach(r=>{
-    const k=r.cx+'|'+r.cy;
+    const k=r.cx+'|'+r.cy+'|'+r.ville_id;
     let c=cells.get(k);
-    if(!c){ c={cx:+r.cx, cy:+r.cy, rows:[], villes:{}}; cells.set(k,c); }
-    c.rows.push(r); c.villes[r.ville_id]=(c.villes[r.ville_id]||0)+(+r.n);
+    if(!c){ c={cx:+r.cx, cy:+r.cy, ville:r.ville_id, rows:[]}; cells.set(k,c); }
+    c.rows.push(r);
   });
-  /* une cellule peut chevaucher deux villes : on retient la dominante, qui ne
-     sert qu'à l'atténuation quand un périmètre est sélectionné */
-  cells.forEach(c=>{ c.ville=Object.keys(c.villes).sort((a,b)=>c.villes[b]-c.villes[a])[0]; });
   grille={pid, pas, meta:d, cells};
   return grille;
 }
@@ -1813,27 +1817,41 @@ function carteIncidence(){
   const host=$('#calcCarte'); if(!host) return;
   const leg=$('#calcCarteLeg'), note=$('#calcCarteNote');
   if(!grille){ host.innerHTML='<div class="faint mono" style="font-size:.8rem">Chargement de la carte…</div>'; return; }
-  const cells=[...grille.cells.values()];
-  if(!cells.length){
+  const morceaux=[...grille.cells.values()]; /* (position × ville) — voir ensureGrille */
+  if(!morceaux.length){
     host.innerHTML='<div class="stub"><div class="glyph">◍</div><div>Aucune position pour ce projet.<br>'
       +'Le rôle a été importé avant que les positions n\'existent — relancez le téléchargement '
       +'depuis <b>Réglages ⚙</b> (bouton ↻), il les charge maintenant d\'office.</div></div>';
     if(leg) leg.innerHTML=''; if(note) note.textContent=''; return;
   }
-  const m=calcState.measure, parUnite=calcState.metrique==='unite';
-  cells.forEach(c=>{
-    const conc=rowsConcernees(c.rows, m);
-    c._n=conc.reduce((s,r)=>s+(+r.n),0);
-    c._ch=conc.length?chargeCellule(conc):0;
-    c._v=parUnite ? (c._n ? c._ch/c._n : 0) : c._ch;
+  const m=calcState.measure, parUnite=calcState.metrique==='unite', scope=calcState.scope;
+  morceaux.forEach(p=>{
+    const conc=rowsConcernees(p.rows, m);
+    p._n=conc.reduce((s,r)=>s+(+r.n),0);
+    p._ch=conc.length?chargeCellule(conc):0;
   });
-  /* Le périmètre CADRE la carte et RECALCULE l'échelle. Se contenter d'atténuer
-     les autres villes ne suffisait pas : la ville choisie restait au format de
-     la MRC entière, et ses écarts internes restaient écrasés par les quantiles
-     du territoire complet — un parc industriel à l'autre bout aplatissait tout.
-     Les villes voisines restent dessinées, en retrait, quand elles tombent dans
-     le cadre : une frontière se lit mieux avec ce qu'il y a de l'autre côté. */
-  const cadre = calcState.scope==='all' ? cells : cells.filter(c=>c.ville===calcState.scope);
+  /* Un carré à l'écran = une POSITION. Ce qu'on y met dépend du périmètre :
+     vue d'ensemble → les morceaux de toutes les villes réunis ; périmètre sur
+     une ville → SON morceau seul, à pleine couleur. Une position où elle n'est
+     pas présente montre le voisinage, en retrait : une frontière se lit mieux
+     avec ce qu'il y a de l'autre côté. Aucun mélange, aucune unité escamotée. */
+  const parPos=new Map();
+  morceaux.forEach(p=>{ const k=p.cx+'|'+p.cy; let e=parPos.get(k);
+    if(!e){ e={cx:p.cx, cy:p.cy, parts:[]}; parPos.set(k,e); }
+    e.parts.push(p); });
+  const cells=[...parPos.values()].map(e=>{
+    const dedans = scope==='all' ? e.parts : e.parts.filter(p=>p.ville===scope);
+    const src = dedans.length ? dedans : e.parts;
+    const c={cx:e.cx, cy:e.cy, hors:!dedans.length, villes:{}, _n:0, _ch:0};
+    src.forEach(p=>{ c._n+=p._n; c._ch+=p._ch; c.villes[p.ville]=(c.villes[p.ville]||0)+p._n; });
+    c._v = parUnite ? (c._n ? c._ch/c._n : 0) : c._ch;
+    return c;
+  });
+  /* Le périmètre CADRE la carte et RECALCULE l'échelle. Atténuer les autres
+     villes ne suffisait pas : la ville choisie restait au format de la MRC
+     entière, et ses écarts internes étaient écrasés par les quantiles du
+     territoire complet — un parc industriel à l'autre bout aplatissait tout. */
+  const cadre = scope==='all' ? cells : cells.filter(c=>!c.hors);
   const cellsCadre = cadre.length ? cadre : cells; /* ville sans position : on garde le tout */
   const vals=[];
   cellsCadre.forEach(c=>{ if(c._v) vals.push(Math.abs(c._v)); });
@@ -1854,8 +1872,11 @@ function carteIncidence(){
        +' role="img" aria-label="Carte de l\'incidence sur le territoire">';
   s+=tuilesFond(X0, Y1, W, H, +grille.meta.pas_merc);
   cells.forEach(c=>{
-    const attenue = calcState.scope!=='all' && c.ville!==calcState.scope;
-    const tip = vn(c.ville)+' · '+c._n.toLocaleString('fr-CA')+' unité'+(c._n>1?'s':'')+' visée'+(c._n>1?'s':'')
+    const attenue = c.hors;
+    /* les villes présentes DANS ce que la case montre, la plus fournie d'abord :
+       une case frontalière nomme les deux, sans en cacher aucune */
+    const noms=Object.keys(c.villes).sort((a,b)=>c.villes[b]-c.villes[a]).map(vn).join(' + ');
+    const tip = noms+' · '+c._n.toLocaleString('fr-CA')+' unité'+(c._n>1?'s':'')+' visée'+(c._n>1?'s':'')
       +'\n'+(c._n ? (c._ch/c._n>=0?'+':'')+fmt$(c._ch/c._n)+' /an par immeuble' : 'aucune unité visée')
       +'\nrecette de la cellule : '+fmtM$(c._ch);
     /* semi-transparent : le fond doit rester lisible SOUS la donnée, sinon il
