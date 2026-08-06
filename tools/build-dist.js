@@ -68,12 +68,18 @@ fs.writeFileSync(tmpChk, mm[1].replace(/^\/\*![\s\S]*?\*\//, ''), 'utf8');
 execFileSync(process.execPath, ['--check', tmpChk], { stdio: 'pipe' });
 console.log('Auto-vérification : script minifié valide ✓');
 
-/* ---- .htaccess — en-têtes de sécurité (révision B : CSP + en-têtes) ---- */
+/* ---- .htaccess — en-têtes de sécurité (révision B : CSP + en-têtes) ----
+   ⚠ `img-src` autorise https://*.basemaps.cartocdn.com depuis le 6 août 2026 :
+   la carte d'incidence du Calculateur charge un fond de tuiles (CARTO Positron,
+   sur données OpenStreetMap). C'est le SEUL tiers appelé par l'app, et il reçoit
+   l'adresse IP de l'usager et la zone regardée. Décision assumée et consignée
+   dans loi25/03-efvp.md — ne pas retirer cet hôte sans retirer aussi la carte,
+   sinon le fond disparaît sans message d'erreur visible. */
 const htaccess = `# ecofisc.corda.consulting — en-têtes de sécurité (générés par tools/build-dist.js)
 AddDefaultCharset utf-8
 
 <IfModule mod_headers.c>
-  Header always set Content-Security-Policy "default-src 'none'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+  Header always set Content-Security-Policy "default-src 'none'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.basemaps.cartocdn.com; connect-src 'self' https://*.supabase.co; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "DENY"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"

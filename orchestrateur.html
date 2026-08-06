@@ -248,6 +248,22 @@ svg.viz text{font-family:var(--font-mono); font-size:8.5px; fill:var(--muted)}
 svg.viz .vlab{font-size:8px; fill:var(--faint)}
 svg.viz .axis{stroke:var(--line); stroke-width:1}
 svg.viz .seuil{stroke:var(--brass); stroke-width:1.5; stroke-dasharray:3 3}
+/* carte d'incidence — cases de charge sur fond de tuiles (CARTO/OSM) */
+/* la largeur maximale est posée en ligne par carteIncidence() : elle dépend de
+   la FORME du territoire (une MRC en longueur ne se cadre pas comme une ville
+   carrée). Sans elle, le SVG s'étire sur toute la carte et sa bordure encadre
+   du vide de chaque côté du dessin. */
+svg.carte{margin:0 auto; border-radius:10px; border:1px solid var(--line-2); background:var(--surface-2)}
+svg.carte .cell{stroke:none; transition:fill-opacity .12s}
+svg.carte .cell:hover{fill-opacity:1 !important; stroke:var(--ink); stroke-width:.06}
+.carte-ctl{display:flex; gap:6px; flex-wrap:wrap}
+.carte-ctl select{font-family:var(--font-mono); font-size:.72rem; padding:4px 8px; border:1px solid var(--line);
+  border-radius:7px; background:var(--surface); color:var(--ink); cursor:pointer}
+.carte-leg{display:flex; align-items:center; gap:7px; margin-top:9px; flex-wrap:wrap;
+  font-family:var(--font-mono); font-size:.68rem; color:var(--muted)}
+.carte-leg .sw{display:flex; align-items:center; gap:0}
+.carte-leg .sw i{width:17px; height:11px; display:block; border-radius:2px}
+.carte-leg .bornes{display:flex; gap:9px}
 .calc-note{font-size:.78rem; color:var(--faint); line-height:1.5; margin-top:8px}
 .pontbar{display:flex; align-items:center; gap:9px; background:var(--surface-2); border-radius:9px; padding:9px 12px; margin-top:12px; font-size:.82rem}
 /* Réglages — sources */
@@ -1565,7 +1581,7 @@ function renderProjets(){
     imp.innerHTML='<span class="l">✓ Projet prêt.</span> '+tot.toLocaleString('fr-CA')+' unités chargées'
       +(echecs.length?' · <span style="color:var(--fav-neg)">échecs : '+esc(echecs.join(' · '))+' — relançables dans Réglages ⚙</span>':'')
       +' · <button type="button" class="btn primary" id="npGo" style="padding:5px 11px; margin-left:8px">Ouvrir le calculateur</button>';
-    computedStale=true; agg=null;
+    computedStale=true; agg=null; grille=null;
     const go2=$('#npGo'); if(go2) go2.onclick=()=>{ store.setActive(p.id); syncVilles(); renderProjPill(); go('calculateur'); };
     btn.disabled=false;
   };
@@ -1581,7 +1597,7 @@ const AGG_EDGES=[0,100000,200000,300000,400000,500000,600000,700000,800000,90000
 const CLASSES_RES=[['1','1 logement'],['2','2 logements'],['3-5','3 à 5 logements'],['6-9','6 à 9 logements'],['10-49','10 à 49 logements'],['50plus','50 logements et plus']];
 const FAM_CUBF={'1':'Résidentiel','2':'Industrie manufacturière','3':'Industrie manufacturière','4':'Transport & infrastructures','5':'Commerce','6':'Services','7':'Culturel, récréatif, loisir','8':'Production agricole','9':'Immeuble non exploité'};
 let agg=null; /* {pid, rows} — cache des agrégats du projet actif */
-let calcState={ measure:'m04', scope:'all',
+let calcState={ measure:'m04', scope:'all', pas:500, metrique:'unite',
   m04:{base:0.65, tranches:[{lo:1000000, taux:0.85}]},
   m01:{base:0.65, rates:{'1':0.65,'2':0.65,'3-5':0.70,'6-9':0.70,'10-49':0.75,'50plus':0.80}},
   m02:{base:0.65, taux:0.95, fams:['2','3']},
@@ -1683,6 +1699,166 @@ function histoAssiette(perBucket, hlFrom){ /* assiette par tranche de valeur, se
 }
 document.addEventListener('mousemove',e=>{ const b=e.target.closest&&e.target.closest('svg.viz [data-tip]'); if(b) vizTip(true, e.clientX, e.clientY, b.dataset.tip); else if(_tipEl&&!_tipEl.hidden) vizTip(false); });
 
+/* ---- carte d'incidence sur le territoire ----
+   Le rôle du MAMH est géoréférencé (un point par unité) : agrégés en cellules
+   par calc_grille, les points DESSINENT le territoire. Aucun contour, aucun
+   fond de carte, aucune requête vers un tiers — l'app reste un fichier
+   autonome et l'adresse IP de l'usager ne part chez personne.
+   Le pas est en MÈTRES, converti en degrés côté serveur (sql/role-geo.sql) ;
+   ici on ne manipule que des index de cellule. */
+let grille=null; /* {pid, pas, meta, cells:Map} — cache de la grille du projet actif */
+const GRAINS=[[1000,'1 km'],[500,'500 m'],[250,'250 m']];
+
+async function ensureGrille(){
+  const pid=store.activeId(), pas=calcState.pas;
+  if(grille && grille.pid===pid && grille.pas===pas) return grille;
+  const d=await remote.rest('rpc/calc_grille',{method:'POST', body:JSON.stringify({pid, pas_m:pas})})||{};
+  const cells=new Map();
+  (d.cellules||[]).forEach(r=>{
+    const k=r.cx+'|'+r.cy;
+    let c=cells.get(k);
+    if(!c){ c={cx:+r.cx, cy:+r.cy, rows:[], villes:{}}; cells.set(k,c); }
+    c.rows.push(r); c.villes[r.ville_id]=(c.villes[r.ville_id]||0)+(+r.n);
+  });
+  /* une cellule peut chevaucher deux villes : on retient la dominante, qui ne
+     sert qu'à l'atténuation quand un périmètre est sélectionné */
+  cells.forEach(c=>{ c.ville=Object.keys(c.villes).sort((a,b)=>c.villes[b]-c.villes[a])[0]; });
+  grille={pid, pas, meta:d, cells};
+  return grille;
+}
+
+/* Unités CONCERNÉES par la mesure active. On duplique ici le FILTRE des moteurs
+   de simulation — jamais leur arithmétique : la charge d'une cellule est
+   calculée en appelant simM0x sur les lignes de la cellule. */
+function rowsConcernees(rows, m){
+  if(m==='m01'){ const p=calcState.m01; return rows.filter(r=>r.secteur==='res' && p.rates[r.classe]!==undefined); }
+  if(m==='m02'){ const p=calcState.m02;
+    return rows.filter(r=>r.secteur==='nonres' && (p.fams.includes(r.classe.slice(0,1))||p.fams.includes(r.classe))); }
+  return rows.filter(r=>r.secteur==='nonres'); /* m04 */
+}
+function chargeCellule(rows){
+  const m=calcState.measure;
+  const res = m==='m04' ? simM04(rows, calcState.m04)
+            : m==='m01' ? simM01(rows, calcState.m01)
+                        : simM02(rows, calcState.m02);
+  return Object.values(res.perVille).reduce((s,v)=>s+v,0);
+}
+
+/* ---- fond de tuiles ----
+   ⚠ SEUL TIERS APPELÉ PAR TOUTE L'APPLICATION. Chaque tuile est une requête
+   vers basemaps.cartocdn.com (CARTO Positron, sur données OpenStreetMap), qui
+   reçoit l'adresse IP de l'usager et la zone regardée. Décision assumée le
+   6 août 2026, consignée dans loi25/03-efvp.md, et autorisée explicitement
+   dans la CSP (`img-src` — voir tools/build-dist.js). Si le fond ne charge pas
+   — hors ligne, hôte bloqué, CSP oubliée — les cases restent lisibles seules :
+   la carte se dégrade, elle ne casse pas.
+
+   Le découpage des cases est fait EN WEB MERCATOR côté serveur (role-geo.sql)
+   précisément pour que case et tuile se superposent au pixel près. */
+const MERC_MAX=20037508.342789244, MERC_W=2*MERC_MAX;
+const TUILES='https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
+function tuilesFond(X0, Y1, W, H, K){
+  if(!K || !isFinite(K)) return ''; /* grille servie par une version antérieure de calc_grille */
+  /* zoom visant ~5 tuiles en largeur : au-delà on multiplie les requêtes pour
+     une finesse que la carte, haute de quelques centaines de pixels, ne rend pas */
+  let z=Math.round(Math.log2(5*MERC_W/(W*K)));
+  z=Math.max(8, Math.min(16, z));
+  let T=MERC_W/Math.pow(2,z);
+  /* filet : jamais plus de 80 tuiles, quoi qu'il arrive */
+  while(z>8 && (W*K/T+1)*(H*K/T+1)>80){ z--; T=MERC_W/Math.pow(2,z); }
+  const gX=X0*K, gY=(Y1+1)*K;            /* coin haut-gauche du viewBox, en Mercator */
+  const tx0=Math.floor((gX+MERC_MAX)/T), tx1=Math.floor((gX+W*K+MERC_MAX)/T);
+  const ty0=Math.floor((MERC_MAX-gY)/T), ty1=Math.floor((MERC_MAX-(gY-H*K))/T);
+  const n=Math.pow(2,z); let s='';
+  for(let tx=tx0; tx<=tx1; tx++) for(let ty=ty0; ty<=ty1; ty++){
+    if(tx<0||ty<0||tx>=n||ty>=n) continue;
+    const url=TUILES.replace('{s}','abcd'[(tx+ty)%4]).replace('{z}',z).replace('{x}',tx).replace('{y}',ty);
+    s+='<image href="'+esc(url)+'" x="'+((-MERC_MAX+tx*T-gX)/K)+'" y="'+((gY-(MERC_MAX-ty*T))/K)+'"'
+      +' width="'+(T/K)+'" height="'+(T/K)+'" preserveAspectRatio="none" referrerpolicy="no-referrer"></image>';
+  }
+  /* léger voile crème : accorde le fond gris de Positron à la palette de l'app
+     sans l'effacer — au-delà de ~20 % les rues disparaissent et le fond ne sert
+     plus à rien, ce qui est exactement ce qu'on ne veut pas ici */
+  return s+'<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="var(--bg)" opacity=".18"></rect>';
+}
+
+/* 6 classes par QUANTILES, pas par intervalles égaux : les parcs industriels
+   écraseraient toute la carte sur une échelle linéaire. */
+const CARTE_MIX=['88%','72%','55%','37%','19%','0%']; /* part de fond mélangée au ton plein */
+function carteCouleur(v, rang){
+  if(!v) return 'var(--line-2)';
+  return 'color-mix(in srgb, var(--surface) '+CARTE_MIX[rang]+', var('+(v<0?'--fav-neg':'--accent-deep')+'))';
+}
+function carteIncidence(){
+  const host=$('#calcCarte'); if(!host) return;
+  const leg=$('#calcCarteLeg'), note=$('#calcCarteNote');
+  if(!grille){ host.innerHTML='<div class="faint mono" style="font-size:.8rem">Chargement de la carte…</div>'; return; }
+  const cells=[...grille.cells.values()];
+  if(!cells.length){
+    host.innerHTML='<div class="stub"><div class="glyph">◍</div><div>Aucune position pour ce projet.<br>'
+      +'Le rôle a été importé sans géométrie — rechargez-le depuis le CSV de l\'ETL (<b>Réglages ⚙</b>).</div></div>';
+    if(leg) leg.innerHTML=''; if(note) note.textContent=''; return;
+  }
+  const m=calcState.measure, parUnite=calcState.metrique==='unite';
+  const vals=[];
+  cells.forEach(c=>{
+    const conc=rowsConcernees(c.rows, m);
+    c._n=conc.reduce((s,r)=>s+(+r.n),0);
+    c._ch=conc.length?chargeCellule(conc):0;
+    c._v=parUnite ? (c._n ? c._ch/c._n : 0) : c._ch;
+    if(c._v) vals.push(Math.abs(c._v));
+  });
+  vals.sort((a,b)=>a-b);
+  const seuils=[]; for(let i=1;i<6 && vals.length;i++) seuils.push(vals[Math.floor(i*vals.length/6)]);
+  const rang=v=>{ const a=Math.abs(v); let i=0; while(i<seuils.length && a>=seuils[i]) i++; return i; };
+
+  const xs=cells.map(c=>c.cx), ys=cells.map(c=>c.cy);
+  const X0=Math.min.apply(null,xs), X1=Math.max.apply(null,xs);
+  const Y0=Math.min.apply(null,ys), Y1=Math.max.apply(null,ys);
+  const W=X1-X0+1, H=Y1-Y0+1;
+  const vn=id=>{ const v=VILLES.find(x=>x.id===id); return v?v.nom:id; };
+  const HMAX=520; /* hauteur visée ; la largeur en découle par la forme du territoire */
+  let s='<svg class="viz carte" viewBox="0 0 '+W+' '+H+'" style="max-width:'+Math.round(HMAX*W/H)+'px"'
+       +' role="img" aria-label="Carte de l\'incidence sur le territoire">';
+  s+=tuilesFond(X0, Y1, W, H, +grille.meta.pas_merc);
+  cells.forEach(c=>{
+    const attenue = calcState.scope!=='all' && c.ville!==calcState.scope;
+    const tip = vn(c.ville)+' · '+c._n.toLocaleString('fr-CA')+' unité'+(c._n>1?'s':'')+' visée'+(c._n>1?'s':'')
+      +'\n'+(c._n ? (c._ch/c._n>=0?'+':'')+fmt$(c._ch/c._n)+' /an par immeuble' : 'aucune unité visée')
+      +'\nrecette de la cellule : '+fmtM$(c._ch);
+    /* semi-transparent : le fond doit rester lisible SOUS la donnée, sinon il
+       ne sert à rien. Les cases sans charge s'effacent presque complètement. */
+    s+='<rect class="cell" x="'+((c.cx-X0)+0.04)+'" y="'+((Y1-c.cy)+0.04)+'" width="0.92" height="0.92" rx="0.18"'
+      +' fill="'+carteCouleur(c._v, rang(c._v))+'" fill-opacity="'+(c._v?0.8:0.14)+'"'
+      +(attenue?' opacity=".22"':'')+' data-tip="'+esc(tip)+'"></rect>';
+  });
+  host.innerHTML=s+'</svg>';
+
+  if(leg){
+    const b=[0].concat(seuils);
+    leg.innerHTML='<span>faible</span><span class="sw">'
+      + CARTE_MIX.map((_,i)=>'<i style="background:'+carteCouleur(1,i)+'"></i>').join('')
+      + '</span><span>forte</span><span class="bornes">'
+      + b.slice(1).map(v=>'<span>'+esc(fmtM$(v))+'</span>').join('')
+      + '</span>';
+  }
+  if(note){
+    const sp=+(grille.meta.sans_position||0);
+    note.innerHTML=esc('Une case = '+(grille.pas>=1000?(grille.pas/1000)+' km':grille.pas+' m')+' au sol · '
+      + cells.length.toLocaleString('fr-CA')+' cases occupées · '
+      + (parUnite?'couleur = charge annuelle par immeuble visé (indépendante de la densité du bâti)'
+                 :'couleur = recette de la case — à densité de bâti égale ; les secteurs les plus bâtis ressortent d\'abord')
+      + (sp?' · ⚠ '+sp.toLocaleString('fr-CA')+' unité(s) sans position, absentes de la carte':'')
+      /* la carte montre TOUT le projet même quand un périmètre est choisi : une
+         ville se lit mieux dans son voisinage, et la recette affichée plus haut,
+         elle, reste bien celle du périmètre */
+      + (calcState.scope!=='all'?' · le territoire complet reste affiché, les autres villes en retrait':''))
+      /* attribution exigée par les licences OpenStreetMap (ODbL) et CARTO */
+      + '<br><span class="faint">Fond de carte © OpenStreetMap contributors © CARTO · '
+      + 'rôle d\'évaluation © MAMH (CC-BY 4.0)</span>';
+  }
+}
+
 /* ---- écran Calculateur ---- */
 const CALC_READY=['m04','m01','m02'];
 async function renderCalc(){
@@ -1728,15 +1904,40 @@ async function renderCalc(){
           <div class="cap" id="calcHistoCap">Assiette par tranche de valeur</div>
           <div class="viz-wrap" id="calcHisto"></div>
         </div>
-        <div class="card" data-anno="Calculateur — échantillon">
-          <div class="cap">Échantillon — les plus grandes unités du périmètre</div>
-          <div class="table-scroll" id="calcSample">…</div>
+        <div class="card" data-anno="Calculateur — carte du territoire">
+          <div class="row-between" style="align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px">
+            <div class="cap" style="margin:0">Incidence sur le territoire</div>
+            <div class="carte-ctl">
+              <select id="carteMetrique" aria-label="Ce que montre la couleur">
+                <option value="unite"${calcState.metrique==='unite'?' selected':''}>par immeuble</option>
+                <option value="total"${calcState.metrique==='total'?' selected':''}>recette totale</option>
+              </select>
+              <select id="cartePas" aria-label="Taille des cases">
+                ${GRAINS.map(([v,l])=>'<option value="'+v+'"'+(calcState.pas===v?' selected':'')+'>'+l+'</option>').join('')}
+              </select>
+            </div>
+          </div>
+          <div class="viz-wrap" id="calcCarte"></div>
+          <div class="carte-leg" id="calcCarteLeg"></div>
+          <div class="calc-note" id="calcCarteNote"></div>
         </div>
       </div>
     </div>`;
   $$('#calcHost .mchoice button[data-m]').forEach(b=>b.onclick=()=>{ calcState.measure=b.dataset.m; renderCalc(); });
-  $('#calcScope').onchange=e=>{ calcState.scope=e.target.value; renderCalcParams(); refreshCalc(); loadSample(); };
-  renderCalcParams(); refreshCalc(); loadSample(); renderPont();
+  $('#calcScope').onchange=e=>{ calcState.scope=e.target.value; renderCalcParams(); refreshCalc(); };
+  $('#carteMetrique').onchange=e=>{ calcState.metrique=e.target.value; carteIncidence(); };
+  $('#cartePas').onchange=e=>{ calcState.pas=+e.target.value;
+    $('#calcCarte').innerHTML='<div class="faint mono" style="font-size:.8rem">Nouvelle grille…</div>';
+    chargerCarte(); };
+  renderCalcParams(); refreshCalc(); renderPont(); chargerCarte();
+}
+/* la carte se charge APRÈS le premier rendu : une grille indisponible ne doit
+   pas empêcher le calculateur de fonctionner */
+function chargerCarte(){
+  ensureGrille().then(carteIncidence).catch(e=>{ console.error(e); grille=null;
+    const h=$('#calcCarte'); if(h) h.innerHTML='<div class="faint mono" style="font-size:.8rem">'
+      +'Carte indisponible — la fonction <span class="mono">calc_grille</span> est-elle installée ? (sql/role-geo.sql)</div>';
+    const l=$('#calcCarteLeg'); if(l) l.innerHTML=''; });
 }
 function renderCalcParams(){
   const host=$('#calcParams'); const m=calcState.measure;
@@ -1812,47 +2013,7 @@ function refreshCalc(){
   const bv=$('#calcVilles'); if(bv) bv.innerHTML=barsVilles(res.perVille);
   const hh=$('#calcHisto'); if(hh) hh.innerHTML=histoAssiette(perBucket, hlFrom);
   const hc=$('#calcHistoCap'); if(hc) hc.textContent='Assiette par tranche de valeur — '+(m==='m01'?'résidentiel':(m==='m02'?'familles CUBF choisies':'non résidentiel'));
-  paintSampleCharges(); /* recolore la colonne « charge » de l'échantillon SANS re-fetch (sinon elle reste périmée au coup de curseur) */
-}
-/* charge additionnelle d'UNE unité pour la mesure ACTIVE — lue directement de
-   calcState (aucune dépendance d'ordre : pas de « _charge » à pré-assigner) */
-function chargeUnite(v, row){
-  const m=calcState.measure;
-  if(m==='m04') return chargeM04(v);
-  if(m==='m01'){ const p=calcState.m01; const n=(row&&row.nb_logements)||1;
-    const cls=n>=50?'50plus':n>=10?'10-49':n>=6?'6-9':n>=3?'3-5':n===2?'2':'1';
-    return v*((p.rates[cls]||p.base)-p.base)/100; }
-  if(m==='m02'){ const p=calcState.m02; const f=((row&&row.cubf)||'').slice(0,1);
-    return p.fams.includes(f)? v*(p.taux-p.base)/100 : 0; }
-  return null;
-}
-function paintSampleCharges(){
-  const tb=$('#calcSample tbody'); if(!tb || !loadSample._rows) return;
-  [...tb.rows].forEach((tr,i)=>{ const row=loadSample._rows[i]; if(!row) return;
-    const ch=chargeUnite(+row.valeur_totale, row);
-    tr.cells[4].textContent = ch===null?'—':fmt$(ch); });
-}
-function chargeM04(v){ /* charge additionnelle d'UNE unité de valeur v (pour l'échantillon) */
-  const p=calcState.m04; let add=0;
-  const tr=[...p.tranches].sort((a,b)=>a.lo-b.lo);
-  tr.forEach((t,i)=>{ const hi=tr[i+1]?tr[i+1].lo:Infinity;
-    add+=Math.max(0, Math.min(v,hi)-t.lo)*(t.taux-p.base)/100; });
-  return add;
-}
-async function loadSample(){
-  const host=$('#calcSample'); if(!host) return;
-  try{
-    const m=calcState.measure;
-    const filtre = m==='m01' ? '&cubf=gte.1000&cubf=lt.2000' : '&or=(cubf.lt.1000,cubf.gte.2000)';
-    const scope = calcState.scope==='all' ? '' : '&ville_id=eq.'+encodeURIComponent(calcState.scope);
-    const rows=await remote.rest('role_unites?select=matricule,ville_id,cubf,valeur_totale,nb_logements&project_id=eq.'+encodeURIComponent(store.activeId())+filtre+scope+'&order=valeur_totale.desc&limit=8');
-    loadSample._rows=rows; /* mémorisées pour le recalcul en direct (paintSampleCharges) */
-    const vn=id=>{ const v=VILLES.find(x=>x.id===id); return v?abbrVille(v.nom):id; };
-    host.innerHTML='<table class="pmatrix"><thead><tr><th style="text-align:left">Matricule</th><th>Ville</th><th>CUBF</th><th>Valeur</th><th>Charge add. /an</th></tr></thead><tbody>'+
-      rows.map(r=>{ const ch=chargeUnite(+r.valeur_totale, r);
-        return '<tr><td style="text-align:left" class="mono">'+esc(r.matricule)+'</td><td>'+esc(vn(r.ville_id))+'</td><td class="mono">'+esc(r.cubf)+'</td><td class="mono">'+esc(fmtM$(+r.valeur_totale))+'</td><td class="mono">'+(ch===null?'—':esc(fmt$(ch)))+'</td></tr>'; }).join('')+
-      '</tbody></table>';
-  }catch(e){ console.error(e); host.innerHTML='<div class="faint mono" style="font-size:.8rem">Échantillon indisponible.</div>'; }
+  if(grille) carteIncidence(); /* recalcul LOCAL au coup de curseur : aucune requête */
 }
 function renderPont(){
   const host=$('#calcPont'); if(!host) return;
@@ -1938,7 +2099,11 @@ async function chargerFichier(file){
           valeur_totale:numFR(r[idx('valeur_totale')])||0, superficie_terrain:numFR(r[idx('superficie_terrain')]),
           nb_logements:(x=>x===null?null:Math.round(x))(numFR(r[idx('nb_logements')])),
           terrain_vague_desservi:idx('terrain_vague_desservi')>=0?(r[idx('terrain_vague_desservi')]||null):null,
-          zonage_agricole:idx('zonage_agricole')>=0?(r[idx('zonage_agricole')]||null):null }); });
+          zonage_agricole:idx('zonage_agricole')>=0?(r[idx('zonage_agricole')]||null):null,
+          /* position (ETL v2) — OPTIONNELLE : un CSV d'avant la géométrie reste
+             valide, ses unités sont simplement absentes de la carte */
+          lon:idx('lon')>=0?numFR(r[idx('lon')]):null,
+          lat:idx('lat')>=0?numFR(r[idx('lat')]):null }); });
       if(!objets.length){ p.textContent='⚠ Aucune unité valide (matricule/ville manquants ?).'; return; }
       p.textContent='Envoi vers la base…';
       await upsertBatches('role_unites?on_conflict=project_id,ville_id,matricule', objets, (a,b)=>upBarre(a,b,'Rôle'));
@@ -1959,7 +2124,7 @@ async function chargerFichier(file){
       remote.audit('write',{table:'intrants', n:objets.length, source:file.name});
     } else { p.textContent='⚠ Format non reconnu : il faut au minimum une colonne « matricule » (voir docs/format-intrants.md).'; return; }
   }catch(e){ console.error(e); p.textContent='⚠ Échec du chargement : '+(e.message||'erreur serveur')+' — reprendre le fichier.'; }
-  finally{ agg=null; if(zone) delete zone.dataset.busy; renderReglages($('#upProg').textContent); } /* invalider le cache MÊME en cas d'échec partiel */
+  finally{ agg=null; grille=null; if(zone) delete zone.dataset.busy; renderReglages($('#upProg').textContent); } /* invalider les caches MÊME en cas d'échec partiel */
 }
 /* ---- rechargement du rôle officiel (MAMH) pour les villes du projet ----
    Rejoue exactement ce que fait la création de projet, mais à la demande : le
@@ -2037,7 +2202,7 @@ async function rechargerRoles(cibles){
     }catch(e){ console.error(v.code,e); echecs.push(v.nom+' : '+(e.message||'serveur injoignable')); }
   }
   if(bar){ bar.style.width='100%'; bar.parentElement.classList.add(echecs.length?'rate':'fini'); }
-  agg=null; roleBusy=false; /* l'inventaire ET les agrégats du calculateur ont changé */
+  agg=null; grille=null; roleBusy=false; /* l'inventaire, les agrégats ET la carte ont changé */
   if(tot) remote.audit('write',{table:'role_unites', n:tot, source:'role-import (rechargement)', ms:ms, ms_db:msDb, passes:passes});
   /* le détail du temps rend le prochain ralentissement diagnosticable sans outillage :
      si ms_db domine, c'est la base ; sinon c'est le téléchargement ou le parsing */
@@ -2104,7 +2269,7 @@ async function renderReglages(message, msgRole){
   $$('#reglagesHost .vrole .rl').forEach(b=>b.onclick=()=>{ const v=VILLES[+b.dataset.i]; if(v) rechargerRoles([v]); });
   const rlAll=$('#rlAll'); if(rlAll) rlAll.onclick=()=>rechargerRoles(VILLES.filter(v=>v.code));
   const rlVides=$('#rlVides'); if(rlVides) rlVides.onclick=()=>rechargerRoles(manquantes);
-  const rlRef=$('#rlRefresh'); if(rlRef) rlRef.onclick=()=>{ agg=null; renderReglages(null, 'Inventaire rafraîchi.'); };
+  const rlRef=$('#rlRefresh'); if(rlRef) rlRef.onclick=()=>{ agg=null; grille=null; renderReglages(null, 'Inventaire rafraîchi.'); };
 }
 
 /* ===================== BOOT (en ligne seulement — le contenu arrive après authentification) ===================== */

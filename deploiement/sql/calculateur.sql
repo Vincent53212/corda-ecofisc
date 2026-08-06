@@ -12,8 +12,10 @@
 --  Une fonction :
 --   · calc_aggregats(pid) : histogrammes par ville × secteur × classe × tranche
 --     de valeur. Le client simule les mesures sur CES AGRÉGATS (curseurs
---     instantanés) — la simulation ne tire aucune donnée parcellaire en vrac
---     (seul un échantillon des 8 plus grandes unités est lu, sous RLS admin).
+--     instantanés) — AUCUNE ligne parcellaire ne sort de la base. C'est vrai
+--     sans exception depuis le 6 août 2026 : l'échantillon des 8 plus grandes
+--     unités, seule lecture parcellaire qui subsistait, a été remplacé par la
+--     carte d'incidence, elle-même agrégée par calc_grille (sql/role-geo.sql).
 --
 --  ⚠ Le rôle est une donnée OUVERTE (CC-BY MAMH) → agrégats à n=1 sans enjeu
 --     ici. Mais dès qu'on joindra des attributs d'`intrants` (NON ouverts) aux

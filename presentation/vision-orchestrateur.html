@@ -341,7 +341,7 @@ h1,h2,h3{font-family:var(--font-display); margin:0; line-height:1.06}
           <p>Postgres (Canada) avec <b>RLS deny-by-default</b> : le rôle anonyme ne lit rien ; les villes n'écrivent que via des fonctions qui dérivent ville et projet <b>du code d'accès, jamais du client</b>.</p>
         </div>
         <div class="opt"><div class="h"><span class="t">5 · Simulation sur agrégats</span><span class="tag">calculateur</span></div>
-          <p>Une fonction SQL retourne des <b>histogrammes agrégés</b> (ville × tranche × catégorie) ; le client fait l'arithmétique dessus — curseurs instantanés, <b>aucune donnée parcellaire ne voyage</b>, les 59 686 unités restent en base.</p>
+          <p>Une fonction SQL retourne des <b>histogrammes agrégés</b> (ville × tranche × catégorie) ; le client fait l'arithmétique dessus — curseurs instantanés, <b>aucune donnée parcellaire ne voyage</b>, les 59 686 unités restent en base. Même la <b>carte du territoire</b> passe par des agrégats : les unités sont regroupées en cases de 500 m avant de sortir de la base.</p>
         </div>
       </div>
       <div class="qbanner"><span class="lab">À challenger</span><span class="q">Chacun de ces choix n'était pas nécessairement évident : à chaud, tu en penses quoi ?</span></div>

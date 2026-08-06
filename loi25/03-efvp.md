@@ -52,6 +52,29 @@ purge des projets archivés à l'échéance `{{DUREE_CONSERVATION}}`.
 mesures techniques et de l'encadrement contractuel. À réévaluer si la nature des données
 change (ex. données financières du calculateur d'impact).
 
+## 4 bis. Fond de carte : le seul appel à un tiers *(ajouté le 6 août 2026)*
+
+La **carte d'incidence** de l'écran Calculateur affiche les unités du rôle d'évaluation
+agrégées en cases, posées sur un **fond de tuiles cartographiques** servi par
+`basemaps.cartocdn.com` (CARTO Positron, sur données OpenStreetMap).
+
+| Fait | Analyse |
+|---|---|
+| C'est le **seul** service tiers appelé par l'application. Tout le reste (calculs, données, polices critiques) est autonome ou chez {{HEBERGEUR_DONNEES}} | À inscrire au registre des communications |
+| Chaque tuile est une requête sortante. CARTO reçoit l'**adresse IP** de l'usager et, par les coordonnées de la tuile, la **zone géographique regardée** | Ce sont des renseignements sur l'**usager de l'app**, non sur les répondants ni sur les contribuables |
+| L'écran Calculateur est **réservé aux administrateurs** (équipe de recherche). Les répondants municipaux, qui se connectent par code, n'y ont jamais accès | L'exposition se limite à l'équipe, qui en est informée par la présente — pas aux personnes dont les RP sont collectés |
+| **Aucune donnée du projet ne part** : les tuiles sont des images fixes du territoire public, identiques pour tous. Ni matricule, ni valeur, ni charge simulée ne voyage — la donnée reste dessinée par-dessus, dans le navigateur | Pas de communication de RP au sens de l'art. 17 |
+| L'en-tête `Referrer-Policy` et l'attribut `referrerpolicy="no-referrer"` limitent ce que CARTO apprend de l'origine | Mesure d'atténuation en place |
+| CARTO est une société américaine ; les tuiles transitent par un CDN mondial | Sans RP transmis, l'art. 17 n'est pas déclenché ; l'IP reste toutefois une donnée d'usager |
+| Si le service est indisponible ou bloqué, **les cases restent lisibles** sans le fond | Aucune dépendance fonctionnelle : la carte se dégrade, elle ne casse pas |
+
+**Décision** : fond de carte retenu le 6 août 2026 par l'équipe de développement, après examen
+de l'alternative sans tiers (contours municipaux inlinés). Motif : la lisibilité pour un
+public municipal — reconnaître son secteur — l'emporte sur l'appel sortant, vu qu'aucun
+renseignement du mandat ne transite. Autorisation technique correspondante : l'hôte est
+inscrit dans la directive `img-src` de la CSP (`tools/build-dist.js`). **Retirer l'hôte de
+la CSP revient à retirer le fond** — les deux vont ensemble.
+
 ## 5. Décisions rattachées et suivi
 
 | # | Décision | Statut |
@@ -60,6 +83,7 @@ change (ex. données financières du calculateur d'impact).
 | D2 | Responsable RP : {{RESPONSABLE_RP}} | ⏳ à confirmer |
 | D5 | Interdiction par défaut d'analyse des commentaires par IA | ✔ inscrite |
 | — | Épinglage régional des fonctions serveur | ⏳ à discuter |
+| — | Fond de tuiles CARTO/OSM sur la carte d'incidence (§ 4 bis) | ✔ décidé le 6 août 2026 |
 
 *Réévaluation de la présente EFVP : à chaque ajout de fonctionnalité traitant des RP
 (orchestrateur de compromis, calculateur d'impact) ou changement de sous-traitant.*
