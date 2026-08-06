@@ -1922,6 +1922,13 @@ async function renderCalc(){
     host.innerHTML='<div class="card"><div class="stub"><div class="glyph">⚠</div><div>Agrégats indisponibles — le rôle d\'évaluation est-il chargé pour ce projet ? (Réglages ⚙)</div></div></div>'; return; }
   if(!agg.rows.length){
     host.innerHTML='<div class="card"><div class="stub"><div class="glyph">⚙</div><div>Aucune donnée du rôle pour ce projet.<br>Chargez le rôle d\'évaluation dans <b>Réglages</b> (bouton ⚙ en haut).</div></div></div>'; return; }
+  /* Le périmètre survit au changement de projet — calcState est global. Une ville
+     d'un AUTRE projet fait alors filtrer sur un ville_id absent : zéro ligne, donc
+     recette à 0 et assiette vide, sans le moindre message. Pire, le <select> se
+     reconstruit sans option correspondante et affiche « Toutes les villes » : l'écran
+     annonce un périmètre, le calcul en applique un autre. On le remet à plat ici,
+     seul endroit traversé quel que soit le chemin d'arrivée sur l'écran. */
+  if(calcState.scope!=='all' && !VILLES.some(v=>v.id===calcState.scope)) calcState.scope='all';
   const m=calcState.measure;
   const mes=MEASURES.find(x=>x.id===m);
   const choix=[['m04','Taux varié par tranche (non-rés.)'],['m01','Sous-catégories — logements'],['m02','Taux ciblé par famille CUBF']];
