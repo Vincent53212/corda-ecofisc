@@ -66,7 +66,7 @@ Ouvre **`https://ecofisc.corda.consulting`** → l'écran de connexion de l'Orch
 1. **SQL Editor → New query.**
 2. Ouvre **`schema.sql`** (ce dossier, version **v2 révisée**), copie tout, colle, **Run**. Tu dois voir « Success » (Table Editor → `projects`, `access_codes`, `responses`, `audit_log`, `login_attempts`).
 3. *(Optionnel mais recommandé pour la démo)* Même manœuvre avec **`seed-demo.sql`** : installe le projet « Démo — MRC (données fictives) » (7 villes, 9 répondants fictifs) — le même jeu de données que le bouton « Projet Démo » de l'app. Rejouable à volonté (il remplace le projet demo).
-4. **`sql/calculateur.sql`** (module Calculateur) : tables du rôle d'évaluation et des intrants + fonction d'agrégats. Rejouable. Le rôle se charge ensuite via l'écran **Réglages ⚙** de l'app (CSV produit par `tools/etl-role.py` — voir `docs/format-intrants.md`, runbook en annexe).
+4. **`sql/calculateur.sql`** (module Calculateur) : tables du rôle d'évaluation et des intrants + fonction d'agrégats. Rejouable. Le rôle se charge ensuite tout seul à la création d'un projet (téléchargement du fichier officiel MAMH par `role-import`), et se recharge d'un clic depuis l'écran **Réglages ⚙**. En secours : CSV produit par `tools/etl-role.py` — voir `docs/format-intrants.md`, runbook en annexe.
 
 ### B3. Verrouiller les inscriptions + créer les comptes admin
 1. **Authentication → Sign In / Providers** → **désactive les inscriptions publiques** (« Allow new users to sign up » → OFF).
@@ -87,6 +87,18 @@ Juste **Project URL** + **anon public key** (les deux publiques). Avec ça je br
 **C1. Déployer les 4 Edge Functions (~15 min, 🧑)** — le serveur au complet : validation des codes (rate-limit), catalogue livré après authentification, **moteur de calcul** (le client ne reçoit que des résultats), et l'**import des rôles** (assistant nouveau projet). Pour **chacun** des quatre fichiers du dossier `deploiement/edge/` :
 1. **Supabase → Edge Functions → Deploy a new function → Via Editor.**
 2. Nomme la fonction **exactement** : `ville-claim`, `ville-set`, `admin-data`, `role-import` (selon le fichier `.ts` collé). *(`role-import` embarque la liste des 1011 municipalités et télécharge le rôle officiel MAMH par municipalité — regénérée par `node tools/gen-role-import.js`.)*
+
+   ⚠️ `role-import` répond **en flux** (NDJSON) : la page et la fonction doivent être déployées **ensemble**. L'ancienne page ne sait pas lire le nouveau flux, et l'ancienne fonction ne sait pas l'émettre.
+
+   **Les gros rôles se chargent en plusieurs passes.** Une invocation traite au plus 32 Mo puis rend la main ; le client la rappelle automatiquement là où elle s'est arrêtée (`Range: bytes=`). Montréal demande 24 passes, les 7 villes de la MRC une seule chacune. C'est invisible à l'usage : la barre de progression avance d'un trait.
+
+   Ce plafond (24 Mo) borne le **CPU consommé par invocation**. C'est la limite réelle, confirmée par les logs : `CPU Time exceeded`, `cpu_time_used: 2079` — soit ~2 s, la mémoire restant à 44 Mo. Ni le wall clock ni la mémoire ne la signalent : l'invocation est tuée net, sans message. Si un import est encore interrompu, **baisser** `ROLE_IMPORT_MAX_MO` (ex. `12`) ; monter le wall clock ne sert à rien contre une limite de CPU.
+
+   ⚠️ `role-import` est la seule fonction **sans dépendance npm** : le chargement de `supabase-js` se paie sur le budget CPU à chaque démarrage d'isolate, et pesait plus que le parsing lui-même (~330 ms mesurés pour 32 Mo). Elle parle directement à PostgREST en `fetch`. **Ne pas y réintroduire d'`import npm:`** sans remesurer.
+
+   Une coupure n'est plus fatale : le serveur publie à chaque lot la position confirmée en base, et le client reprend de là. Si la console du navigateur montre beaucoup de lignes `flux coupé à N o — reprise`, c'est que `ROLE_IMPORT_MAX_MO` est trop haut pour ce fichier.
+
+   **Si un import est lent**, le message de fin donne le diagnostic : « … · 3,1 min (dont 78 % en base) · 24 passes ». Quand la base domine, le levier est `ROLE_IMPORT_LOT` (lignes par envoi, 5000 par défaut) : c'est la latence de chaque aller-retour vers Postgres qui coûte, pas les lignes. Le premier import complet de Montréal a pris 9 min à 1000 lignes par envoi, soit 438 allers-retours.
 3. Efface le code d'exemple, **colle tout le contenu** du fichier `.ts`, clique **Deploy**.
 4. ⚠ Dans les détails de chaque fonction : **désactive « Enforce JWT verification »** (nos clés *publishable* ne sont pas des JWT ; `admin-data` valide lui-même le jeton de session admin, les fonctions villes valident le code d'accès avec anti force-brute).
 - *(Rien d'autre à configurer : la `service_role` est déjà injectée automatiquement dans l'environnement des fonctions. Les fichiers `.ts` sont GÉNÉRÉS depuis `rules.js` par `node tools/gen-edge-functions.js` — après toute modification des règles : regénérer, re-coller.)*

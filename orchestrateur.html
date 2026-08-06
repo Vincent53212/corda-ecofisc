@@ -264,6 +264,26 @@ svg.viz .seuil{stroke:var(--brass); stroke-width:1.5; stroke-dasharray:3 3}
 .upzone input{display:none}
 .upzone label{cursor:pointer; color:var(--accent-deep); font-weight:600; text-decoration:underline}
 .upprog{font-family:var(--font-mono); font-size:.74rem; color:var(--brass); margin-top:8px; min-height:1.2em}
+/* inventaire par ville + rechargement du rôle officiel */
+.vroles{margin-top:8px; border-top:1px solid var(--line-2); padding-top:4px}
+.vrole{display:flex; align-items:center; gap:8px; padding:4px 0; font-size:.8rem}
+.vrole .n{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.vrole .u{font-family:var(--font-mono); font-size:.72rem; color:var(--faint); white-space:nowrap}
+.vrole .u.vide{color:var(--fav-neg)}
+.vrole .rl{cursor:pointer; border:1px solid var(--line); background:transparent; border-radius:6px; width:24px; height:24px; line-height:1; font-size:12px; color:var(--muted); flex:0 0 auto}
+.vrole .rl:hover:not(:disabled){border-color:var(--brass); color:var(--brass)}
+.vrole .rl:disabled,.roleact .btn:disabled{opacity:.45; cursor:default}
+.roleact{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+.roleact .btn{padding:6px 12px; font-size:.8rem}
+.rlprog{margin-top:10px}
+.rlprog .lg{display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:.78rem; color:var(--muted); margin-bottom:5px}
+.rlprog .lg .p{font-family:var(--font-mono); font-size:.72rem; color:var(--brass)}
+.pbar{height:6px; border-radius:4px; background:var(--line-2); overflow:hidden}
+.pbar>i{display:block; height:100%; width:0; background:var(--brass); border-radius:4px; transition:width .2s linear}
+.pbar.fini>i{background:var(--fav-pos)}
+.pbar.rate>i{background:var(--fav-neg)}
+.rlmsg{font-family:var(--font-mono); font-size:.74rem; color:var(--brass); margin-top:8px; line-height:1.5}
+.upzone .rlprog{text-align:left; margin-top:8px}
 .gearbtn{cursor:pointer; border:1px solid var(--line); background:transparent; border-radius:7px; width:34px; height:34px; font-size:16px; color:var(--muted)}
 .gearbtn:hover{border-color:var(--brass); color:var(--brass)}
 /* Sélecteur de municipalités (nouveau projet) */
@@ -562,6 +582,31 @@ const remote = {
     const j=await r.json().catch(()=>({}));
     if(!r.ok) throw Object.assign(new Error(j.error||('Erreur serveur ('+r.status+')')),{status:r.status});
     return j; },
+  /* ---- Edge Function à réponse EN FLUX (NDJSON) — role-import ----
+     Une ligne JSON par point de progression, la DERNIÈRE porte le verdict.
+     Le statut HTTP est figé dès le premier octet émis : un échec survenu en
+     cours de route ne peut donc PAS se lire dans r.status. C'est l'absence de
+     ligne finale qui signale un flux coupé — d'où le test sur `fin`. */
+  async fnStream(name, body, onProg){
+    const call=()=>fetch(SUPABASE_URL+'/functions/v1/'+name, {method:'POST', headers:this._hdrs(), body:JSON.stringify(body)});
+    let r=await call();
+    if(r.status===401 && this.session){ await this.refresh(); r=await call(); } /* un import long survit à l'expiration du jeton */
+    if(!r.ok){ const j=await r.json().catch(()=>({}));
+      throw Object.assign(new Error(j.error||('Erreur serveur ('+r.status+')')),{status:r.status}); }
+    if(!r.body) throw new Error('Réponse sans flux (navigateur trop ancien ?).');
+    const rd=r.body.getReader(), dec=new TextDecoder(); let buf='', fin=null;
+    for(;;){ const {done, value}=await rd.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      let i; while((i=buf.indexOf('\n'))>=0){ const ligne=buf.slice(0,i).trim(); buf=buf.slice(i+1);
+        if(!ligne) continue;
+        let o; try{ o=JSON.parse(ligne); }catch(e){ continue; } /* ligne tronquée : le flux la complètera */
+        if(o.fin) fin=o; else if(onProg) onProg(o); } }
+    /* dernière ligne arrivée sans saut terminal : ne pas la perdre (un import
+       réussi annoncé comme échoué enverrait relancer 13 min de travail) */
+    if(!fin && buf.trim()){ try{ const o=JSON.parse(buf.trim()); if(o.fin) fin=o; }catch(e){} }
+    if(!fin) throw new Error('Flux interrompu — import incomplet, relancer.');
+    if(fin.error) throw new Error(fin.error);
+    return fin; },
   /* ---- Auth admin ---- */
   async signIn(email, pw){
     const r=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password',{method:'POST',
@@ -1484,13 +1529,15 @@ function renderProjets(){
     let tot=0; const echecs=[];
     for(let i=0;i<villes.length;i++){ const v=villes[i];
       imp.innerHTML='<span class="l">Chargement des rôles… '+(i+1)+'/'+villes.length+'</span> — '+esc(v.nom)+'…';
-      try{ const res=await remote.fn('role-import', {projectId:p.id, villes:[{code:v.code, ville_id:v.id}]});
-        const r=(res.resultats||[])[0]||{};
-        if(r.n!=null) tot+=r.n; else echecs.push(v.nom+' ('+(r.erreur||'échec')+')');
-      }catch(e){ console.error(v.code,e); echecs.push(v.nom+' (serveur)'); }
+      try{ const r=await importerVilleReprise(p.id, v, (pct,n)=>{
+          imp.innerHTML='<span class="l">Chargement des rôles… '+(i+1)+'/'+villes.length+'</span> — '+esc(v.nom)
+            +' · '+pct+' %'+(n?' ('+n.toLocaleString('fr-CA')+' unités)':''); });
+        tot+=r.n||0;
+        if(r.erreur) echecs.push(v.nom+' : '+r.erreur);
+      }catch(e){ console.error(v.code,e); echecs.push(v.nom+' : '+(e.message||'serveur')); }
     }
     imp.innerHTML='<span class="l">✓ Projet prêt.</span> '+tot.toLocaleString('fr-CA')+' unités chargées'
-      +(echecs.length?' · <span style="color:var(--fav-neg)">échecs : '+esc(echecs.join(', '))+' — chargeables via l\'ETL (Réglages)</span>':'')
+      +(echecs.length?' · <span style="color:var(--fav-neg)">échecs : '+esc(echecs.join(' · '))+' — relançables dans Réglages ⚙</span>':'')
       +' · <button type="button" class="btn primary" id="npGo" style="padding:5px 11px; margin-left:8px">Ouvrir le calculateur</button>';
     computedStale=true; agg=null;
     const go2=$('#npGo'); if(go2) go2.onclick=()=>{ store.setActive(p.id); syncVilles(); renderProjPill(); go('calculateur'); };
@@ -1813,6 +1860,16 @@ function csvParse(text){ /* CSV robuste : virgule OU point-virgule, champs entre
   if(cur!==''||row.length){ row.push(cur); if(row.some(c=>c!=='')) rows.push(row); }
   return rows;
 }
+/* barre de la zone de dépôt — même composant que celle du rôle (.rlprog/.pbar) */
+function upBarre(a, b, lib){
+  const z=$('#upZone'); if(!z) return;
+  z.hidden=false;
+  const g=b?Math.round(a/b*100):0;
+  const i=$('#upBar'), t=$('#upPct'), l=$('#upLib');
+  if(i) i.style.width=g+'%';
+  if(t) t.textContent=g+' %';
+  if(l) l.textContent=lib+' — '+a.toLocaleString('fr-CA')+' / '+b.toLocaleString('fr-CA');
+}
 async function upsertBatches(path, objets, prog){
   const LOT=1000;
   for(let i=0;i<objets.length;i+=LOT){
@@ -1837,6 +1894,8 @@ async function chargerFichier(file){
   if(zone && zone.dataset.busy){ p.textContent='⏳ Un chargement est déjà en cours…'; return; }
   if(zone) zone.dataset.busy='1';
   try{
+    p.textContent='Lecture du fichier…'; /* un gros CSV met plusieurs secondes à se parser */
+    await new Promise(r=>setTimeout(r,0));  /* laisse le message s'afficher avant de bloquer le fil */
     let texte=await file.text();
     const rows=csvParse(texte);
     if(rows.length<2){ p.textContent='⚠ Fichier vide ou illisible.'; return; }
@@ -1855,7 +1914,8 @@ async function chargerFichier(file){
           terrain_vague_desservi:idx('terrain_vague_desservi')>=0?(r[idx('terrain_vague_desservi')]||null):null,
           zonage_agricole:idx('zonage_agricole')>=0?(r[idx('zonage_agricole')]||null):null }); });
       if(!objets.length){ p.textContent='⚠ Aucune unité valide (matricule/ville manquants ?).'; return; }
-      await upsertBatches('role_unites?on_conflict=project_id,ville_id,matricule', objets, (a,b)=>{ p.textContent='Rôle : '+a+' / '+b+' unités…'; });
+      p.textContent='Envoi vers la base…';
+      await upsertBatches('role_unites?on_conflict=project_id,ville_id,matricule', objets, (a,b)=>upBarre(a,b,'Rôle'));
       p.textContent='✓ Rôle chargé — '+objets.length.toLocaleString('fr-CA')+' unités.'; remote.audit('write',{table:'role_unites', n:objets.length, source:file.name});
     } else if(idx('matricule')>=0){ /* ---- intrant de ville (format universel) : large → long ---- */
       const attrs=head.filter(h=>h!=='matricule' && h!=='ville_id');
@@ -1867,14 +1927,102 @@ async function chargerFichier(file){
           const cle=mat+'|'+a; if(vu.has(cle)) return; vu.add(cle);
           objets.push({project_id:pid, ville_id:vid, matricule:mat, attribut:a, valeur:String(v).trim(), source:file.name}); }); });
       if(!objets.length){ p.textContent='⚠ Aucune valeur à charger (colonnes vides ?).'; return; }
-      await upsertBatches('intrants?on_conflict=project_id,matricule,attribut', objets, (a,b)=>{ p.textContent='Intrant : '+a+' / '+b+' valeurs…'; });
+      p.textContent='Envoi vers la base…';
+      await upsertBatches('intrants?on_conflict=project_id,matricule,attribut', objets, (a,b)=>upBarre(a,b,'Intrant « '+file.name+' »'));
       p.textContent='✓ Intrant « '+file.name+' » chargé — '+objets.length.toLocaleString('fr-CA')+' valeurs ('+attrs.join(', ')+').';
       remote.audit('write',{table:'intrants', n:objets.length, source:file.name});
     } else { p.textContent='⚠ Format non reconnu : il faut au minimum une colonne « matricule » (voir docs/format-intrants.md).'; return; }
   }catch(e){ console.error(e); p.textContent='⚠ Échec du chargement : '+(e.message||'erreur serveur')+' — reprendre le fichier.'; }
   finally{ agg=null; if(zone) delete zone.dataset.busy; renderReglages($('#upProg').textContent); } /* invalider le cache MÊME en cas d'échec partiel */
 }
-async function renderReglages(message){
+/* ---- rechargement du rôle officiel (MAMH) pour les villes du projet ----
+   Rejoue exactement ce que fait la création de projet, mais à la demande : le
+   téléchargement peut avoir échoué (serveur MAMH indisponible, session expirée,
+   rôle trop volumineux). role-import purge puis réinsère la ville — l'appel est
+   donc idempotent, et un échec de téléchargement laisse les données en place. */
+/* Un rôle volumineux dépasse ce qu'une seule invocation serveur peut traiter
+   (limite de CPU, invisible depuis le client) : la fonction rend la main avec
+   { suite:{offset,etag} } et on la rappelle là où elle s'est arrêtée. Montréal
+   demande ~24 passes ; les petites villes en font une seule et n'y voient rien. */
+const MAX_PASSES=400; /* filet anti-boucle : bien au-delà du pire cas réel */
+async function importerVilleReprise(pid, v, onPct){
+  let reprise=null, passes=0, reparti=false, cumul=0, plancher=0, msDb=0, dernier={};
+  let sur=0, etag='', total=0, coupures=0; /* dernier point CONFIRMÉ en base, annoncé par le serveur */
+  const t0=Date.now();
+  /* la barre ne recule JAMAIS : le passage d'une passe à l'autre peut annoncer un
+     pourcentage très légèrement inférieur (l'offset recule de 64 octets à dessein) */
+  const avancer=(pct,n)=>{ if(pct>plancher) plancher=pct; onPct(plancher, n); };
+  for(;;){
+    if(++passes>MAX_PASSES) throw new Error('trop de reprises — abandon');
+    let res;
+    try{
+      res=await remote.fnStream('role-import',
+        {projectId:pid, villes:[{code:v.code, ville_id:v.id}], reprise},
+        o=>{ if(o.off>sur){ sur=o.off; coupures=0; } /* progrès réel : le compteur de coupures repart */
+             if(o.etag) etag=o.etag; if(o.total) total=o.total;
+             avancer(o.pct||0, cumul+(o.n||0)); }); /* n repart à 0 à chaque passe : cumuler, sinon le compteur recule */
+    }catch(e){
+      /* L'invocation est morte sans ligne finale (limite serveur, réseau…). Les
+         unités déjà confirmées sont en base : on repart de LEUR position plutôt
+         que d'abandonner tout l'import. Sans progrès depuis la dernière coupure,
+         on s'arrête — sinon on bouclerait sur le même obstacle. */
+      if(!/interrompu/i.test(e.message||'') || sur<=(reprise?reprise.offset:0) || ++coupures>3) throw e;
+      console.warn('flux coupé à '+sur+' o — reprise', e.message);
+      reprise={offset:sur, etag:etag, total:total};
+      continue;
+    }
+    dernier=(res.resultats||[])[0]||{};
+    /* le fichier a changé au MAMH (ou la reprise a été refusée) : on repart du
+       début UNE fois — la purge initiale rend l'opération propre. Seul cas où la
+       barre a le droit de revenir en arrière. */
+    if(dernier.recommencer && !reparti){ reparti=true; reprise=null; cumul=0; plancher=0; continue; }
+    cumul+=dernier.n||0; msDb+=dernier.ms_db||0;
+    if(dernier.suite){ reprise=dernier.suite; continue; }
+    break;
+  }
+  /* total_ville = count exact relu en base (le recouvrement entre passes fausse le cumul) */
+  return {n:dernier.total_ville!=null?dernier.total_ville:cumul, erreur:dernier.erreur, passes,
+          ms:Date.now()-t0, msDb};
+}
+let roleBusy=false;
+async function rechargerRoles(cibles){
+  const pid=store.activeId();
+  if(roleBusy || !cibles.length || !pid) return;
+  roleBusy=true;
+  $$('#reglagesHost .rl, #reglagesHost .roleact .btn').forEach(b=>b.disabled=true);
+  const zone=$('#rlProg'), bar=$('#rlBar'), lib=$('#rlLib'), pctT=$('#rlPct');
+  if(zone) zone.hidden=false;
+  /* barre GLOBALE : la ville i à pct % vaut (i + pct/100) / total.
+     Le serveur envoie ~100 points par ville, la progression reste fluide. */
+  const maj=(i, pct, n)=>{
+    const g=Math.min(100, Math.round((i + (pct||0)/100) / cibles.length * 100));
+    if(bar) bar.style.width=g+'%';
+    if(pctT) pctT.textContent=g+' %';
+    if(lib) lib.textContent=cibles[i].nom+(cibles.length>1?' ('+(i+1)+'/'+cibles.length+')':'')
+      +(n?' — '+n.toLocaleString('fr-CA')+' unités':'');
+  };
+  let tot=0, ms=0, msDb=0, passes=0; const echecs=[];
+  for(let i=0;i<cibles.length;i++){ const v=cibles[i];
+    maj(i, 0, 0);
+    try{
+      const r=await importerVilleReprise(pid, v, (pct,n)=>maj(i, pct, n));
+      tot+=r.n||0; ms+=r.ms||0; msDb+=r.msDb||0; passes+=r.passes||0;
+      if(r.erreur) echecs.push(v.nom+' : '+r.erreur);
+    }catch(e){ console.error(v.code,e); echecs.push(v.nom+' : '+(e.message||'serveur injoignable')); }
+  }
+  if(bar){ bar.style.width='100%'; bar.parentElement.classList.add(echecs.length?'rate':'fini'); }
+  agg=null; roleBusy=false; /* l'inventaire ET les agrégats du calculateur ont changé */
+  if(tot) remote.audit('write',{table:'role_unites', n:tot, source:'role-import (rechargement)', ms:ms, ms_db:msDb, passes:passes});
+  /* le détail du temps rend le prochain ralentissement diagnosticable sans outillage :
+     si ms_db domine, c'est la base ; sinon c'est le téléchargement ou le parsing */
+  const duree=ms>1500?' · '+(ms/1000).toFixed(ms>60000?0:1)+' s'
+    +(msDb?' (dont '+Math.round(msDb/ms*100)+' % en base)':'')
+    +(passes>cibles.length?' · '+passes+' passes':''):'';
+  renderReglages(null, (echecs.length?'⚠ ':'✓ ')+tot.toLocaleString('fr-CA')+' unités chargées'+duree
+    +(echecs.length?' · '+echecs.join(' · '):''));
+}
+/* message : zone de dépôt CSV · msgRole : bandeau de la section « rôle » */
+async function renderReglages(message, msgRole){
   const host=$('#reglagesHost');
   host.innerHTML='<div class="card"><div class="stub"><div class="glyph">⚙</div><div>Inventaire des sources…</div></div></div>';
   let parVille={}, totalUnites=0, panne=false;
@@ -1882,12 +2030,31 @@ async function renderReglages(message){
     agg.rows.forEach(r=>{ parVille[r.ville_id]=(parVille[r.ville_id]||0)+(+r.n); totalUnites+=+r.n; });
   }catch(e){ console.error(e); panne=true; } /* serveur injoignable ≠ rôle absent — ne pas inciter à recharger pour rien */
   const roleOk=totalUnites>0;
-  const villesTxt=VILLES.map(v=>abbrVille(v.nom)+' '+(parVille[v.id]||0)).join(' · ');
+  const manquantes=VILLES.filter(v=>v.code && !(parVille[v.id]||0));
+  /* une ligne par ville : compte + ↻ pour rejouer le téléchargement officiel */
+  const listeVilles=VILLES.length?'<div class="vroles">'+VILLES.map((v,i)=>{
+    const n=parVille[v.id]||0;
+    return '<div class="vrole"><span class="n">'+esc(v.nom)+'</span>'
+      +'<span class="u'+(!panne&&!n?' vide':'')+'">'+(panne?'—':n?n.toLocaleString('fr-CA')+' unités':'aucune unité')+'</span>'
+      +(v.code?'<button type="button" class="rl" data-i="'+i+'" title="Retélécharger le rôle officiel de '+esc(v.nom)+' ('+esc(v.code)+')" aria-label="Recharger le rôle de '+esc(v.nom)+'">↻</button>'
+              :'<span class="u">code absent</span>')
+      +'</div>'; }).join('')+'</div>':'';
   host.innerHTML=`
     <div class="card" data-anno="Réglages — sources">
       <h3>Sources de données — projet « ${esc((store.activeProj()||{}).title||'')} »</h3>
       <div class="src"><div class="ic">🗺</div><div class="bd"><div class="t">Rôle d'évaluation foncière</div>
-        <div class="d">Données Québec / MAMH (CC-BY 4.0) · extrait par ville via <span class="mono">tools/etl-role.py</span> · ${panne?'inventaire indisponible (serveur injoignable)':roleOk?('<b>'+totalUnites.toLocaleString('fr-CA')+' unités</b> — '+esc(villesTxt)):'aucune unité chargée pour ce projet'}</div></div>
+        <div class="d">Données Québec / MAMH (CC-BY 4.0) · téléchargé automatiquement à la création du projet, ou extrait via <span class="mono">tools/etl-role.py</span> · ${panne?'inventaire indisponible (serveur injoignable)':roleOk?('<b>'+totalUnites.toLocaleString('fr-CA')+' unités</b> au total'):'aucune unité chargée pour ce projet'}</div>
+        ${listeVilles}
+        <div class="roleact">
+          <button type="button" class="btn ghost" id="rlAll">↻ Retélécharger tous les rôles</button>
+          ${manquantes.length&&!panne&&manquantes.length<VILLES.length?'<button type="button" class="btn ghost" id="rlVides">↻ Charger les '+manquantes.length+' manquantes</button>':''}
+          <button type="button" class="btn ghost" id="rlRefresh">Rafraîchir l'inventaire</button>
+        </div>
+        <div class="rlprog" id="rlProg" hidden>
+          <div class="lg"><span id="rlLib">…</span><span class="p" id="rlPct">0 %</span></div>
+          <div class="pbar"><i id="rlBar"></i></div>
+        </div>
+        ${msgRole?'<div class="rlmsg">'+esc(msgRole)+'</div>':''}</div>
         <span class="st2 ${panne?'no':roleOk?'ok':'no'}">${panne?'—':roleOk?'Chargé ✓':'Non chargé'}</span></div>
       <div class="src"><div class="ic">🏙</div><div class="bd"><div class="t">Intrants des villes (format universel)</div>
         <div class="d">Une ligne par matricule, leurs colonnes (canopée, desserte, vacance…) — voir <span class="mono">docs/format-intrants.md</span>. Se greffent au rôle par le matricule.</div></div>
@@ -1897,12 +2064,21 @@ async function renderReglages(message){
         <span class="st2 no">À venir</span></div>
       <div class="upzone"><div>Déposer un fichier CSV — rôle (produit de l'ETL) ou intrant de ville</div>
         <label for="upFile">choisir un fichier…</label><input type="file" id="upFile" accept=".csv,text/csv">
-        <div class="upprog" id="upProg">${esc(typeof message==='string'?message:'')}</div></div>
+        <div class="upprog" id="upProg">${esc(typeof message==='string'?message:'')}</div>
+        <div class="rlprog" id="upZone" hidden>
+          <div class="lg"><span id="upLib">…</span><span class="p" id="upPct">0 %</span></div>
+          <div class="pbar"><i id="upBar"></i></div>
+        </div></div>
     </div>`;
   const inp=$('#upFile'); inp.onchange=()=>{ if(inp.files[0]) chargerFichier(inp.files[0]); };
   const zone=$('#reglagesHost .upzone');
   zone.ondragover=e=>{ e.preventDefault(); };
   zone.ondrop=e=>{ e.preventDefault(); const f=e.dataTransfer.files[0]; if(f) chargerFichier(f); };
+  /* rechargement du rôle : par ville, en lot, ou simple relecture de l'inventaire */
+  $$('#reglagesHost .vrole .rl').forEach(b=>b.onclick=()=>{ const v=VILLES[+b.dataset.i]; if(v) rechargerRoles([v]); });
+  const rlAll=$('#rlAll'); if(rlAll) rlAll.onclick=()=>rechargerRoles(VILLES.filter(v=>v.code));
+  const rlVides=$('#rlVides'); if(rlVides) rlVides.onclick=()=>rechargerRoles(manquantes);
+  const rlRef=$('#rlRefresh'); if(rlRef) rlRef.onclick=()=>{ agg=null; renderReglages(null, 'Inventaire rafraîchi.'); };
 }
 
 /* ===================== BOOT (en ligne seulement — le contenu arrive après authentification) ===================== */

@@ -64,6 +64,15 @@ qu'une mesure s'en sert.)*
 
 ## Annexe — runbook interne « nouveau projet » (équipe Corda)
 
+**Le chemin normal ne demande plus rien de tout ça.** À la création d'un projet, on
+cherche les municipalités par leur nom dans le sélecteur : le code officiel s'attache
+tout seul et l'app télécharge le rôle du MAMH pour chacune, avec une barre de
+progression. Si une ville échoue, elle se recharge d'un clic (**Réglages ⚙ → ↻**).
+La taille n'est plus un obstacle : le fichier est lu en flux (Montréal, 758 Mo, passe).
+
+Le chemin ci-dessous reste le **secours** — site du MAMH indisponible, millésime plus
+ancien, ou besoin des colonnes géoréférencées que le XML ne porte pas :
+
 1. Trouver les **codes géographiques** des municipalités du mandat (répertoire MAMH/ISQ).
 2. Télécharger le rôle géoréférencé du millésime courant :
    `https://donneesouvertes.affmunqc.net/role/ROLE<année>_GEOPACKAGE.zip` (~600 Mo, tout

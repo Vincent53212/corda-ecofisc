@@ -72,6 +72,15 @@ la vérité. Si Fanny décide de changer une règle (ex. l'arrondi des moyennes)
 **quelques lignes à un seul endroit**, les 35 tests confirment que rien d'autre n'a
 bougé, on regénère les fonctions serveur, et tout l'écosystème suit.
 
+**D'où vient le rôle d'évaluation ?** Du MAMH (donnée ouverte, CC-BY 4.0). À la création
+d'un projet, l'app télécharge elle-même le rôle officiel de chaque municipalité choisie —
+n'importe laquelle des 1 011 du Québec. Le fichier est lu **en flux**, par tranches que le
+serveur enchaîne tout seul : celui de Montréal pèse 758 Mo et se charge en 24 passes, sans
+que rien n'y paraisse à l'écran. Une barre de progression suit l'opération dans
+**Réglages ⚙**, où chaque ville se recharge d'un clic si son téléchargement a échoué.
+L'extraction locale (`tools/etl-role.py`) reste disponible en secours, mais n'est plus le
+chemin normal.
+
 **Où vivent les données ?** Dans **Supabase, région Canada** (exigence de la Loi 25
 puisqu'on recueille des noms de représentants municipaux) : base verrouillée par défaut,
 consentements horodatés, journal des accès, anti force-brute sur les codes. L'app est
@@ -90,6 +99,7 @@ consentements horodatés, journal des accès, anti force-brute sur les codes. L'
 | Mise en ligne sur `ecofisc.corda.consulting` (HTTPS + en-têtes de sécurité) | ✅ |
 | Backend centralisé (Supabase Canada) + vraie authentification admin | ✅ |
 | Architecture « coffre-fort » (contenu et calculs servis après authentification) | ✅ |
+| Rôle d'évaluation téléchargé automatiquement, en flux — sans limite de taille | ✅ |
 | Cadrage Loi 25 complet (politique, EFVP, entente) — **avant toute vraie donnée** | 🔜 |
 | Go-live en cercle fermé (~1 mois), ville pilote, puis les 7 villes | à venir |
 
