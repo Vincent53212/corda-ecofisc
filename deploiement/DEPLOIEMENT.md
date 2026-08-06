@@ -69,9 +69,28 @@ Ouvre **`https://ecofisc.corda.consulting`** → l'écran de connexion de l'Orch
 4. **`sql/calculateur.sql`** (module Calculateur) : tables du rôle d'évaluation et des intrants + fonction d'agrégats. Rejouable. Le rôle se charge ensuite tout seul à la création d'un projet (téléchargement du fichier officiel MAMH par `role-import`), et se recharge d'un clic depuis l'écran **Réglages ⚙**. En secours : CSV produit par `tools/etl-role.py` — voir `docs/format-intrants.md`, runbook en annexe.
    ⚠️ **Ce fichier commence par un `drop table role_unites cascade`** : le rejouer vide le rôle déjà chargé (il faut alors le recharger depuis Réglages ⚙). C'est voulu — la clé primaire a changé une fois — mais ça se sait avant de cliquer Run.
 5. **`sql/purge-role-archive.sql`** : fait disparaître le rôle d'évaluation d'un projet **quand on l'archive**. Sans ça, un projet supprimé garde ses dizaines de milliers de lignes de rôle jusqu'à la destruction réelle, des années plus tard — le disque se remplit en silence. Ne touche **ni** les intrants des villes, **ni** les réponses, **ni** les consentements : on ne jette que ce qui se retélécharge d'un clic (le rôle est une donnée ouverte du MAMH). Rejouable, ne détruit aucune table, et se termine par un tableau du poids réel par projet.
-6. **`sql/role-geo.sql`** (carte d'incidence) : ajoute les colonnes `lon`/`lat` à `role_unites` et crée `calc_grille()`, qui agrège les unités en cases pour la carte du Calculateur. Rejouable, ne détruit aucune table.
-   ⚠️ **Les coordonnées n'arrivent pas toutes seules.** Le rechargement automatique du rôle (bouton de l'écran **Réglages ⚙**) lit le **XML** prescrit du MAMH, qui **ne porte pas la géométrie** : les unités importées par ce chemin ont `lon`/`lat` à NULL et n'apparaissent pas sur la carte. Pour obtenir les positions, il faut passer par le **CSV de `tools/etl-role.py` v2**, qui lit la couche `rol_unite_p` du GeoPackage — voir le runbook en annexe. La carte le dit d'elle-même (« n unités sans position »), mais mieux vaut le savoir avant de chercher.
+6. **`sql/role-geo.sql`** (carte d'incidence) : ajoute les colonnes `lon`/`lat` à `role_unites`, crée `calc_grille()` (agrégation en cases pour la carte) et `maj_positions()` (remplissage des coordonnées). Rejouable, ne détruit aucune table.
    ⚠️ Le fond de carte vient de **`basemaps.cartocdn.com`** : c'est le seul tiers appelé par l'app. L'hôte doit rester autorisé dans la directive `img-src` de la CSP (générée par `tools/build-dist.js`), sinon le fond disparaît **sans message d'erreur** — seules les cases restent. Justification consignée dans `loi25/03-efvp.md` § 4 bis.
+
+### B2 bis. Déposer les positions (une fois par millésime du rôle)
+
+**Pourquoi.** Le rôle circule en deux formats et **un seul porte la géométrie**. Le XML prescrit que `role-import` télécharge n'a aucune coordonnée — vérifié : ses champs `RL0104G`/`RL0104H` sont vides sur les 59 686 unités de la MRC. Sans le dépôt ci-dessous, toute ville créée par le sélecteur arriverait avec une carte vide.
+
+1. Télécharger `ROLE20XX_GEOPACKAGE.zip` (~546 Mo) depuis `donneesouvertes.affmunqc.net/role/`, décompresser **hors OneDrive**.
+2. `python tools/gen-positions.py <chemin>\Role_20XX_2.gpkg <dossier-de-sortie>`
+   → un fichier `<code_mun>.csv` par municipalité (**1 098 fichiers, ~135 Mo** pour 2026).
+3. `$env:SUPABASE_SERVICE_ROLE_KEY="eyJ..."` puis
+   `node tools/upload-positions.js <dossier-de-sortie>`
+   → crée le bucket **public** `positions` et y dépose le tout. **Reprenable** : relancer la commande saute ce qui est déjà en place.
+4. Contrôle : `https://<projet>.supabase.co/storage/v1/object/public/positions/73005.csv` doit répondre du CSV.
+
+Ensuite, plus rien à faire : la création d'un projet et le bouton ↻ de **Réglages ⚙** chargent les positions d'eux-mêmes, juste après le rôle.
+
+> **Le bucket est public, et c'est voulu** : il ne contient que `matricule,lon,lat` — des données ouvertes du MAMH (CC-BY 4.0), les mêmes que le GeoPackage téléchargeable par quiconque. Aucune valeur, aucune cotation, aucune identité. Le rendre privé obligerait l'app à signer chaque requête sans rien protéger de plus.
+>
+> **La correspondance des matricules a été vérifiée** : le XML assemble le matricule depuis `RL0104A`→`F`, le GeoPackage le publie en `mat18`. Testé sur Bois-des-Filion (3 949) et Blainville (22 059) : **100 % de correspondance**. Si un millésime futur changeait ce format, `maj_positions` retournerait 0 et la carte resterait vide — c'est le compte affiché après l'import (« N positions ») qui le révélerait.
+>
+> ⚠️ **À rejouer quand le MAMH publie un nouveau millésime** (le rôle 2026 date du 9 juin 2026). Les matricules changent d'un millésime à l'autre.
 
 ### B3. Verrouiller les inscriptions + créer les comptes admin
 1. **Authentication → Sign In / Providers** → **désactive les inscriptions publiques** (« Allow new users to sign up » → OFF).

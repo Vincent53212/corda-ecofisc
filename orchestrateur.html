@@ -1578,7 +1578,20 @@ function renderProjets(){
         if(r.erreur) echecs.push(v.nom+' : '+r.erreur);
       }catch(e){ console.error(v.code,e); echecs.push(v.nom+' : '+(e.message||'serveur')); }
     }
+    /* positions : absentes du XML prescrit, elles viennent du dépôt public.
+       Enchaînées ici — sans elles la carte d'incidence du nouveau projet serait
+       vide. Un échec ne compromet pas le projet : seule la carte manque. */
+    let pos=0, posEchecs=0;
+    for(let i=0;i<villes.length;i++){ const v=villes[i];
+      imp.innerHTML='<span class="l">Positions… '+(i+1)+'/'+villes.length+'</span> — '+esc(v.nom)+'…';
+      try{ pos+=await chargerPositions(p.id, v, (a,b)=>{
+        imp.innerHTML='<span class="l">Positions… '+(i+1)+'/'+villes.length+'</span> — '+esc(v.nom)
+          +' · '+(b?Math.round(a/b*100):0)+' %'; }); }
+      catch(e){ console.error('positions', v.code, e); posEchecs++; }
+    }
     imp.innerHTML='<span class="l">✓ Projet prêt.</span> '+tot.toLocaleString('fr-CA')+' unités chargées'
+      +(pos?' · '+pos.toLocaleString('fr-CA')+' positions':'')
+      +(posEchecs?' · <span style="color:var(--fav-warn)">carte incomplète : positions indisponibles pour '+posEchecs+' ville(s)</span>':'')
       +(echecs.length?' · <span style="color:var(--fav-neg)">échecs : '+esc(echecs.join(' · '))+' — relançables dans Réglages ⚙</span>':'')
       +' · <button type="button" class="btn primary" id="npGo" style="padding:5px 11px; margin-left:8px">Ouvrir le calculateur</button>';
     computedStale=true; agg=null; grille=null;
@@ -1796,7 +1809,8 @@ function carteIncidence(){
   const cells=[...grille.cells.values()];
   if(!cells.length){
     host.innerHTML='<div class="stub"><div class="glyph">◍</div><div>Aucune position pour ce projet.<br>'
-      +'Le rôle a été importé sans géométrie — rechargez-le depuis le CSV de l\'ETL (<b>Réglages ⚙</b>).</div></div>';
+      +'Le rôle a été importé avant que les positions n\'existent — relancez le téléchargement '
+      +'depuis <b>Réglages ⚙</b> (bouton ↻), il les charge maintenant d\'office.</div></div>';
     if(leg) leg.innerHTML=''; if(note) note.textContent=''; return;
   }
   const m=calcState.measure, parUnite=calcState.metrique==='unite';
@@ -2201,6 +2215,19 @@ async function rechargerRoles(cibles){
       if(r.erreur) echecs.push(v.nom+' : '+r.erreur);
     }catch(e){ console.error(v.code,e); echecs.push(v.nom+' : '+(e.message||'serveur injoignable')); }
   }
+  /* ---- positions : le XML du MAMH n'en porte pas, elles viennent du dépôt ----
+     Enchaîné ici plutôt que laissé à un geste manuel : sans ça, toute ville
+     créée par le sélecteur arriverait avec une carte vide. Un échec n'annule
+     PAS l'import — le rôle est chargé, seule la carte manque. */
+  let pos=0, posEchecs=0;
+  for(let i=0;i<cibles.length;i++){ const v=cibles[i];
+    if(!v.code) continue;
+    if(lib) lib.textContent='Positions — '+v.nom+(cibles.length>1?' ('+(i+1)+'/'+cibles.length+')':'');
+    try{ pos+=await chargerPositions(pid, v, (a,b)=>{
+      const g=Math.round((i+(b?a/b:0))/cibles.length*100);
+      if(bar) bar.style.width=g+'%'; if(pctT) pctT.textContent=g+' %'; }); }
+    catch(e){ console.error('positions', v.code, e); posEchecs++; }
+  }
   if(bar){ bar.style.width='100%'; bar.parentElement.classList.add(echecs.length?'rate':'fini'); }
   agg=null; grille=null; roleBusy=false; /* l'inventaire, les agrégats ET la carte ont changé */
   if(tot) remote.audit('write',{table:'role_unites', n:tot, source:'role-import (rechargement)', ms:ms, ms_db:msDb, passes:passes});
@@ -2210,7 +2237,47 @@ async function rechargerRoles(cibles){
     +(msDb?' (dont '+Math.round(msDb/ms*100)+' % en base)':'')
     +(passes>cibles.length?' · '+passes+' passes':''):'';
   renderReglages(null, (echecs.length?'⚠ ':'✓ ')+tot.toLocaleString('fr-CA')+' unités chargées'+duree
+    +(pos?' · '+pos.toLocaleString('fr-CA')+' positions':'')
+    +(posEchecs?' · ⚠ positions indisponibles pour '+posEchecs+' ville(s) — la carte sera incomplète':'')
     +(echecs.length?' · '+echecs.join(' · '):''));
+}
+
+/* ---- positions des unités (carte d'incidence) ----
+   Le rôle officiel du MAMH circule en DEUX formats : le XML prescrit, que
+   role-import télécharge, et le GeoPackage géoréférencé. Seul le second porte
+   les coordonnées — vérifié : les champs RL0104G/H du XML sont vides partout.
+   On les tire donc d'un dépôt public préparé une fois par millésime
+   (tools/gen-positions.py puis tools/upload-positions.js), un fichier par
+   municipalité, et on remplit les unités DÉJÀ importées via maj_positions().
+
+   Ce sont des données ouvertes (MAMH, CC-BY 4.0) : le dépôt est public et ne
+   contient que matricule + longitude + latitude. Rien du mandat n'y figure. */
+const POSITIONS_URL=SUPABASE_URL+'/storage/v1/object/public/positions/';
+const POS_LOT=4000; /* lignes par appel : ~200 Ko de JSON, une seule requête par lot */
+async function chargerPositions(pid, ville, onProgress){
+  const r=await fetch(POSITIONS_URL+encodeURIComponent(ville.code)+'.csv');
+  if(r.status===404) throw new Error('aucun fichier de positions pour le code '+ville.code);
+  if(!r.ok) throw new Error('dépôt de positions : '+r.status);
+  const texte=await r.text();
+  const lignes=texte.split('\n');
+  const objets=[];
+  for(let i=1;i<lignes.length;i++){ /* i=1 : on saute l'en-tête */
+    const l=lignes[i]; if(!l) continue;
+    const a=l.indexOf(','), b=l.indexOf(',', a+1); if(a<0||b<0) continue;
+    const lon=+l.slice(a+1,b), lat=+l.slice(b+1);
+    if(!isFinite(lon)||!isFinite(lat)) continue;
+    objets.push({matricule:l.slice(0,a), lon, lat});
+  }
+  let n=0;
+  for(let i=0;i<objets.length;i+=POS_LOT){
+    const res=await remote.rest('rpc/maj_positions',{method:'POST',
+      body:JSON.stringify({pid, ville:ville.id, lignes:objets.slice(i,i+POS_LOT)})});
+    n+=(typeof res==='number'?res:0); /* la fonction retourne le nombre d'unités TOUCHÉES,
+      qui est inférieur au nombre de lignes envoyées : le fichier couvre toute la
+      municipalité, le projet n'en a importé qu'un millésime donné */
+    if(onProgress) onProgress(Math.min(i+POS_LOT, objets.length), objets.length);
+  }
+  return n;
 }
 /* message : zone de dépôt CSV · msgRole : bandeau de la section « rôle » */
 async function renderReglages(message, msgRole){

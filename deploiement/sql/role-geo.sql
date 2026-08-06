@@ -125,7 +125,36 @@ $$;
 revoke execute on function public.calc_grille(text, integer) from public, anon;
 grant  execute on function public.calc_grille(text, integer) to authenticated;
 
--- ---------- 3) Contrôle : à lire après le Run ----------
+-- ---------- 3) Remplissage des positions depuis le dépôt public ----------
+-- Le rechargement automatique du rôle lit le XML prescrit du MAMH, qui NE PORTE
+-- PAS la géométrie (vérifié : les champs RL0104G/H y sont vides partout). Les
+-- positions viennent donc d'un dépôt à part, un fichier par municipalité, extrait
+-- une fois du GeoPackage par tools/gen-positions.py et déposé par
+-- tools/upload-positions.js. L'app le lit et appelle cette fonction par lots.
+--
+-- UPDATE et non UPSERT, délibérément : on ne crée JAMAIS d'unité ici. Un fichier
+-- de positions couvre TOUTE la municipalité, alors qu'un projet peut n'en avoir
+-- importé qu'une partie (ou un millésime différent) ; un upsert fabriquerait des
+-- unités fantômes sans valeur ni CUBF, qui fausseraient les agrégats en silence.
+-- Les matricules inconnus sont donc ignorés sans bruit — et l'écart se lit dans
+-- le compte retourné.
+create or replace function public.maj_positions(pid text, ville text, lignes jsonb)
+returns integer language plpgsql as $$
+declare n integer;
+begin
+  update public.role_unites r
+     set lon = p.lon, lat = p.lat
+    from jsonb_to_recordset(lignes)
+      as p(matricule text, lon double precision, lat double precision)
+   where r.project_id = pid and r.ville_id = ville and r.matricule = p.matricule;
+  get diagnostics n = row_count;
+  return n;
+end $$;
+-- security INVOKER (défaut) : la RLS de role_unites s'applique, donc admin seul.
+revoke execute on function public.maj_positions(text, text, jsonb) from public, anon;
+grant  execute on function public.maj_positions(text, text, jsonb) to authenticated;
+
+-- ---------- 4) Contrôle : à lire après le Run ----------
 -- Avant le rechargement du rôle, lon/lat sont NULL partout : c'est normal.
 -- Après, « sans position » doit être à 0 pour le projet TDB.
 select p.id  as projet,
