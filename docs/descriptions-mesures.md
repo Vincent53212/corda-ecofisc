@@ -71,7 +71,7 @@ Modulation du taux de taxe foncière selon le nombre de logements et la typologi
 
 **Description**
 
-Taux de taxe foncière distincts pour les immeubles commerciaux/industriels selon le code d'utilisation des biens-fonds (CUBF) : soit pour les industries polluantes (aliments/boissons, minéraux, pétrole, chimie, transport…), soit pour les entreprises d'économie circulaire (recyclage, récupération, vente d'occasion, compostage).
+Taux de taxe foncière distincts pour les immeubles commerciaux en fonction du code d'utilisation des biens-fonds (CUBF) : soit pour les activités polluantes (aliments/boissons, minéraux, pétrole, chimie, transport…), soit pour les entreprises d'économie circulaire (recyclage, récupération, vente d'occasion, compostage).
 
 ### m03 · Sous-catégorie - secteurs
 
@@ -81,13 +81,13 @@ Taux de taxe foncière distincts pour les immeubles commerciaux/industriels selo
 
 Régime d'impôt foncier à taux variés modulés selon les secteurs d'imposition définis (p. ex. central, TOD, excentré, rural), avec des taux de base sectoriels respectant un écart maximal de 33,3 % par rapport au taux uniformisé.
 
-### m04 · Taux varié par tranche de valeur (non résidentiels)
+### m04 · Taux varié par tranche de valeur (non résidentiel)
 
 **en ligne** · source : Mascouche, fiche 5 « Sous-catégories de taxation par tranche de valeur (non résidentiels) »
 
 **Description**
 
-Régime d'impôt foncier à taux variés par tranche de valeur pour les immeubles non résidentiels (p. ex. < 1 M$, 1-2 M$, 2 M$ et plus). Un second taux peut s'appliquer, sans excéder 133,3 % du premier.
+Régime d'impôt foncier à taux variés par tranche de valeur pour les immeubles non résidentiels (p. ex. < 1 M$, 1-2 M$, 2 M$ et plus). Un second taux peut s'appliquer, sans excéder 133,3 % du premier, tout en respectant les coefficients maximaux prévus pour les immeubles non résidentiels et industriels.
 
 ### m05 · Taux varié terrain vague desservi
 
@@ -103,7 +103,7 @@ Taxe pouvant atteindre quatre fois le taux de base (résidentiel) sur les terrai
 
 **Description**
 
-Prélèvement sur la valeur foncière des immeubles comportant un logement vacant ou sous-utilisé, avec un taux maximal progressif (p. ex. 1 % la 1re année, 2 % la 2e, 3 % la 3e).
+Prélèvement sur la valeur foncière des immeubles comportant un logement vacant ou sous-utilisé, avec un taux maximal progressif ne pouvant pas excéder 1 % la 1re année, 2 % la 2e et 3 % la 3e.
 
 ### m07 · Taxe sur les immeubles non-résidentiels vacants
 
@@ -137,7 +137,7 @@ Tarif (ou vignette) pour contrôler et gérer le stationnement sur rue ; le mont
 
 **Description**
 
-Redevance auprès des grands générateurs de déplacement (grands employeurs de 100+ employés, organisateurs d'événements) dépourvus d'un programme de gestion des déplacements, pour financer le transport collectif et les infrastructures de transport actif.
+Redevance visant les grands générateurs de déplacement (grands employeurs de 100+ employés, organisateurs d'événements) ne disposant pas d'un programme de gestion des déplacements afin de les inciter à en adopter un. Les sommes recueillies peuvent financer le transport collectif et les infrastructures de transport actif.
 
 ### m11 · Redevance transport rémunéré de personnes
 
@@ -161,7 +161,7 @@ Taxe auprès des propriétaires de parcs de stationnement non résidentiels dans
 
 **Description**
 
-Redevance exigée des requérants de permis de construction et destinée à financer tout ou partie d’une dépense liée à un service de transport collectif qui bénéficie à l’immeuble visé par la demande de permis ou de certificat, à ses occupants ou à ses usagers. À distinguer de la redevance visant les grands générateurs de déplacements, qui vise à inciter le générateur à se doter d'un plan de réduction des déplacements.
+Redevance exigée des requérants de permis de construction et destinée à financer tout ou partie d’une dépense liée à un service de transport collectif qui bénéficie à l’immeuble visé par la demande de permis ou de certificat, à ses occupants ou à ses usagers. À distinguer de la redevance visant les grands générateurs de déplacements, qui vise à inciter le générateur à se doter d'un plan de gestion des déplacements.
 
 ## Aménagement, sol et développement
 
@@ -171,7 +171,7 @@ Redevance exigée des requérants de permis de construction et destinée à fina
 
 **Description**
 
-Taxe sur les immeubles non-résidentiels desservis dont le coefficient d'occupation du sol (COS) est inférieur à un certain seuil. Le montant de la taxe/redevance total sur le COS pourrait notamment être calculé en utilisant la différence entre la superficie de plancher intérieur d’un bâtiment principal et la superficie requise pour atteindre le COS minimal fixé par la municipalité. Cet écart peut ensuite être imposé à un taux déterminé par la municipalité.
+Taxe sur les immeubles non-résidentiels desservis dont le coefficient d'occupation du sol (COS) est inférieur à un certain seuil. Le montant de la taxe/redevance sur le COS pourrait notamment être calculé en utilisant la différence entre la superficie de plancher intérieur d’un bâtiment principal et la superficie requise pour atteindre le COS minimal fixé par la municipalité. Cet écart peut ensuite être imposé à un taux déterminé par la municipalité.
 
 ### m15 · Taxe sur les surfaces non végétalisées
 
@@ -229,7 +229,7 @@ Taxe imposée aux terrains inscrits comme contaminés et laissés inutilisés, p
 
 **Description**
 
-Tarification incitative selon le nombre de levées et la taille du bac, afin de réduire les matières vouées à l'enfouissement (coûts aujourd'hui assumés par la taxe foncière générale).
+Tarification incitative selon le nombre de levées et la taille du bac, afin de réduire les matières vouées à l'enfouissement.
 
 ### m22 · Redevance visant les résidus de CRD
 
@@ -237,7 +237,7 @@ Tarification incitative selon le nombre de levées et la taille du bac, afin de 
 
 **Description**
 
-Redevance sur les permis de construction, rénovation et démolition pour détourner les résidus de CRD de l'élimination ; les redevables ayant un plan de gestion des matières pourraient être exemptés.
+Redevance visant les requérants de permis de construction, rénovation et démolition pour détourner les résidus de CRD de l'élimination. Les requérants ne disposant pas de plan de gestion des matières pourraient y être assujettis.
 
 ### m23 · Taxe ou redevance sur la démolition
 
@@ -289,21 +289,21 @@ Taxe imposée aux propriétaires d'immeubles résidentiels disposant d'appareils
 
 Redevance sur les rejets d'eaux usées, prélevée selon la quantité et le niveau de contamination rejetés sur une période donnée, pour financer le traitement des eaux usées.
 
-### m30 · Tarification eau résidentiel
+### m30 · Tarification variable de l'eau (résidentiel)
 
 **en ligne** · source : Mascouche, fiche 21 « Tarification de l'eau potable — secteur résidentiel » · aussi couverte par Gatineau, fiche 22 · pouvoir habilitant (V3) : LFM
 
 **Description**
 
-Tarification de l'eau potable au secteur résidentiel selon le principe utilisateur-payeur : variable (consommation en m³ avec compteurs) ou forfaitaire (tarif annuel au compte de taxes).
+Tarification de l'eau potable au secteur résidentiel selon le principe utilisateur-payeur : tarif variable établi d'après la consommation réelle (m³ mesurés au compteur), plutôt qu'un montant forfaitaire porté au compte de taxes.
 
-### m31 · Tarification eau ICI
+### m31 · Tarification variable de l'eau (ICI)
 
 **en ligne** · source : Mascouche, fiche 22 « Tarification de l'eau potable — ICI » · aussi couverte par Gatineau, fiche 23 · pouvoir habilitant (V3) : LFM
 
 **Description**
 
-Tarification de l'eau potable pour les industries, commerces et institutions (ICI) selon le principe utilisateur-payeur : variable selon la consommation (compteurs) ou forfaitaire au coût moyen.
+Tarification de l'eau potable pour les industries, commerces et institutions (ICI) selon le principe utilisateur-payeur : tarif variable établi d'après la consommation réelle (m³ mesurés au compteur), plutôt qu'un forfait au coût moyen.
 
 ### m32 · Taxe sur les piscines
 
@@ -311,7 +311,7 @@ Tarification de l'eau potable pour les industries, commerces et institutions (IC
 
 **Description**
 
-Transformation de la tarification actuelle des piscines en taxe générale, avec un montant par propriété calibré pour générer des revenus supplémentaires.
+Application du pouvoir général de taxation aux immeubles qui possèdent une piscine. Possibilité : transformation de la tarification des piscines en taxe générale, avec un montant par propriété calibré pour générer des revenus supplémentaires.
 
 ## Autres
 
@@ -329,7 +329,7 @@ Prélèvement sur le prix d'entrée ou le droit de participation à des activit�
 
 **Description**
 
-Redevance réglementaire imposée aux exploitants d'établissements d'hébergement touristique — montant annuel par unité de capacité (chambre, lit, site de camping), modulable par type d'établissement et secteur — pour compenser les coûts municipaux liés au tourisme (voirie, parcs, déchets, sécurité) ; distincte de la taxe provinciale sur l'hébergement et non facturée aux touristes.
+Redevance réglementaire imposée aux exploitants d'établissements d'hébergement touristique. Montant annuel par unité de capacité (chambre, lit, site de camping), modulable par type d'établissement et secteur afin de compenser les coûts municipaux liés au tourisme (voirie, parcs, déchets, sécurité). Distincte de la taxe provinciale sur l'hébergement touristique.
 
 ### m35 · Taxe sur les panneaux d'affichage
 
@@ -353,7 +353,7 @@ Redevance réglementaire liée à l'occupation du domaine public par les réseau
 
 **Description**
 
-Redevance auprès des propriétaires d'installations présentant un risque pour la population ou l'environnement (réservoirs de produits chimiques, entreposage de matières dangereuses), calculée selon la nature et le volume entreposés, pour financer les capacités municipales de prévention et d'intervention d'urgence qu'exigent ces installations.
+Redevance visant les propriétaires d'installations présentant un risque pour la population ou l'environnement (réservoirs de produits chimiques, entreposage de matières dangereuses), calculée selon la nature et le volume entreposés, pour financer les capacités municipales de prévention et d'intervention d'urgence qu'exigent ces installations.
 
 ---
 

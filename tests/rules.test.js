@@ -199,6 +199,14 @@ test('MEASURES — les titres révisés du 4 août 2026 sont en place', () => {
   assert.equal(t.m25, 'Redevance sur la performance énergétique et climatique des immeubles');
   assert.equal(t.m37, 'Redevance sur les générateurs de risques');
 });
+/* Les titres ne passent PAS par le pipeline document → production (publier.js ne
+   réinjecte que les descriptions) : rien d'autre que ce test ne les protège. */
+test('MEASURES — les titres révisés du 6 août 2026 (Fanny) sont en place', () => {
+  const t = Object.fromEntries(R.MEASURES.map(m=>[m.id, m.titre]));
+  assert.equal(t.m04, 'Taux varié par tranche de valeur (non résidentiel)');
+  assert.equal(t.m30, "Tarification variable de l'eau (résidentiel)");
+  assert.equal(t.m31, "Tarification variable de l'eau (ICI)");
+});
 test('CATS — 6 catégories, libellé et couleur présents', () => {
   assert.equal(Object.keys(R.CATS).length, 6);
   for(const [k,c] of Object.entries(R.CATS)) assert.ok(c.label && c.color, `catégorie ${k} incomplète`);
